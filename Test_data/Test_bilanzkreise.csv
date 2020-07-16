@@ -1,0 +1,4 @@
+Bilanzkreis;Verbraucher;Erzeuger;smart;Flex Verbraucher;Flex Erzeuger;Installierte Leistung;Rampe
+Generation;-;Generator;True;-;FlexGen1,FlexGen2;200;1
+Consumption;Load;-;True;FlexLoad1,FlexLoad2;-;100;2
+SRLDummy;-;KW SRL;True;-;-;0;1
