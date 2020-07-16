@@ -1,8 +1,0 @@
-Asset;sb_rate_pos;sb_rate_neg;sb_P_min;sb_P_max;sb_costs;bg_name;class
-SB_pos_1;0.02;0.02;0;5;0;Generation;SmartBalancingAsset
-SB_neg_1;0.01;0.01;-3;0;0;Consumption;SmartBalancingAsset
-SB_mix;0.5;0.5;-2;2;0;Generation;SmartBalancingAsset
-FlexGen1;0.01;0.011;0;10;0;Generation;GeneratorFlex
-FlexGen2;0.02;0.022;0;20;0;Generation;GeneratorFlex
-FlexLoad1;0.001;0.001;0.5;1;0;Consumption;LoadFlex
-FlexLoad2;0.002;0.002;0.7;2;0;Consumption;LoadFlex

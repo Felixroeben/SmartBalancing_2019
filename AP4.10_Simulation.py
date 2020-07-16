@@ -41,7 +41,8 @@ import math
 savefilename_period = 'sim_output_period.csv'       # name of save file, location defined by "scenario"
 savefilename_all = 'sim_output_all.csv'             # name of save file, location defined by "scenario"
 #scenario = 'Test_data//Test_'
-scenario = 'Feldtest_data//Feldtest_'
+#scenario = 'Feldtest_data//Feldtest_'
+scenario = 'WC_data//WC_'
 start = 0                                           # simulation time
 
 # ...Set simulation time step in s
@@ -50,7 +51,7 @@ t_step = 1
 k_now = 0
 
 # ...Activation of simulation functions
-smartbalancing = True       # True: values being read from the .csv
+smartbalancing = False       # True: values being read from the .csv
 save_data = True            # True: write the Simulation data to .csv
 show_fig = True             # True: show all figures at the end of the simulation
 save_fig = False            # True: figures are saved as .png files at the end of the simulation
@@ -61,7 +62,7 @@ t_now = 0                           # start of simulation in s
 t_day = t_now                       # time of current day in s
 t_isp = 900                         # duration of an Imbalance Settlement Period in s
 t_mol = 14400                       # time in s, after which the MOL gets updated
-t_stop = 1000#604789                     # end of simulation in s
+t_stop = 604789                     # end of simulation in s
 sim_duration = t_stop - t_now + 1
 
 # ...Set simulation time settings in timestamps utc
@@ -229,12 +230,6 @@ while t_now < t_stop:
     k_now += 1
     k_vector.append(k_now)
 
-    # print('t =', t_now)
-    # print('FRCE = ', CA1.FRCE_ol)
-    # print('aFRR cap pos:', CA1.aFRR_cap_pos)
-    # print('aFRR cap neg:', CA1.aFRR_cap_neg)
-    # print()
-
     SZ.readarray(k_now)
     SZ.gen_calc()
     SZ.load_calc()
@@ -319,206 +314,7 @@ else:
 
 if show_fig:
 
-    if scenario == 'Test_data//Test_':
-        plt.figure(0)
-        plt.plot(t_vector, CA1.array_FRCE_ol_pos,
-                 t_vector, CA1.array_FRCE_cl_pos,
-                 t_vector, CA1.array_aFRR_ref_pos,
-                 t_vector, CA1.array_aFRR_P_pos)
-        plt.title('pos. aFRR')
-        plt.xlabel('time / s')
-        plt.ylabel('Power / MW')
-        plt.grid()
-        plt.legend(['open loop FRCE', 'closed loop FRCE', 'aFRR reference', 'aFRR power'])
-        if save_fig:
-            plt.savefig('Bilder//Feldtest2.png', bbox_inches='tight')
-        else:
-            pass
-
-        plt.figure(1)
-        plt.plot(t_vector, CA1.array_FRCE_ol_neg,
-                 t_vector, CA1.array_FRCE_cl_neg,
-                 t_vector, CA1.array_aFRR_ref_neg,
-                 t_vector, CA1.array_aFRR_P_neg,
-                 t_vector, CA1.array_sb_P)
-        plt.title('neg. aFRR')
-        plt.xlabel('time / s')
-        plt.ylabel('Power / MW')
-        plt.grid()
-        plt.legend(['FRCE_ol_neg', 'FRCE_cl_neg', 'aFRR_ref_neg', 'aFRR_P_neg', 'sb_P'])
-        if save_fig:
-            plt.savefig('Bilder//Feldtest2.png', bbox_inches='tight')
-        else:
-            pass
-
-        plt.figure(3)
-        plt.plot(t_vector, CA1.array_gen_P,
-                 t_vector, CA1.array_gen_P_schedule,
-                 t_vector, CA1.array_load_P,
-                 t_vector, CA1.array_load_P_schedule,
-                 t_vector, CA1.array_imba_P_ph,
-                 t_vector, CA1.array_imba_P_sc)
-        plt.title(CA1.name)
-        plt.xlabel('time / s')
-        plt.ylabel('Power / MW')
-        plt.grid()
-        plt.legend(['gen_P', 'gen_P_sc', 'load_P', 'load_P_sc', 'imba_P_ph', 'imba_P_sc'])
-        if save_fig:
-            plt.savefig('Bilder//Feldtest2.png', bbox_inches='tight')
-        else:
-            pass
-
-        # plt.figure(4)
-        # plt.title(CA1.array_balancinggroups[1].name)
-        # plt.plot(t_vector, CA1.array_balancinggroups[1].array_load_P,
-        #          t_vector, CA1.array_balancinggroups[1].array_load_P_schedule)
-        # plt.xlabel('time / s')
-        # plt.ylabel('Power / MW')
-        # plt.grid()
-        # plt.legend(['load_P', 'load_P_sc'])
-        # if save_fig:
-        #     plt.savefig('Bilder//Feldtest11.png', bbox_inches='tight')
-        # else:
-        #     pass
-        #
-        # plt.figure(5)
-        # plt.title(CA1.array_balancinggroups[1].name)
-        # plt.plot(t_vector, CA1.array_balancinggroups[1].array_gen_E,
-        #          t_vector, CA1.array_balancinggroups[1].array_gen_E_schedule,
-        #          t_vector, CA1.array_balancinggroups[1].array_load_E,
-        #          t_vector, CA1.array_balancinggroups[1].array_load_E_schedule,
-        #          t_vector, CA1.array_balancinggroups[1].array_imba_E)
-        # plt.xlabel('time / s')
-        # plt.ylabel('Energy / MWh')
-        # plt.grid()
-        # plt.legend(['gen_E', 'gen_E_sc', 'load_E', 'load_E_sc', 'imba_E'])
-        # if save_fig:
-        #     plt.savefig('Bilder//Feldtest11.png', bbox_inches='tight')
-        # else:
-        #     pass
-        #
-        # plt.figure(6)
-        # plt.title(CA1.array_balancinggroups[1].name)
-        # plt.plot(t_vector, CA1.array_balancinggroups[1].array_gen_E_period,
-        #          t_vector, CA1.array_balancinggroups[1].array_gen_E_schedule_period,
-        #          t_vector, CA1.array_balancinggroups[1].array_load_E_period,
-        #          t_vector, CA1.array_balancinggroups[1].array_load_E_schedule_period,
-        #          t_vector, CA1.array_balancinggroups[1].array_imba_E_period)
-        # plt.xlabel('time / s')
-        # plt.ylabel('Energy / MWh')
-        # plt.grid()
-        # plt.legend(['gen_E_p', 'gen_E_sc_p', 'load_E_p', 'load_E_sc_p', 'imba_E_p'])
-        # if save_fig:
-        #     plt.savefig('Bilder//Feldtest12.png', bbox_inches='tight')
-        # else:
-        #     pass
-
-        plt.figure(7)
-        plt.plot(t_vector, CA1.array_FRCE_ol,
-                 t_vector, CA1.array_AEP,
-                 t_vector, CA1.array_AEP_max_period,
-                 t_vector, CA1.array_aFRR_price_pos_max,
-                 t_vector, CA1.array_aFRR_price_neg_max,
-                 t_vector, CA1.array_da_prices)
-        plt.title(CA1.name)
-        grapfunc.add_vert_lines(plt=plt, period=t_isp, t_stop=t_stop, color='gray', linestyle='dotted', linewidth=0.5)
-        grapfunc.add_vert_lines(plt=plt, period=t_mol, t_stop=t_stop, color='black', linestyle='dashed', linewidth=0.5)
-        plt.legend(['FRCE_ol', 'AEP', 'AEP_max_period', 'aFRR_price_pos_max', 'aFRR_price_neg_max', 'da_prices'])
-        if save_fig:
-            plt.savefig('Bilder//Feldtest3.png', bbox_inches='tight')
-        else:
-            pass
-
-        # plt.figure(8)
-        # plt.plot(t_vector, CA1.array_FRCE_sb,
-        #          t_vector, CA1.array_balancinggroups[1].array_sb_assets[0].array_sb_P,
-        #          t_vector, CA1.array_balancinggroups[2].array_sb_assets[0].array_sb_P,
-        #          t_vector, CA1.array_balancinggroups[1].array_sb_assets[1].array_sb_P,
-        #          t_vector, CA1.array_balancinggroups[1].array_sb_assets[2].array_sb_P)
-        # plt.title(CA1.name)
-        # plt.grid()
-        # plt.legend(['FRCE_sb', 'SB_pos_1', 'SB_neg_1', 'SB_mix', 'FG1'])
-        # if save_fig:
-        #     plt.savefig('Bilder//Feldtest3.png', bbox_inches='tight')
-        # else:
-        #     pass
-
-        # plt.figure(10)
-        # plt.plot(t_vector, CA1.array_balancinggroups[1].array_generators[1].array_gen_P,
-        #          t_vector, CA1.array_balancinggroups[1].array_generators[1].array_sb_pot_pos,
-        #          t_vector, CA1.array_balancinggroups[1].array_generators[1].array_sb_pot_neg,
-        #          t_vector, CA1.array_balancinggroups[1].array_generators[1].array_sb_P)
-        # plt.title(CA1.array_balancinggroups[1].array_generators[1].name)
-        # plt.grid()
-        # plt.legend(['gen_P', 'sb_pot_pos', 'sb_pot_neg', 'sb_P'])
-        # if save_fig:
-        #     plt.savefig('Bilder//Feldtest3.png', bbox_inches='tight')
-        # else:
-        #     pass
-        #
-        # plt.figure(11)
-        # plt.plot(t_vector, CA1.array_balancinggroups[1].array_generators[2].array_gen_P,
-        #          t_vector, CA1.array_balancinggroups[1].array_generators[2].array_sb_pot_pos,
-        #          t_vector, CA1.array_balancinggroups[1].array_generators[2].array_sb_pot_neg,
-        #          t_vector, CA1.array_balancinggroups[1].array_generators[2].array_sb_P)
-        # plt.title(CA1.array_balancinggroups[1].array_generators[2].name)
-        # plt.grid()
-        # plt.legend(['gen_P', 'sb_pot_pos', 'sb_pot_neg', 'sb_P'])
-        # if save_fig:
-        #     plt.savefig('Bilder//Feldtest3.png', bbox_inches='tight')
-        # else:
-        #     pass
-        #
-        # plt.figure(12)
-        # plt.plot(t_vector, CA1.array_balancinggroups[2].array_loads[1].array_load_P,
-        #          t_vector, CA1.array_balancinggroups[2].array_loads[1].array_sb_pot_pos,
-        #          t_vector, CA1.array_balancinggroups[2].array_loads[1].array_sb_pot_neg,
-        #          t_vector, CA1.array_balancinggroups[2].array_loads[1].array_sb_P)
-        # plt.title(CA1.array_balancinggroups[2].array_loads[1].name)
-        # plt.grid()
-        # plt.legend(['load_P', 'sb_pot_pos', 'sb_pot_neg', 'sb_P'])
-        # if save_fig:
-        #     plt.savefig('Bilder//Feldtest3.png', bbox_inches='tight')
-        # else:
-        #     pass
-        #
-        # plt.figure(13)
-        # plt.plot(t_vector, CA1.array_balancinggroups[2].array_loads[2].array_load_P,
-        #          t_vector, CA1.array_balancinggroups[2].array_loads[2].array_sb_pot_pos,
-        #          t_vector, CA1.array_balancinggroups[2].array_loads[2].array_sb_pot_neg,
-        #          t_vector, CA1.array_balancinggroups[2].array_loads[2].array_sb_P)
-        # plt.title(CA1.array_balancinggroups[2].array_loads[2].name)
-        # plt.grid()
-        # plt.legend(['load_P', 'sb_pot_pos', 'sb_pot_neg', 'sb_P'])
-        # if save_fig:
-        #     plt.savefig('Bilder//Feldtest3.png', bbox_inches='tight')
-        # else:
-        #     pass
-
-        plt.figure(14)
-        plt.plot(t_vector, CA1.array_AEP,
-                 t_vector, CA1.array_balancinggroups[3].array_imba_E_period,
-                 t_vector, CA1.array_balancinggroups[3].array_AEP_costs)
-        plt.title('AEP_costs')
-        grapfunc.add_vert_lines(plt=plt, period=t_isp, t_stop=t_stop, color='gray', linestyle='dotted', linewidth=0.5)
-        grapfunc.add_vert_lines(plt=plt, period=t_mol, t_stop=t_stop, color='black', linestyle='dashed', linewidth=0.5)
-        plt.legend(['AEP', 'imba_E', 'AEP_costs'])
-        if save_fig:
-            plt.savefig('Bilder//Feldtest3.png', bbox_inches='tight')
-        else:
-            pass
-
-        plt.show()
-
-    elif scenario == 'Feldtest_data//Feldtest_':
-        # plt.figure(0)
-        # plt.plot(t_vector, SZ.array_f)
-        # plt.title('Grid frequency')
-        # plt.grid()
-        # if save_fig:
-        #     plt.savefig('Bilder//Feldtest0.png', bbox_inches='tight')
-        # else:
-        #     pass
+    if scenario == 'Feldtest_data//Feldtest_':
 
         plt.figure(1)
         plt.plot(t_vector, CA1.array_imba_P_sc,
@@ -534,102 +330,6 @@ if show_fig:
             pass
 
         plt.figure(2)
-        plt.plot(t_vector, CA1.array_FRCE_ol_pos,
-                 t_vector, CA1.array_FRCE_ol_neg,
-                 t_vector, CA1.array_aFRR_ref_pos,
-                 t_vector, CA1.array_aFRR_ref_neg,
-                 t_vector, CA1.array_aFRR_P_pos,
-                 t_vector, CA1.array_aFRR_P_neg)
-        plt.title(CA1.name)
-        plt.grid()
-        plt.xlabel('time / s')
-        plt.ylabel('Power / MW')
-        plt.legend(['FRCE_ol_pos', 'FRCE_ol_neg', 'aFRR_ref_pos', 'aFRR_ref_neg', 'aFRR_P_pos', 'aFRR_P_neg'])
-        if save_fig:
-            plt.savefig('Bilder//Feldtest1.png', bbox_inches='tight')
-        else:
-            pass
-
-        # plt.figure(3)
-        # plt.plot(t_vector, CA1.array_gen_P,
-        #          t_vector, CA1.array_gen_P_schedule,
-        #          t_vector, CA1.array_load_P,
-        #          t_vector, CA1.array_load_P_schedule,
-        #          t_vector, CA1.array_imba_P_ph,
-        #          t_vector, CA1.array_imba_P_sc)
-        # plt.title(CA1.name)
-        # plt.xlabel('time / s')
-        # plt.ylabel('Power / MW')
-        # plt.grid()
-        # plt.legend(['gen_P', 'gen_P_sc', 'load_P', 'load_P_sc', 'imba_P_ph', 'imba_P_sc'])
-        # if save_fig:
-        #     plt.savefig('Bilder//Feldtest2.png', bbox_inches='tight')
-        # else:
-        #     pass
-
-        # plt.figure(4)
-        # plt.title(CA1.array_balancinggroups[1].name)
-        # plt.plot(t_vector, CA1.array_balancinggroups[1].array_load_P,
-        #          t_vector, CA1.array_balancinggroups[1].array_load_P_schedule)
-        # plt.xlabel('time / s')
-        # plt.ylabel('Power / MW')
-        # plt.grid()
-        # plt.legend(['load_P', 'load_P_sc'])
-        # if save_fig:
-        #     plt.savefig('Bilder//Feldtest11.png', bbox_inches='tight')
-        # else:
-        #     pass
-        #
-        # plt.figure(5)
-        # plt.title(CA1.array_balancinggroups[1].name)
-        # plt.plot(t_vector, CA1.array_balancinggroups[1].array_gen_E,
-        #          t_vector, CA1.array_balancinggroups[1].array_gen_E_schedule,
-        #          t_vector, CA1.array_balancinggroups[1].array_load_E,
-        #          t_vector, CA1.array_balancinggroups[1].array_load_E_schedule,
-        #          t_vector, CA1.array_balancinggroups[1].array_imba_E)
-        # plt.xlabel('time / s')
-        # plt.ylabel('Energy / MWh')
-        # plt.grid()
-        # plt.legend(['gen_E', 'gen_E_sc', 'load_E', 'load_E_sc', 'imba_E'])
-        # if save_fig:
-        #     plt.savefig('Bilder//Feldtest11.png', bbox_inches='tight')
-        # else:
-        #     pass
-        #
-        # plt.figure(6)
-        # plt.title(CA1.array_balancinggroups[1].name)
-        # plt.plot(t_vector, CA1.array_balancinggroups[1].array_gen_E_period,
-        #          t_vector, CA1.array_balancinggroups[1].array_gen_E_schedule_period,
-        #          t_vector, CA1.array_balancinggroups[1].array_load_E_period,
-        #          t_vector, CA1.array_balancinggroups[1].array_load_E_schedule_period,
-        #          t_vector, CA1.array_balancinggroups[1].array_imba_E_period)
-        # plt.xlabel('time / s')
-        # plt.ylabel('Energy / MWh')
-        # plt.grid()
-        # plt.legend(['gen_E_p', 'gen_E_sc_p', 'load_E_p', 'load_E_sc_p', 'imba_E_p'])
-        # if save_fig:
-        #     plt.savefig('Bilder//Feldtest12.png', bbox_inches='tight')
-        # else:
-        #     pass
-
-        plt.figure(7)
-        plt.plot(t_vector, CA1.array_FRCE,
-                 t_vector, CA1.array_AEP,
-                 t_vector, CA1.array_AEP_max_period,
-                 t_vector, CA1.array_aFRR_price_pos_max,
-                 t_vector, CA1.array_aFRR_price_neg_max,
-                 t_vector, CA1.array_mFRR_price_pos_max,
-                 t_vector, CA1.array_mFRR_price_neg_max)
-        plt.title(CA1.name)
-        grapfunc.add_vert_lines(plt=plt, period=t_isp, t_stop=t_stop, color='gray', linestyle='dotted', linewidth=0.5)
-        grapfunc.add_vert_lines(plt=plt, period=t_mol, t_stop=t_stop, color='black', linestyle='dashed', linewidth=0.5)
-        plt.legend(['FRCE', 'AEP', 'AEP_max_period', 'aFRR_price_pos_max', 'aFRR_price_neg_max', 'mFRR_price_pos_max', 'mFRR_price_neg_max'])
-        if save_fig:
-            plt.savefig('Bilder//Feldtest3.png', bbox_inches='tight')
-        else:
-            pass
-
-        plt.figure(8)
         plt.plot(t_vector, CA1.array_FRCE_sb,
                  t_vector, CA1.array_balancinggroups[1].array_sb_P,
                  t_vector, CA1.array_balancinggroups[2].array_sb_P,
@@ -649,205 +349,7 @@ if show_fig:
         else:
             pass
 
-        # plt.figure(9)
-        # plt.plot(t_vector, CA1.array_balancinggroups[5].array_sb_assets[0].array_load_P,
-        #          t_vector, CA1.array_balancinggroups[5].array_sb_assets[0].array_sb_pot_pos,
-        #          t_vector, CA1.array_balancinggroups[5].array_sb_assets[0].array_sb_pot_neg,
-        #          t_vector, CA1.array_balancinggroups[5].array_sb_assets[0].array_sb_P)
-        # plt.title(CA1.array_balancinggroups[5].array_sb_assets[0].name)
-        # grapfunc.add_vert_lines(plt=plt, period=t_isp, t_stop=t_stop, color='gray', linestyle='dotted', linewidth=0.5)
-        # grapfunc.add_vert_lines(plt=plt, period=t_mol, t_stop=t_stop, color='black', linestyle='dashed', linewidth=0.5)
-        # plt.legend(['load_P', 'sb_pot_pos', 'sb_pot_neg', 'sb_P'])
-        # if save_fig:
-        #     plt.savefig('Bilder//Feldtest3.png', bbox_inches='tight')
-        # else:
-        #     pass
-        #
-        # plt.figure(10)
-        # plt.plot(t_vector, CA1.array_balancinggroups[4].array_sb_assets[0].array_load_P,
-        #          t_vector, CA1.array_balancinggroups[4].array_sb_assets[0].array_sb_pot_pos,
-        #          t_vector, CA1.array_balancinggroups[4].array_sb_assets[0].array_sb_pot_neg,
-        #          t_vector, CA1.array_balancinggroups[4].array_sb_assets[0].array_sb_P)
-        # plt.title(CA1.array_balancinggroups[4].array_sb_assets[0].name)
-        # grapfunc.add_vert_lines(plt=plt, period=t_isp, t_stop=t_stop, color='gray', linestyle='dotted', linewidth=0.5)
-        # grapfunc.add_vert_lines(plt=plt, period=t_mol, t_stop=t_stop, color='black', linestyle='dashed', linewidth=0.5)
-        # plt.legend(['load_P', 'sb_pot_pos', 'sb_pot_neg', 'sb_P'])
-        # if save_fig:
-        #     plt.savefig('Bilder//Feldtest3.png', bbox_inches='tight')
-        # else:
-        #     pass
-        #
-        # plt.figure(11)
-        # plt.plot(t_vector, CA1.array_balancinggroups[3].array_sb_assets[0].array_load_P,
-        #          t_vector, CA1.array_balancinggroups[3].array_sb_assets[0].array_sb_pot_pos,
-        #          t_vector, CA1.array_balancinggroups[3].array_sb_assets[0].array_sb_pot_neg,
-        #          t_vector, CA1.array_balancinggroups[3].array_sb_assets[0].array_sb_P)
-        # plt.title(CA1.array_balancinggroups[3].array_sb_assets[0].name)
-        # grapfunc.add_vert_lines(plt=plt, period=t_isp, t_stop=t_stop, color='gray', linestyle='dotted', linewidth=0.5)
-        # grapfunc.add_vert_lines(plt=plt, period=t_mol, t_stop=t_stop, color='black', linestyle='dashed', linewidth=0.5)
-        # plt.legend(['load_P', 'sb_pot_pos', 'sb_pot_neg', 'sb_P'])
-        # if save_fig:
-        #     plt.savefig('Bilder//Feldtest3.png', bbox_inches='tight')
-        # else:
-        #     pass
-
-        # plt.figure(12)
-        # plt.plot(t_vector, CA1.array_balancinggroups[1].array_AEP_costs,
-        #          t_vector, CA1.array_balancinggroups[1].array_AEP_costs_period)
-        # plt.title(CA1.array_balancinggroups[1].name)
-        # grapfunc.add_vert_lines(plt=plt, period=t_isp, t_stop=t_stop, color='gray', linestyle='dotted', linewidth=0.5)
-        # grapfunc.add_vert_lines(plt=plt, period=t_mol, t_stop=t_stop, color='black', linestyle='dashed', linewidth=0.5)
-        # plt.legend(['AEP_costs', 'AEP_costs_period'])
-        # if save_fig:
-        #     plt.savefig('Bilder//Feldtest3.png', bbox_inches='tight')
-        # else:
-        #     pass
-        #
-        # plt.figure(13)
-        # plt.plot(t_vector, CA1.array_balancinggroups[1].array_load_E,
-        #          t_vector, CA1.array_balancinggroups[1].array_load_E_schedule,
-        #          t_vector, CA1.array_balancinggroups[1].array_imba_E,
-        #          t_vector, CA1.array_balancinggroups[1].array_imba_E_period)
-        # plt.title(CA1.array_balancinggroups[1].name)
-        # grapfunc.add_vert_lines(plt=plt, period=t_isp, t_stop=t_stop, color='gray', linestyle='dotted', linewidth=0.5)
-        # grapfunc.add_vert_lines(plt=plt, period=t_mol, t_stop=t_stop, color='black', linestyle='dashed', linewidth=0.5)
-        # plt.legend(['load_E', 'load_E_sc', 'imba_E', 'imba_E_period'])
-        # if save_fig:
-        #     plt.savefig('Bilder//Feldtest3.png', bbox_inches='tight')
-        # else:
-        #     pass
-        #
-
-        plt.figure(14)
-        plt.plot(t_vector, CA1.array_AEP,
-                 t_vector, CA1.array_FRCE_sb,
-                 t_vector, CA1.array_balancinggroups[1].array_load_E_period,
-                 t_vector, CA1.array_balancinggroups[1].array_sb_P,
-                 t_vector, CA1.array_balancinggroups[1].array_AEP_costs_period)
-        plt.title(CA1.array_balancinggroups[1].name)
-        grapfunc.add_vert_lines(plt=plt, period=t_isp, t_stop=t_stop, color='gray', linestyle='dotted', linewidth=0.5)
-        grapfunc.add_vert_lines(plt=plt, period=t_mol, t_stop=t_stop, color='black', linestyle='dashed', linewidth=0.5)
-        plt.legend(['AEP', 'FRCE_sb', 'load_E', 'sb_P', 'AEP_costs'])
-        if save_fig:
-            plt.savefig('Bilder//Feldtest3.png', bbox_inches='tight')
-        else:
-            pass
-
-        plt.figure(15)
-        plt.plot(t_vector, CA1.array_AEP,
-                 t_vector, CA1.array_FRCE_sb,
-                 t_vector, CA1.array_balancinggroups[2].array_gen_E_period,
-                 t_vector, CA1.array_balancinggroups[2].array_sb_P,
-                 t_vector, CA1.array_balancinggroups[2].array_AEP_costs_period)
-        plt.title(CA1.array_balancinggroups[2].name)
-        grapfunc.add_vert_lines(plt=plt, period=t_isp, t_stop=t_stop, color='gray', linestyle='dotted', linewidth=0.5)
-        grapfunc.add_vert_lines(plt=plt, period=t_mol, t_stop=t_stop, color='black', linestyle='dashed', linewidth=0.5)
-        plt.legend(['AEP', 'FRCE_sb', 'gen_E', 'sb_P', 'AEP_costs'])
-        if save_fig:
-            plt.savefig('Bilder//Feldtest3.png', bbox_inches='tight')
-        else:
-            pass
-
-        plt.figure(16)
-        plt.plot(t_vector, CA1.array_AEP,
-                 t_vector, CA1.array_FRCE_sb,
-                 t_vector, CA1.array_balancinggroups[3].array_load_E_period,
-                 t_vector, CA1.array_balancinggroups[3].array_sb_P,
-                 t_vector, CA1.array_balancinggroups[3].array_AEP_costs_period)
-        plt.title(CA1.array_balancinggroups[3].name)
-        grapfunc.add_vert_lines(plt=plt, period=t_isp, t_stop=t_stop, color='gray', linestyle='dotted', linewidth=0.5)
-        grapfunc.add_vert_lines(plt=plt, period=t_mol, t_stop=t_stop, color='black', linestyle='dashed', linewidth=0.5)
-        plt.legend(['AEP', 'FRCE_sb', 'load_E', 'sb_P', 'AEP_costs'])
-        if save_fig:
-            plt.savefig('Bilder//Feldtest3.png', bbox_inches='tight')
-        else:
-            pass
-
-        plt.figure(17)
-        plt.plot(t_vector, CA1.array_AEP,
-                 t_vector, CA1.array_FRCE_ol,
-                 t_vector, CA1.array_FRCE_sb,
-                 t_vector, CA1.array_balancinggroups[5].array_load_E_period,
-                 t_vector, CA1.array_balancinggroups[5].array_sb_P,
-                 t_vector, CA1.array_balancinggroups[5].array_AEP_costs_period)
-        plt.title(CA1.array_balancinggroups[5].name)
-        grapfunc.add_vert_lines(plt=plt, period=t_isp, t_stop=t_stop, color='gray', linestyle='dotted', linewidth=0.5)
-        grapfunc.add_vert_lines(plt=plt, period=t_mol, t_stop=t_stop, color='black', linestyle='dashed', linewidth=0.5)
-        plt.legend(['AEP', 'FRCE_ol', 'FRCE_sb', 'load_E', 'sb_P', 'AEP_costs'])
-        if save_fig:
-            plt.savefig('Bilder//Feldtest3.png', bbox_inches='tight')
-        else:
-            pass
-
-        plt.figure(18)
-        plt.plot(t_vector, CA1.array_AEP,
-                 t_vector, CA1.array_balancinggroups[2].array_sb_P)
-        plt.title(CA1.array_balancinggroups[2].name)
-        grapfunc.add_vert_lines(plt=plt, period=t_isp, t_stop=t_stop, color='gray', linestyle='dotted', linewidth=0.5)
-        grapfunc.add_vert_lines(plt=plt, period=t_mol, t_stop=t_stop, color='black', linestyle='dashed', linewidth=0.5)
-        plt.legend(['AEP', 'SB'])
-        if save_fig:
-            plt.savefig('Bilder//Feldtest3.png', bbox_inches='tight')
-        else:
-            pass
-
-        #
-        # plt.figure(15)
-        # plt.plot(t_vector, CA1.array_balancinggroups[3].array_load_P_schedule,
-        #          t_vector, CA1.array_balancinggroups[3].array_sb_P)
-        # plt.title(CA1.array_balancinggroups[3].name)
-        # grapfunc.add_vert_lines(plt=plt, period=t_isp, t_stop=t_stop, color='gray', linestyle='dotted', linewidth=0.5)
-        # grapfunc.add_vert_lines(plt=plt, period=t_mol, t_stop=t_stop, color='black', linestyle='dashed', linewidth=0.5)
-        # plt.legend(['load_P_sc', 'sb_P'])
-        # if save_fig:
-        #     plt.savefig('Bilder//Feldtest3.png', bbox_inches='tight')
-        # else:
-        #     pass
-        #
-        # plt.figure(18)
-        # plt.plot(t_vector, CA1.array_balancinggroups[3].array_sb_P,
-        #          t_vector, CA1.array_balancinggroups[3].array_sb_E_pos,
-        #          t_vector, CA1.array_balancinggroups[3].array_sb_E_neg,
-        #          t_vector, CA1.array_balancinggroups[3].array_sb_E_pos_period,
-        #          t_vector, CA1.array_balancinggroups[3].array_sb_E_neg_period)
-        # plt.title(CA1.array_balancinggroups[3].name)
-        # grapfunc.add_vert_lines(plt=plt, period=t_isp, t_stop=t_stop, color='gray', linestyle='dotted', linewidth=0.5)
-        # grapfunc.add_vert_lines(plt=plt, period=t_mol, t_stop=t_stop, color='black', linestyle='dashed', linewidth=0.5)
-        # plt.legend(['sb_P', 'sb_E_pos', 'sb_E_neg', 'sb_E_pos_period', 'sb_E_neg_period'])
-        # if save_fig:
-        #     plt.savefig('Bilder//Feldtest3.png', bbox_inches='tight')
-        # else:
-        #     pass
-        #
-        # plt.figure(19)
-        # plt.plot(t_vector, CA1.array_AEP,
-        #          t_vector, CA1.array_balancinggroups[3].array_sb_E_pos_period,
-        #          t_vector, CA1.array_balancinggroups[3].array_sb_E_neg_period,
-        #          t_vector, CA1.array_balancinggroups[3].array_sb_costs_pos_period,
-        #          t_vector, CA1.array_balancinggroups[3].array_sb_costs_neg_period)
-        # plt.title(CA1.array_balancinggroups[3].name)
-        # grapfunc.add_vert_lines(plt=plt, period=t_isp, t_stop=t_stop, color='gray', linestyle='dotted', linewidth=0.5)
-        # grapfunc.add_vert_lines(plt=plt, period=t_mol, t_stop=t_stop, color='black', linestyle='dashed', linewidth=0.5)
-        # plt.legend(['AEP', 'sb_E_pos_period', 'sb_E_neg_period', 'sb_costs_pos_period', 'sb_costs_neg_period'])
-        # if save_fig:
-        #     plt.savefig('Bilder//Feldtest3.png', bbox_inches='tight')
-        # else:
-        #     pass
-
-        plt.figure(20)
-        plt.plot(t_vector, CA1.array_FRCE_ol,
-                 t_vector, CA1.array_AEP,
-                 t_vector, CA1.array_sb_P)
-        plt.title(CA1.name)
-        grapfunc.add_vert_lines(plt=plt, period=t_isp, t_stop=t_stop, color='gray', linestyle='dotted', linewidth=0.5)
-        grapfunc.add_vert_lines(plt=plt, period=t_mol, t_stop=t_stop, color='black', linestyle='dashed', linewidth=0.5)
-        plt.legend(['FRCE_ol', 'AEP', 'sb_P'])
-        if save_fig:
-            plt.savefig('Bilder//Feldtest3.png', bbox_inches='tight')
-        else:
-            pass
-
-        plt.figure(21)
+        plt.figure(3)
         plt.plot(t_vector, CA1.array_FRCE,
                  t_vector, CA1.array_FRCE_ol,
                  t_vector, CA1.array_aFRR_P_pos,
@@ -863,80 +365,52 @@ if show_fig:
         else:
             pass
 
-        # plt.figure(22)
-        # plt.plot(t_vector, CA1.array_mFRR_P,
-        #          t_vector, CA1.array_mFRR_price)
-        # plt.title(CA1.name)
-        # grapfunc.add_vert_lines(plt=plt, period=t_isp, t_stop=t_stop, color='gray', linestyle='dotted', linewidth=0.5)
-        # grapfunc.add_vert_lines(plt=plt, period=t_mol, t_stop=t_stop, color='black', linestyle='dashed', linewidth=0.5)
-        # plt.legend(['mFRR_P', 'mFRR price'])
-        # if save_fig:
-        #     plt.savefig('Bilder//Feldtest3.png', bbox_inches='tight')
-        # else:
-        #     pass
+    elif scenario == 'WC_data//WC_':
 
-        plt.figure(22)
-        plt.plot(t_vector, CA1.array_mFRR_P,
-                 t_vector, CA1.array_mFRR_price,
-                 t_vector, CA1.array_mFRR_price_avg)
+        plt.figure(1)
+        plt.plot(t_vector, CA1.array_imba_P_sc,
+                 t_vector, CA1.array_balancinggroups[7].array_gen_P)
         plt.title(CA1.name)
-        grapfunc.add_vert_lines(plt=plt, period=t_isp, t_stop=t_stop, color='gray', linestyle='dotted', linewidth=0.5)
-        grapfunc.add_vert_lines(plt=plt, period=t_mol, t_stop=t_stop, color='black', linestyle='dashed', linewidth=0.5)
-        plt.legend(['mFRR_P', 'mFRR_price', 'mFRR_price_avg'])
+        plt.grid()
+        plt.xlabel('time / s')
+        plt.ylabel('Power / MW')
+        plt.legend(['Total Imbalance', CA1.array_balancinggroups[7].name])
+        if save_fig:
+            plt.savefig('Bilder//Feldtest1.png', bbox_inches='tight')
+        else:
+            pass
+
+        plt.figure(2)
+        plt.plot(t_vector, CA1.array_FRCE_sb,
+                 t_vector, CA1.array_balancinggroups[1].array_sb_P,
+                 t_vector, CA1.array_balancinggroups[2].array_sb_P,
+                 t_vector, CA1.array_balancinggroups[3].array_sb_P,
+                 t_vector, CA1.array_balancinggroups[4].array_sb_P,
+                 t_vector, CA1.array_balancinggroups[5].array_sb_P)
+        plt.title(CA1.name)
+        plt.grid()
+        plt.legend(['FRCE_sb',
+                    CA1.array_balancinggroups[1].name,
+                    CA1.array_balancinggroups[2].name,
+                    CA1.array_balancinggroups[3].name,
+                    CA1.array_balancinggroups[4].name,
+                    CA1.array_balancinggroups[5].name])
         if save_fig:
             plt.savefig('Bilder//Feldtest3.png', bbox_inches='tight')
         else:
             pass
 
-        plt.figure(23)
-        plt.plot(t_vector, CA1.array_mFRR_P,
-                 t_vector, CA1.array_mFRR_price_pos,
-                 t_vector, CA1.array_mFRR_price_pos_avg,
-                 t_vector, CA1.array_mFRR_price_pos_max)
+        plt.figure(3)
+        plt.plot(t_vector, CA1.array_FRCE,
+                 t_vector, CA1.array_FRCE_ol,
+                 t_vector, CA1.array_aFRR_P_pos,
+                 t_vector, CA1.array_aFRR_P_neg,
+                 t_vector, CA1.array_mFRR_P_pos,
+                 t_vector, CA1.array_mFRR_P_neg)
         plt.title(CA1.name)
         grapfunc.add_vert_lines(plt=plt, period=t_isp, t_stop=t_stop, color='gray', linestyle='dotted', linewidth=0.5)
         grapfunc.add_vert_lines(plt=plt, period=t_mol, t_stop=t_stop, color='black', linestyle='dashed', linewidth=0.5)
-        plt.legend(['mFRR_P', 'mFRR_price_pos', 'mFRR_price_pos_avg', 'mFRR_price_pos_max'])
-        if save_fig:
-            plt.savefig('Bilder//Feldtest3.png', bbox_inches='tight')
-        else:
-            pass
-
-        plt.figure(24)
-        plt.plot(t_vector, CA1.array_mFRR_P,
-                 t_vector, CA1.array_mFRR_price_neg,
-                 t_vector, CA1.array_mFRR_price_neg_avg,
-                 t_vector, CA1.array_mFRR_price_neg_max)
-        plt.title(CA1.name)
-        grapfunc.add_vert_lines(plt=plt, period=t_isp, t_stop=t_stop, color='gray', linestyle='dotted', linewidth=0.5)
-        grapfunc.add_vert_lines(plt=plt, period=t_mol, t_stop=t_stop, color='black', linestyle='dashed', linewidth=0.5)
-        plt.legend(['mFRR_P', 'mFRR_price_neg', 'mFRR_price_neg_avg', 'mFRR_price_neg_max'])
-        if save_fig:
-            plt.savefig('Bilder//Feldtest3.png', bbox_inches='tight')
-        else:
-            pass
-
-        plt.figure(25)
-        plt.plot(t_vector, CA1.array_mFRR_costs_period)
-        plt.title(CA1.name)
-        grapfunc.add_vert_lines(plt=plt, period=t_isp, t_stop=t_stop, color='gray', linestyle='dotted', linewidth=0.5)
-        grapfunc.add_vert_lines(plt=plt, period=t_mol, t_stop=t_stop, color='black', linestyle='dashed', linewidth=0.5)
-        plt.legend(['mFRR costs'])
-        if save_fig:
-            plt.savefig('Bilder//Feldtest3.png', bbox_inches='tight')
-        else:
-            pass
-
-        plt.figure(26)
-        plt.plot(t_vector, CA1.array_mFRR_P,
-                 t_vector, CA1.array_mFRR_E_pos,
-                 t_vector, CA1.array_mFRR_E_neg,
-                 t_vector, CA1.array_mFRR_E_pos_period,
-                 t_vector, CA1.array_mFRR_E_neg_period)
-        plt.title(CA1.name)
-        grapfunc.add_vert_lines(plt=plt, period=t_isp, t_stop=t_stop, color='gray', linestyle='dotted', linewidth=0.5)
-        grapfunc.add_vert_lines(plt=plt, period=t_mol, t_stop=t_stop, color='black', linestyle='dashed', linewidth=0.5)
-        plt.legend(['mFRR_P', 'mFRR_E_pos', 'mFRR_E_neg', 'mFRR_E_pos_period', 'mFRR_E_neg_period'])
+        plt.legend(['FRCE', 'FRCE_ol', 'aFRR_P_pos', 'aFRR_P_neg', 'mFRR_P_pos', 'mFRR_P_neg'])
         if save_fig:
             plt.savefig('Bilder//Feldtest3.png', bbox_inches='tight')
         else:
