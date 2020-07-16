@@ -98,3 +98,12 @@ ACE['2019-06-12 11h'].head()
 #save monthly ACE timeseries with timestamp as index and ";" as seperator to csv 
 for month in range(1,13):
     ACE['ACE']['2019-{0}'.format(month)].to_csv('ACE/{0}_ACE_2019.csv'.format(month),index=True,sep=';',index_label="Timestamp",header="ACE")
+
+#check if 1 min resolution works
+ACE['2019-06-12 11h'].resample('1Min').mean().head()
+
+#save ACE in 1 min resolutin to csv
+ACE['ACE'].resample('1Min').mean().to_csv('ACE/ACE_2019.csv',index=True,sep=';',index_label="Timestamp",header="ACE")
+
+#save ACE in 1 min resolution of Fieltest week to csv
+ACE['ACE']['18.11.2019':'24.11.2019'].resample('1Min').mean().to_csv('ACE/ACE_Feldtest.csv',index=True,sep=';',index_label="Timestamp",header="ACE")
