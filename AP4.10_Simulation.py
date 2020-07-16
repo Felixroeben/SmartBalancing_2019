@@ -8,8 +8,8 @@
 # ....................................................................................
 # ...Purpose:        Simulation of various ancillary services in power systems
 # ....................................................................................
-# ...Version:        1.0
-# ...Date:           April 6th 2020
+# ...Version:        1.1
+# ...Date:           July 16th 2020
 # ....................................................................................
 
 # ------------------------------------------------------------------------------------
@@ -161,19 +161,19 @@ print('\nInitialization Done! It took %.5f seconds' % (time.time() - start))
 
 # The time series for load_P of the FlexLoad "Aurubis_E_Kessel" does not get read from the .csv file...
 # ...and its load gets set to a default value of zero
-if True:
-    CA1.array_balancinggroups[3].read = False
-    CA1.array_balancinggroups[3].array_load_P_schedule = []
-    CA1.array_balancinggroups[3].load_P_schedule = 0.0
-    for i in CA1.array_balancinggroups[3].array_loads:
-        if i.name == 'Aurubis_E_Kessel':
-            i.read = False
-            i.array_load_P = []
-            i.array_load_P_schedule = []
-            i.load_P = 0.0
-            i.load_P_schedule = 0.0
-else:
-    pass
+# if True:
+#     CA1.array_balancinggroups[3].read = False
+#     CA1.array_balancinggroups[3].array_load_P_schedule = []
+#     CA1.array_balancinggroups[3].load_P_schedule = 0.0
+#     for i in CA1.array_balancinggroups[3].array_loads:
+#         if i.name == 'Aurubis_E_Kessel':
+#             i.read = False
+#             i.array_load_P = []
+#             i.array_load_P_schedule = []
+#             i.load_P = 0.0
+#             i.load_P_schedule = 0.0
+# else:
+#     pass
 
 
 
@@ -254,31 +254,16 @@ print('Simulation time: %.5f seconds\n' % (time.time() - start))
 
 if save_data:
     save_dict = {'time [s]': t_vector,
-                 'GER pos. Energy aFRR [MWh]': CA1.array_aFRR_E_pos_period,
-                 'GER neg. Energy aFRR [MWh]': CA1.array_aFRR_E_neg_period,
+                 'GER pos. energy aFRR [MWh]': CA1.array_aFRR_E_pos_period,
+                 'GER neg. energy aFRR [MWh]': CA1.array_aFRR_E_neg_period,
                  'GER pos. aFRR costs [EUR]': CA1.array_aFRR_costs_pos_period,
                  'GER neg. aFRR costs [EUR]': CA1.array_aFRR_costs_neg_period,
-                 'GER AEP [EUR/MWh]': CA1.array_AEP,
-                 'ARCELOR load energy [MWh]': CA1.array_balancinggroups[1].array_load_E_period,
-                 'ARCELOR pos. SB energy [MWh]': CA1.array_balancinggroups[1].array_sb_E_pos_period,
-                 'ARCELOR neg. SB energy [MWh]': CA1.array_balancinggroups[1].array_sb_E_neg_period,
-                 'ARCELOR imba E [MWh]': CA1.array_balancinggroups[1].array_imba_E_period,
-                 'ARCELOR AEP costs [EUR]': CA1.array_balancinggroups[1].array_AEP_costs_period,
-                 'ARGE gen energy [MWh]': CA1.array_balancinggroups[2].array_gen_E_period,
-                 'ARGE pos. SB energy [MWh]': CA1.array_balancinggroups[2].array_sb_E_pos_period,
-                 'ARGE neg. SB energy [MWh]': CA1.array_balancinggroups[2].array_sb_E_neg_period,
-                 'ARGE imba E [MWh]': CA1.array_balancinggroups[2].array_imba_E_period,
-                 'ARGE AEP costs [EUR]': CA1.array_balancinggroups[2].array_AEP_costs_period,
-                 'AURUBIS load energy [MWh]': CA1.array_balancinggroups[3].array_load_E_period,
-                 'AURUBIS pos. SB energy [MWh]': CA1.array_balancinggroups[3].array_sb_E_pos_period,
-                 'AURUBIS neg. SB energy [MWh]': CA1.array_balancinggroups[3].array_sb_E_neg_period,
-                 'AURUBIS imba E [MWh]': CA1.array_balancinggroups[3].array_imba_E_period,
-                 'AURUBIS AEP costs [EUR]': CA1.array_balancinggroups[3].array_AEP_costs_period,
-                 'TRIMET load energy [MWh]': CA1.array_balancinggroups[5].array_load_E_period,
-                 'TRIMET pos. SB energy [MWh]': CA1.array_balancinggroups[5].array_sb_E_pos_period,
-                 'TRIMET neg. SB energy [MWh]': CA1.array_balancinggroups[5].array_sb_E_neg_period,
-                 'TRIMET imba E [MWh]': CA1.array_balancinggroups[5].array_imba_E_period,
-                 'TRIMET AEP costs [EUR]': CA1.array_balancinggroups[5].array_AEP_costs_period,}
+                 'GER pos. energy mFRR [MWh]': CA1.array_mFRR_E_pos_period,
+                 'GER neg. energy mFRR [MWh]': CA1.array_mFRR_E_neg_period,
+                 'GER pos. mFRR costs [EUR]': CA1.array_mFRR_costs_pos_period,
+                 'GER neg. mFRR costs [EUR]': CA1.array_mFRR_costs_neg_period,
+                 'GER AEP [EUR/MWh]': CA1.array_AEP
+                }
     fileexch.save_period_data(scenario=scenario,
                               save_file_name=savefilename_period,
                               save_dict=save_dict,
@@ -290,12 +275,9 @@ if save_data:
     save_dict = {'time [s]': t_vector,
                  'open loop FRCE [MW]': CA1.array_FRCE_ol,
                  'aFRR P [MW]': CA1.array_aFRR_P,
-                 'AEP [EUR/MWh]': CA1.array_AEP,
-                 'ARCELOR sb_P [MW]': CA1.array_balancinggroups[1].array_sb_P,
-                 'ARGE Netz sb_P [MW]': CA1.array_balancinggroups[2].array_sb_P,
-                 'AURUBIS sb_P [MW]': CA1.array_balancinggroups[3].array_sb_P,
-                 'TRIMET sb_P [MW]': CA1.array_balancinggroups[5].array_sb_P,
-                 }
+                 'mFRR P [MW]': CA1.array_mFRR_P,
+                 'AEP [EUR/MWh]': CA1.array_AEP
+                }
     fileexch.save_t_step_data(scenario=scenario,
                               save_file_name=savefilename_all,
                               save_dict=save_dict,
@@ -368,39 +350,6 @@ if show_fig:
     elif scenario == 'WC_data//WC_':
 
         plt.figure(1)
-        plt.plot(t_vector, CA1.array_imba_P_sc,
-                 t_vector, CA1.array_balancinggroups[7].array_gen_P)
-        plt.title(CA1.name)
-        plt.grid()
-        plt.xlabel('time / s')
-        plt.ylabel('Power / MW')
-        plt.legend(['Total Imbalance', CA1.array_balancinggroups[7].name])
-        if save_fig:
-            plt.savefig('Bilder//Feldtest1.png', bbox_inches='tight')
-        else:
-            pass
-
-        plt.figure(2)
-        plt.plot(t_vector, CA1.array_FRCE_sb,
-                 t_vector, CA1.array_balancinggroups[1].array_sb_P,
-                 t_vector, CA1.array_balancinggroups[2].array_sb_P,
-                 t_vector, CA1.array_balancinggroups[3].array_sb_P,
-                 t_vector, CA1.array_balancinggroups[4].array_sb_P,
-                 t_vector, CA1.array_balancinggroups[5].array_sb_P)
-        plt.title(CA1.name)
-        plt.grid()
-        plt.legend(['FRCE_sb',
-                    CA1.array_balancinggroups[1].name,
-                    CA1.array_balancinggroups[2].name,
-                    CA1.array_balancinggroups[3].name,
-                    CA1.array_balancinggroups[4].name,
-                    CA1.array_balancinggroups[5].name])
-        if save_fig:
-            plt.savefig('Bilder//Feldtest3.png', bbox_inches='tight')
-        else:
-            pass
-
-        plt.figure(3)
         plt.plot(t_vector, CA1.array_FRCE,
                  t_vector, CA1.array_FRCE_ol,
                  t_vector, CA1.array_aFRR_P_pos,
