@@ -681,6 +681,17 @@ class ControlArea(CalculatingGridElement):
         self.array_AEP = []
         self.array_AEP_max_period = []
 
+        # Variables, that indicate insufficient aFRR and mFRR reserves
+        self.aFRR_pos_insuf = False
+        self.aFRR_neg_insuf = False
+        self.mFRR_pos_insuf = False
+        self.mFRR_neg_insuf = False
+
+        self.array_aFRR_pos_insuf = []
+        self.array_aFRR_neg_insuf = []
+        self.array_mFRR_pos_insuf = []
+        self.array_mFRR_neg_insuf = []
+
         # Variable for the smart balancing control signal
         self.FRCE_sb = 0.0
 
@@ -867,6 +878,9 @@ class ControlArea(CalculatingGridElement):
         array_aFRR_prices = []
         array_aFRR_powers = []
 
+        self.aFRR_neg_insuf = False
+        self.aFRR_pos_insuf = False
+
         # Negative MOL is used, if FRCE_ol < 0
         if self.FRCE_ol < 0:
             i = 0
@@ -879,6 +893,7 @@ class ControlArea(CalculatingGridElement):
             n = len(self.array_aFRR_molneg['Power'])
             while aFRR_demand > self.FRCE_ol:
                 if n == i:
+                    self.aFRR_neg_insuf = True
                     print('WARNING! Insufficient negative aFRR at t =', t_now,'!')
                     aFRR_demand = self.FRCE_ol
                 else:
@@ -905,6 +920,7 @@ class ControlArea(CalculatingGridElement):
             n = len(self.array_aFRR_molpos['Power'])
             while aFRR_demand < self.FRCE_ol:
                 if n == i:
+                    self.aFRR_pos_insuf = True
                     print('WARNING! Insufficient positive aFRR at t =', t_now,'!')
                     aFRR_demand = self.FRCE_ol
                 else:
@@ -1140,6 +1156,9 @@ class ControlArea(CalculatingGridElement):
         array_mFRR_prices = []
         array_mFRR_powers = []
 
+        self.mFRR_neg_insuf = False
+        self.mFRR_pos_insuf = False
+
         # Negative mFRR MOL is used, if self.mFRR_P < 0
         if self.mFRR_P < 0:
             i = 0
@@ -1152,6 +1171,7 @@ class ControlArea(CalculatingGridElement):
             n = len(self.array_mFRR_molneg['Power'])
             while mFRR_demand > self.mFRR_P:
                 if n == i:
+                    self.mFRR_neg_insuf = True
                     print('WARNING! Insufficient negative mFRR at t =', t_now,'!')
                     mFRR_demand = self.mFRR_P
                 else:
@@ -1178,9 +1198,11 @@ class ControlArea(CalculatingGridElement):
             n = len(self.array_mFRR_molpos['Power'])
             while mFRR_demand < self.mFRR_P:
                 if n == i:
+                    self.mFRR_pos_insuf = True
                     print('WARNING! Insufficient positive mFRR at t =', t_now,'!')
                     mFRR_demand = self.mFRR_P
                 else:
+                    self.mFRR_pos_insuf = False
                     if mFRR_demand + self.array_mFRR_molpos['Power'][i] > self.mFRR_P:
                         load_factor = (self.mFRR_P - mFRR_demand) / self.array_mFRR_molpos['Power'][i]
                     else:
@@ -1237,7 +1259,6 @@ class ControlArea(CalculatingGridElement):
             n = len(self.array_mFRR_molneg['Power'])
             while mFRR_demand > self.mFRR_P:
                 if n == i:
-                    # print('WARNING! Insufficient negative mFRR at t =', t_now,'!')
                     mFRR_demand = self.mFRR_P
                 else:
                     if mFRR_demand + self.array_mFRR_molneg['Power'][i] < self.mFRR_P:
@@ -1282,7 +1303,6 @@ class ControlArea(CalculatingGridElement):
             n = len(self.array_mFRR_molpos['Power'])
             while mFRR_demand < self.mFRR_P:
                 if n == i:
-                    #print('WARNING! Insufficient negative mFRR at t =', t_now,'!')
                     mFRR_demand = self.mFRR_P
                 else:
                     if mFRR_demand + self.array_mFRR_molpos['Power'][i] > self.mFRR_P:
@@ -1500,6 +1520,10 @@ class ControlArea(CalculatingGridElement):
         self.array_mFRR_costs_period.append(self.mFRR_costs_period)
         self.array_mFRR_costs_pos_period.append(self.mFRR_costs_pos_period)
         self.array_mFRR_costs_neg_period.append(self.mFRR_costs_neg_period)
+        self.array_aFRR_pos_insuf.append(self.aFRR_pos_insuf)
+        self.array_aFRR_neg_insuf.append(self.aFRR_neg_insuf)
+        self.array_mFRR_pos_insuf.append(self.mFRR_pos_insuf)
+        self.array_mFRR_neg_insuf.append(self.mFRR_neg_insuf)
         self.array_gen_income.append(self.gen_income)
         self.array_load_costs.append(self.load_costs)
         self.array_gen_income_period.append(self.gen_income_period)

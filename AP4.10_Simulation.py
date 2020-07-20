@@ -64,10 +64,10 @@ t_isp = 900                         # duration of an Imbalance Settlement Period
 t_mol = 14400                       # time in s, after which the MOL gets updated
 
 # end of simulation in s
-t_stop = (7 * 24 * 60 * 60) - t_step
+t_stop = (14 * 24 * 60 * 60) - t_step
 
 sim_duration = t_stop - t_now
-sim_steps = ((t_stop + t_step) - t_now) / t_step
+sim_steps = int(((t_stop + t_step) - t_now) / t_step)
 
 print('Simulating', sim_steps, 'steps with t_step =', t_step, 's')
 
@@ -296,6 +296,10 @@ if save_data:
                  'open loop FRCE [MW]': CA1.array_FRCE_ol,
                  'aFRR P [MW]': CA1.array_aFRR_P,
                  'mFRR P [MW]': CA1.array_mFRR_P,
+                 'insufficient pos. aFRR': CA1.array_aFRR_pos_insuf,
+                 'insufficient neg. aFRR': CA1.array_aFRR_neg_insuf,
+                 'insufficient pos. mFRR': CA1.array_mFRR_pos_insuf,
+                 'insufficient neg. mFRR': CA1.array_mFRR_neg_insuf,
                  'AEP [EUR/MWh]': CA1.array_AEP
                 }
     fileexch.save_t_step_data(scenario=scenario,
