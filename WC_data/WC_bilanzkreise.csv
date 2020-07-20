@@ -1,2 +1,18 @@
 Bilanzkreis;Verbraucher;Erzeuger;Flex Verbraucher;Flex Erzeuger;smart
 FRCE;-;FRCE Gen;-;-;False
+Biomass;-;Biomass Gen;-;-;False
+Lignite;-;Lignite Gen;-;-;False
+Fossil_Gas;-;Fossil_Gas Gen;-;-;False
+Fossil_Hard_Coal;-;Fossil_Hard_Coal Gen;-;-;False
+Fossil_Oil;-;Fossil_Oil Gen;-;-;False
+Geothermal;-;Geothermal Gen;-;-;False
+Hydro_Pump;Hydro_Pump Load;Hydro_Pump Gen;-;-;False
+Hydro_Run;-;Hydro_Run Gen;-;-;False
+Hydro_Reservoir;-;Hydro_Reservoir Gen;-;-;False
+Nuclear;-;Nuclear Gen;-;-;False
+Other;-;Other Gen;-;-;False
+Other_Renew;-;Other_Renew Gen;-;-;False
+Solar;-;Solar Gen;-;-;False
+Waste;-;Waste Gen;-;-;False
+Wind_Offshore;-;Wind_Offshore Gen;-;-;False
+Wind_Onshore;-;Wind_Onshore Gen;-;-;False
