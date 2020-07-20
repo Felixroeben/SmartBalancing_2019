@@ -19,6 +19,7 @@
 import matplotlib.pyplot as plt
 import time
 import os
+import sys
 
 # ...Import of project files
 import gridelem
@@ -37,7 +38,6 @@ import math
 # ---DEFINITION OF SIMULATION PARAMETERS----------------------------------------------
 # ------------------------------------------------------------------------------------
 
-# !!! File will be overwritten !!!
 savefilename_period = 'sim_output_period.csv'       # name of save file, location defined by "scenario"
 savefilename_all = 'sim_output_all.csv'             # name of save file, location defined by "scenario"
 #scenario = 'Test_data//Test_'
@@ -46,7 +46,7 @@ scenario = 'WC_data//WC_'
 start = 0                                           # simulation time
 
 # ...Set simulation time step in s
-t_step = 1
+t_step = 60
 # ...Set simulation discrete time variable
 k_now = 0
 
@@ -62,18 +62,36 @@ t_now = 0                           # start of simulation in s
 t_day = t_now                       # time of current day in s
 t_isp = 900                         # duration of an Imbalance Settlement Period in s
 t_mol = 14400                       # time in s, after which the MOL gets updated
-t_stop = 604789                     # end of simulation in s
-sim_duration = t_stop - t_now + 1
+
+# end of simulation in s
+t_stop = (7 * 24 * 60 * 60) - t_step
+
+sim_duration = t_stop - t_now
+sim_steps = ((t_stop + t_step) - t_now) / t_step
+
+print('Simulating', sim_steps, 'steps with t_step =', t_step, 's')
+
+# ...Checking divisibility of time constants
+if (86400 % t_step) != 0:
+    sys.exit('ERROR! 86400 must be divisible by t_step!')
+elif (t_isp % t_step) != 0:
+    sys.exit('ERROR! t_isp must be divisible by t_step!')
+elif (t_mol % t_step) != 0:
+    sys.exit('ERROR! t_mol must be divisible by t_step!')
+elif (t_mol % t_isp) != 0:
+    sys.exit('ERROR! t_mol must be divisible by t_isp!')
+else:
+    pass
 
 # ...Set simulation time settings in timestamps utc
-sim_duration_uct = ['18.11.2019', '25.11.2019', '26.11.2019']
+#sim_duration_utc = ['18.11.2019', '25.11.2019', '26.11.2019']
+sim_duration_utc = ['01.01.2019', '30.12.2019', '31.12.2019']
 
 array_bilanzkreise = []
 
 t_vector = []
 k_vector = []
 os.system("cls")
-print('\nInitializing data from CSV files')
 start = time.time()
 
 
@@ -82,13 +100,15 @@ start = time.time()
 # ---INITIALIZATION OF GRID MODEL-----------------------------------------------------
 # ------------------------------------------------------------------------------------
 
+print('\nInitializing data from CSV files')
+
 # ...read DA prices for specified time range (sim_duration_uct) from csv
-list_da_prices = fileexch.get_da_price_data(sim_duration_uct)
+list_da_prices = fileexch.get_da_price_data(sim_duration_utc)
 i = 0
 t_da = 0.0
 array_da_prices = []
 # ...write prices into array with one value per time step of the simulation
-while t_da <= t_stop:
+while t_da <= (t_stop + t_step):
     array_da_prices.append(list_da_prices.iloc[math.floor(i/3600)][0])
     t_da += t_step
     i += 1
@@ -112,7 +132,7 @@ CA1 = gridelem.ControlArea(name='Deutschland',
                            aFRR_Kr=1550.0,
                            aFRR_T=170.0,
                            aFRR_beta=0.1,
-                           aFRR_delay=30.0,
+                           aFRR_delay=0.0,
                            mFRR_trigger=0.6,
                            mFRR_target=0.4,
                            mFRR_time=300.0,
@@ -128,7 +148,7 @@ BG0 = balagrou.BalancingGroup(name='Rest von Deutschland',
 CA1.array_balancinggroups.append(BG0)
 
 # read balance Groups from csv and add to Control area
-array_bilanzkreise = fileexch.get_balancing_groups(scenario, smartbalancing, sim_duration)
+array_bilanzkreise = fileexch.get_balancing_groups(scenario, smartbalancing, sim_steps)
 
 for i in range(len(array_bilanzkreise)):
     CA1.array_balancinggroups.append(array_bilanzkreise[i])

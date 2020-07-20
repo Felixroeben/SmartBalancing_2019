@@ -315,7 +315,12 @@ def read_afrr_mol(scenario, t_day, t_mol, day_count):
                      'Price': []}
     list_nbr = day_count
     hour_tag = '_xx_yy'             # 4 hour block tag
-    mol_file = scenario + 'mol_'
+
+    # path for MOL files in the scenario folder
+    #mol_file = scenario + 'mol_'
+
+    # path for MOL files outside the scenario folder
+    mol_file = '2019_data//SRL_MOL//'
 
     if day_count > 0:
         if t_day < 14400:
@@ -338,8 +343,7 @@ def read_afrr_mol(scenario, t_day, t_mol, day_count):
     neg_str = 'NEG' + hour_tag
     pos_str = 'POS' + hour_tag
 
-    # creating the name of the CSV for the day 29.10. = 1, 30.10. = 2
-    day_list = mol_file + str(list_nbr) + '.csv'
+    day_list = mol_file + str(list_nbr) + '_SRL_MOL.csv'
 
     csv_handle = open(day_list, mode='r')
     file = csv.DictReader(csv_handle, delimiter=';')
@@ -376,7 +380,12 @@ def read_mfrr_mol(scenario, t_day, t_mol, day_count):
                      'Price': []}
     list_nbr = day_count
     hour_tag = '_xx_yy'             # 4 hour block tag
-    mol_file = scenario + 'mfrr_mol_'
+
+    # path for MOL files in the scenario folder
+    #mol_file = scenario + 'mfrr_mol_'
+
+    # path for MOL files outside the scenario folder
+    mol_file = '2019_data//MRL_MOL//'
 
     if day_count > 0:
         if t_day < 14400:
@@ -399,8 +408,7 @@ def read_mfrr_mol(scenario, t_day, t_mol, day_count):
     neg_str = 'NEG' + hour_tag
     pos_str = 'POS' + hour_tag
 
-    # creating the name of the CSV for the day 29.10. = 1, 30.10. = 2
-    day_list = mol_file + str(list_nbr) + '.csv'
+    day_list = mol_file + str(list_nbr) + '_MRL_MOL.csv'
 
     csv_handle = open(day_list, mode='r')
     file = csv.DictReader(csv_handle, delimiter=';')

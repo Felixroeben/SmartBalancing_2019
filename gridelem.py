@@ -1058,7 +1058,7 @@ class ControlArea(CalculatingGridElement):
             self.FRCE_sum = 0.0
             self.FRCE_avg = 0.0
         else:
-            if ((t_now + 1) % t_isp) == 0:
+            if ((t_now + t_step) % t_isp) == 0:
                 self.array_FRCE_avg = []
             else:
                 self.FRCE_sum = 0.0
@@ -1074,12 +1074,14 @@ class ControlArea(CalculatingGridElement):
             if self.FRCE_avg > 0 and self.FRCE_avg > self.mFRR_trigger * self.aFRR_cap_pos:
                 self.mFRR_P_pos_setp = self.FRCE_avg - self.aFRR_cap_pos * self.mFRR_target
                 self.mFRR_P_pos_setp = int((self.mFRR_P_pos_setp + 100) / 100) * 100
+                #print(self.mFRR_P_pos_setp, 'of pos. mFRR power to be activated in the next ISP')
             else:
                 self.mFRR_P_pos_setp = 0.0
 
             if self.FRCE_avg < 0 and self.FRCE_avg < self.mFRR_trigger * self.aFRR_cap_neg:
                 self.mFRR_P_neg_setp = (self.aFRR_E_neg_period * 3600 / self.mFRR_time) - self.aFRR_cap_neg * self.mFRR_target
                 self.mFRR_P_neg_setp = int((self.mFRR_P_neg_setp - 100) / 100) * 100
+                #print(self.mFRR_P_neg_setp, 'of neg. mFRR power to be activated in the next ISP')
             else:
                 self.mFRR_P_neg_setp = 0.0
 
@@ -1345,7 +1347,10 @@ class ControlArea(CalculatingGridElement):
                         + self.mFRR_costs_pos_period + self.mFRR_costs_neg_period
             FRR_energy = self.aFRR_E_pos_period + self.aFRR_E_neg_period \
                          + self.mFRR_E_pos_period + self.mFRR_E_neg_period
-            self.AEP = FRR_costs / FRR_energy
+            if FRR_energy == 0.0:
+                self.AEP = 0.0
+            else:
+                self.AEP = FRR_costs / FRR_energy
 
         # Calculation of AEP2
         # Limitation of the AEP to the highest absolute value in all activated aFRR and mFRR prices during an ISP
