@@ -16,3 +16,4 @@ Solar;-;Solar Gen;-;-;False
 Waste;-;Waste Gen;-;-;False
 Wind_Offshore;-;Wind_Offshore Gen;-;-;False
 Wind_Onshore;-;Wind_Onshore Gen;-;-;False
+Dummy;Dummy Load;Dummy Gen;-;-;False

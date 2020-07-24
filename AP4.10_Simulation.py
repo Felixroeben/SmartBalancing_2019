@@ -64,7 +64,7 @@ t_isp = 900                         # duration of an Imbalance Settlement Period
 t_mol = 14400                       # time in s, after which the MOL gets updated
 
 # end of simulation in s
-t_stop = (15 * 24 * 60 * 60) - t_step
+t_stop = (14 * 24 * 60 * 60) - t_step
 
 sim_duration = t_stop - t_now
 sim_steps = int(((t_stop + t_step) - t_now) / t_step)
@@ -386,6 +386,58 @@ if show_fig:
         grapfunc.add_vert_lines(plt=plt, period=t_isp, t_stop=t_stop, color='gray', linestyle='dotted', linewidth=0.5)
         grapfunc.add_vert_lines(plt=plt, period=t_mol, t_stop=t_stop, color='black', linestyle='dashed', linewidth=0.5)
         plt.legend(['FRCE', 'FRCE_ol', 'aFRR_P_pos', 'aFRR_P_neg', 'mFRR_P_pos', 'mFRR_P_neg'])
+        if save_fig:
+            plt.savefig('Bilder//Feldtest3.png', bbox_inches='tight')
+        else:
+            pass
+
+        plt.figure(2)
+        plt.plot(t_vector, CA1.array_balancinggroups[2].array_gen_P,
+                 t_vector, CA1.array_balancinggroups[3].array_gen_P,
+                 t_vector, CA1.array_balancinggroups[4].array_gen_P,
+                 t_vector, CA1.array_balancinggroups[5].array_gen_P,
+                 t_vector, CA1.array_balancinggroups[6].array_gen_P,
+                 t_vector, CA1.array_balancinggroups[7].array_gen_P,
+                 t_vector, CA1.array_balancinggroups[8].array_gen_P,
+                 t_vector, CA1.array_balancinggroups[9].array_gen_P,
+                 t_vector, CA1.array_balancinggroups[10].array_gen_P,
+                 t_vector, CA1.array_balancinggroups[11].array_gen_P,
+                 t_vector, CA1.array_balancinggroups[12].array_gen_P,
+                 t_vector, CA1.array_balancinggroups[13].array_gen_P,
+                 t_vector, CA1.array_balancinggroups[14].array_gen_P,
+                 t_vector, CA1.array_balancinggroups[15].array_gen_P,
+                 t_vector, CA1.array_balancinggroups[16].array_gen_P,
+                 t_vector, CA1.array_balancinggroups[17].array_gen_P)
+        plt.title('Generation')
+        grapfunc.add_vert_lines(plt=plt, period=t_isp, t_stop=t_stop, color='gray', linestyle='dotted', linewidth=0.5)
+        grapfunc.add_vert_lines(plt=plt, period=t_mol, t_stop=t_stop, color='black', linestyle='dashed', linewidth=0.5)
+        plt.legend([CA1.array_balancinggroups[2].name,
+                    CA1.array_balancinggroups[3].name,
+                    CA1.array_balancinggroups[4].name,
+                    CA1.array_balancinggroups[5].name,
+                    CA1.array_balancinggroups[6].name,
+                    CA1.array_balancinggroups[7].name,
+                    CA1.array_balancinggroups[8].name,
+                    CA1.array_balancinggroups[9].name,
+                    CA1.array_balancinggroups[10].name,
+                    CA1.array_balancinggroups[11].name,
+                    CA1.array_balancinggroups[12].name,
+                    CA1.array_balancinggroups[13].name,
+                    CA1.array_balancinggroups[14].name,
+                    CA1.array_balancinggroups[15].name,
+                    CA1.array_balancinggroups[16].name,
+                    CA1.array_balancinggroups[17].name])
+        if save_fig:
+            plt.savefig('Bilder//Feldtest3.png', bbox_inches='tight')
+        else:
+            pass
+
+        plt.figure(3)
+        plt.plot(t_vector, CA1.array_balancinggroups[8].array_load_P)
+        plt.title('Consumption')
+        grapfunc.add_vert_lines(plt=plt, period=t_isp, t_stop=t_stop, color='gray', linestyle='dotted', linewidth=0.5)
+        grapfunc.add_vert_lines(plt=plt, period=t_mol, t_stop=t_stop, color='black', linestyle='dashed', linewidth=0.5)
+        plt.legend([CA1.array_balancinggroups[8].name])
         if save_fig:
             plt.savefig('Bilder//Feldtest3.png', bbox_inches='tight')
         else:
