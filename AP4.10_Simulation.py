@@ -64,7 +64,7 @@ t_isp = 900                         # duration of an Imbalance Settlement Period
 t_mol = 14400                       # time in s, after which the MOL gets updated
 
 # end of simulation in s
-t_stop = (14 * 24 * 60 * 60) - t_step
+t_stop = (15 * 24 * 60 * 60) - t_step
 
 sim_duration = t_stop - t_now
 sim_steps = int(((t_stop + t_step) - t_now) / t_step)
@@ -133,9 +133,11 @@ CA1 = gridelem.ControlArea(name='Deutschland',
                            aFRR_T=170.0,
                            aFRR_beta=0.1,
                            aFRR_delay=0.0,
+                           aFRR_pricing=0,
                            mFRR_trigger=0.6,
                            mFRR_target=0.4,
                            mFRR_time=300.0,
+                           mFRR_pricing=0,
                            sb_delay=0.0)
 SZ.array_subordinates.append(CA1)
 

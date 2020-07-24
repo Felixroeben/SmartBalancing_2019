@@ -549,9 +549,11 @@ class ControlArea(CalculatingGridElement):
                  aFRR_T,                # aFRR time constant 'T' in s                               (float)
                  aFRR_beta,             # aFRR constant 'beta' in p.u.                              (float)
                  aFRR_delay,            # delay time for the activation of aFRR in s                (float)
+                 aFRR_pricing,          # "0" for pay-as-bid, "1" for marginal pricing              (int)
                  mFRR_trigger,          # ratio of aFRR, at which mFRR gets triggered in p.u.       (float)
                  mFRR_target,           # target ratio for aFRR reduction by mFRR in p.u.           (float)
                  mFRR_time,             # time of each ISP in s, at which mFRR decision is taken    (float)
+                 mFRR_pricing,          # "0" for pay-as-bid, "1" for marginal pricing              (int)
                  sb_delay):             # delay time of the Smart Balancing signal in s             (float)
 
         # Other parameters are inherited from the super class 'CalculatingGridElement'
@@ -564,6 +566,9 @@ class ControlArea(CalculatingGridElement):
                                         aFRR_T=aFRR_T,
                                         aFRR_beta=aFRR_beta,
                                         aFRR_delay=aFRR_delay)
+
+        # aFRR constants
+        self.aFRR_pricing = aFRR_pricing
 
         # Variables for the amount of positive and negative aFRR energy
         self.aFRR_E_pos = 0.0
@@ -622,6 +627,7 @@ class ControlArea(CalculatingGridElement):
         self.mFRR_trigger = mFRR_trigger
         self.mFRR_target = mFRR_target
         self.mFRR_time = mFRR_time
+        self.mFRR_pricing = mFRR_pricing
 
         # Positive and negative merit order lists for mFRR and price and costs variables
         self.array_mFRR_molpos = []
@@ -846,8 +852,15 @@ class ControlArea(CalculatingGridElement):
         self.aFRR_E_neg_period += self.aFRR_P_neg * t_step / 3600
 
         # Calculation of aFRR prices and costs and the AEP
-        self.afrr_price_calc(t_now=t_now,
-                             t_step=t_step)
+        if self.aFRR_pricing == 0:
+            self.afrr_price_calc_pab(t_now=t_now,
+                                     t_step=t_step)
+        elif self.aFRR_pricing == 1:
+            self.afrr_price_calc_mp(t_now=t_now,
+                                    t_step=t_step)
+        else:
+            exit('No valid aFRR pricing option selected for Control Area!')
+
         self.afrr_costs_calc(t_now=t_now,
                              t_step=t_step,
                              t_isp=t_isp)
@@ -870,8 +883,8 @@ class ControlArea(CalculatingGridElement):
                       da_price=self.da_price)
             self.sb_P += i.sb_P
 
-    # Method calculating a price for aFRR using the merit order lists
-    def afrr_price_calc(self, t_now, t_step):
+    # Method calculating a price for aFRR using the pay-as-bid priciple
+    def afrr_price_calc_pab(self, t_now, t_step):
         # Combined aFRR price calculation
         # Depending on the algebraic sign of the area control error (self.FRCE_ol), the positive OR negative MOL is used...
         # ...to calculate one combined aFRR price (self.aFRR_price & self.aFRR_price_avg)
@@ -1041,6 +1054,101 @@ class ControlArea(CalculatingGridElement):
             self.aFRR_price_pos_max = self.aFRR_price_pos
             self.aFRR_price_neg_max = 0.0
 
+    # Method calculating a price for aFRR using marginal pricing
+    def afrr_price_calc_mp(self, t_now, t_step):
+        # Combined aFRR price calculation
+        self.aFRR_neg_insuf = False
+        self.aFRR_pos_insuf = False
+
+        # Negative a MOL is used, if self.FRCE_ol < 0
+        if self.FRCE_ol < 0:
+            i = 0
+            aFRR_demand = 0.0
+
+            # Identification of necessary negative aFRR assets to sum up to the total aFRR power
+            # Calculation of highest negative aFRR price
+            n = len(self.array_aFRR_molneg['Power'])
+            while aFRR_demand > self.FRCE_ol:
+                if n == i:
+                    self.aFRR_neg_insuf = True
+                    print('WARNING! Insufficient negative aFRR at t =', t_now,'!')
+                    aFRR_demand = self.FRCE_ol
+                else:
+                    self.aFRR_neg_insuf = False
+                    self.aFRR_price = self.array_aFRR_molneg['Price'][i]
+                    aFRR_demand += self.array_aFRR_molneg['Power'][i]
+                i += 1
+
+        # Positive aFRR MOL is used, if self.FRCE_ol > 0
+        elif self.FRCE_ol > 0:
+            i = 0
+            aFRR_demand = 0.0
+
+            # Identification of necessary positive aFRR assets to sum up to the total aFRR power
+            # Calculation of highest positive aFRR price
+            n = len(self.array_aFRR_molpos['Power'])
+            while aFRR_demand < self.FRCE_ol:
+                if n == i:
+                    self.aFRR_pos_insuf = True
+                    print('WARNING! Insufficient positive aFRR at t =', t_now,'!')
+                    aFRR_demand = self.FRCE_ol
+                else:
+                    self.aFRR_pos_insuf = False
+                    self.aFRR_price = self.array_aFRR_molpos['Price'][i]
+                    aFRR_demand += self.array_aFRR_molpos['Power'][i]
+                i += 1
+
+        # for marginal pricing, the average price equals the highest price from the MOL
+        self.aFRR_price_avg = self.aFRR_price
+
+        # Separate calculation of positive aFRR price and negative aFRR price
+        # Both variables can be greater zero at a given point in time
+        # If self.FRCE_ol < 0...
+        # ...the negative MOL (self.array_aFRR_molneg) is used
+        # ...to update the negative aFRR price (self.aFRR_price_neg & self.aFRR_price_neg_avg)
+        if self.FRCE_ol < 0:
+            i = 0
+            aFRR_demand = 0.0
+
+            # Identification of necessary negative aFRR assets to sum up to the total aFRR power
+            # Calculation of highest negative aFRR price
+            n = len(self.array_aFRR_molneg['Power'])
+            while aFRR_demand > self.FRCE_ol:
+                if n == i:
+                    aFRR_demand = self.FRCE_ol
+                else:
+                    self.aFRR_price_neg = self.array_aFRR_molneg['Price'][i]
+                    aFRR_demand += self.array_aFRR_molneg['Power'][i]
+                i += 1
+
+            # for marginal pricing, the average and maximum price signals equal the highest price from the MOL
+            self.aFRR_price_neg_avg = self.aFRR_price_neg
+            self.aFRR_price_neg_max = self.aFRR_price_neg
+            self.aFRR_price_pos_max = 0.0
+
+        # If self.FRCE_ol > 0...
+        # ...the positive MOL (self.array_aFRR_molpos) is used...
+        # ...to update the positive aFRR price (self.aFRR_price_pos & self.aFRR_price_pos_avg)
+        elif self.FRCE_ol > 0:
+            i = 0
+            aFRR_demand = 0.0
+
+            # Identification of necessary positive aFRR assets to sum up to the total aFRR power
+            # Calculation of highest positive aFRR price
+            n = len(self.array_aFRR_molpos['Power'])
+            while aFRR_demand < self.FRCE_ol:
+                if n == i:
+                    aFRR_demand = self.FRCE_ol
+                else:
+                    self.aFRR_price_pos = self.array_aFRR_molpos['Price'][i]
+                    aFRR_demand += self.array_aFRR_molpos['Power'][i]
+                i += 1
+
+            # for marginal pricing, the average and maximum price signals equal the highest price from the MOL
+            self.aFRR_price_pos_avg = self.aFRR_price_pos
+            self.aFRR_price_pos_max = self.aFRR_price_pos
+            self.aFRR_price_neg_max = 0.0
+
     # Method calculating the costs of aFRR
     def afrr_costs_calc(self, t_now, t_step, t_isp):
         # Calculation of combined aFRR costs
@@ -1121,8 +1229,14 @@ class ControlArea(CalculatingGridElement):
             self.mFRR_P = self.mFRR_P_pos + self.mFRR_P_neg
 
             # Calculation of the mFRR price
-            self.mfrr_price_calc(t_now=t_now,
-                                 t_step=t_step)
+            if self.mFRR_pricing == 0:
+                self.mfrr_price_calc_pab(t_now=t_now,
+                                         t_step=t_step)
+            elif self.mFRR_pricing == 1:
+                self.mfrr_price_calc_mp(t_now=t_now,
+                                        t_step=t_step)
+            else:
+                exit('No valid mFRR pricing option selected for Control Area!')
 
         # Calculation of positive and negative mFRR energy
         self.mFRR_E_pos += self.mFRR_P_pos * t_step / 3600
@@ -1147,9 +1261,9 @@ class ControlArea(CalculatingGridElement):
                       t_step=t_step,
                       t_isp=t_isp)
 
-    # Method calculating the mFRR prices
+    # Method calculating the mFRR prices using the pay-as-bid priciple
     # Only called at the beginning of an ISP, since mFRR is static for each ISP
-    def mfrr_price_calc(self, t_now, t_step):
+    def mfrr_price_calc_pab(self, t_now, t_step):
         # Combined mFRR price calculation
         # Depending on the algebraic sign of the mFRR power, the positive OR negative MOL is used...
         # ...to calculate one combined mFRR price (self.mFRR_price & self.mFRR_price_avg)
@@ -1328,6 +1442,126 @@ class ControlArea(CalculatingGridElement):
             self.mFRR_price_pos_avg = prices_of_mFRR
 
             self.mFRR_price_pos_max = self.mFRR_price_pos
+            self.mFRR_price_neg_max = 0.0
+
+    # Method calculating the mFRR prices using marginal pricing
+    # Only called at the beginning of an ISP, since mFRR is static for each ISP
+    def mfrr_price_calc_mp(self, t_now, t_step):
+        # Combined mFRR price calculation
+        # Depending on the algebraic sign of the mFRR power, the positive OR negative MOL is used...
+        # ...to calculate one combined mFRR price (self.mFRR_price & self.mFRR_price_avg)
+        self.mFRR_neg_insuf = False
+        self.mFRR_pos_insuf = False
+
+        # Negative mFRR MOL is used, if self.mFRR_P < 0
+        if self.mFRR_P < 0:
+            i = 0
+            mFRR_demand = 0.0
+
+            # Identification of necessary negative mFRR assets to sum up to the total mFRR power
+            # Calculation of highest negative mFRR price
+            n = len(self.array_mFRR_molneg['Power'])
+            while mFRR_demand > self.mFRR_P:
+                if n == i:
+                    self.mFRR_neg_insuf = True
+                    print('WARNING! Insufficient negative mFRR at t =', t_now,'!')
+                    mFRR_demand = self.mFRR_P
+                else:
+                    self.mFRR_neg_insuf = False
+                    self.mFRR_price = self.array_mFRR_molneg['Price'][i]
+                    mFRR_demand += self.array_mFRR_molneg['Power'][i]
+                i += 1
+
+        # Positive mFRR MOL is used, if self.mFRR_P < 0
+        elif self.mFRR_P > 0:
+            i = 0
+            mFRR_demand = 0.0
+
+            # Identification of necessary positive mFRR assets to sum up to the total mFRR power
+            # Calculation of highest positive mFRR price
+            n = len(self.array_mFRR_molpos['Power'])
+            while mFRR_demand < self.mFRR_P:
+                if n == i:
+                    self.mFRR_pos_insuf = True
+                    print('WARNING! Insufficient positive mFRR at t =', t_now,'!')
+                    mFRR_demand = self.mFRR_P
+                else:
+                    self.mFRR_pos_insuf = False
+                    self.mFRR_price = self.array_mFRR_molpos['Price'][i]
+                    mFRR_demand += self.array_mFRR_molpos['Power'][i]
+                i += 1
+
+        # All mFRR price signals get set to zero, if no mFRR is activated
+        else:
+            self.mFRR_price = 0.0
+            self.mFRR_price_pos = 0.0
+            self.mFRR_price_neg = 0.0
+            self.mFRR_price_avg = 0.0
+            self.mFRR_price_pos_avg = 0.0
+            self.mFRR_price_neg_avg = 0.0
+            self.mFRR_price_pos_max = 0.0
+            self.mFRR_price_neg_max = 0.0
+
+        # for marginal pricing, the average price equals the highest price from the MOL
+        self.mFRR_price_avg = self.mFRR_price
+
+        # Separate calculation of positive mFRR price and negative mFRR price
+        # Both variables can be greater zero at a given point in time
+        # If self.mFRR_P < 0...
+        # ...the negative MOL (self.array_mFRR_molneg) is used
+        # ...to update the negative mFRR price (self.mFRR_price_neg & self.mFRR_price_neg_avg)
+        if self.mFRR_P < 0:
+            i = 0
+            mFRR_demand = 0.0
+
+            # Identification of necessary negative mFRR assets to sum up to the total mFRR power
+            # Calculation of highest negative mFRR price
+            n = len(self.array_mFRR_molneg['Power'])
+            while mFRR_demand > self.mFRR_P:
+                if n == i:
+                    mFRR_demand = self.mFRR_P
+                else:
+                    self.mFRR_price_neg = self.array_mFRR_molneg['Price'][i]
+                    mFRR_demand += self.array_mFRR_molneg['Power'][i]
+                i += 1
+
+            # for marginal pricing, the average and maximum price signals equal the highest price from the MOL
+            self.mFRR_price_neg_avg = self.mFRR_price_neg
+            self.mFRR_price_neg_max = self.mFRR_price_neg
+            self.mFRR_price_pos_max = 0.0
+
+        # If self.mFRR_P > 0...
+        # ...the positive MOL (self.array_mFRR_molpos) is used...
+        # ...to update the positive mFRR price (self.mFRR_price_pos & self.mFRR_price_pos_avg)
+        elif self.mFRR_P > 0:
+            i = 0
+            mFRR_demand = 0.0
+
+            # Identification of necessary positive mFRR assets to sum up to the total mFRR power
+            # Calculation of highest positive mFRR price
+            n = len(self.array_mFRR_molpos['Power'])
+            while mFRR_demand < self.mFRR_P:
+                if n == i:
+                    mFRR_demand = self.mFRR_P
+                else:
+                    self.mFRR_price_pos = self.array_mFRR_molpos['Price'][i]
+                    mFRR_demand += self.array_mFRR_molpos['Power'][i]
+                i += 1
+
+            # for marginal pricing, the average and maximum price signals equal the highest price from the MOL
+            self.mFRR_price_pos_avg = self.mFRR_price_pos
+            self.mFRR_price_pos_max = self.mFRR_price_pos
+            self.mFRR_price_neg_max = 0.0
+
+        # All mFRR price signals get set to zero, if no mFRR is activated
+        else:
+            self.mFRR_price = 0.0
+            self.mFRR_price_pos = 0.0
+            self.mFRR_price_neg = 0.0
+            self.mFRR_price_avg = 0.0
+            self.mFRR_price_pos_avg = 0.0
+            self.mFRR_price_neg_avg = 0.0
+            self.mFRR_price_pos_max = 0.0
             self.mFRR_price_neg_max = 0.0
 
     # Method calculating the mFRR costs
