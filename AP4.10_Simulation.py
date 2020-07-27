@@ -50,7 +50,7 @@ k_now = 0
 
 # ...Activation of simulation functions
 smartbalancing = False       # True: values being read from the .csv
-save_data = True            # True: write the Simulation data to .csv
+save_data = True            # True: write the simulation data to .csv
 show_fig = True             # True: show all figures at the end of the simulation
 
 # ...Set simulation time settings in seconds
@@ -75,8 +75,6 @@ elif (t_isp % t_step) != 0:
     sys.exit('ERROR! t_isp must be divisible by t_step!')
 elif (t_mol % t_step) != 0:
     sys.exit('ERROR! t_mol must be divisible by t_step!')
-elif (t_mol % t_isp) != 0:
-    sys.exit('ERROR! t_mol must be divisible by t_isp!')
 else:
     pass
 
@@ -104,8 +102,8 @@ i = 0
 t_da = 0.0
 array_da_prices = []
 # ...write prices into array with one value per time step of the simulation
-while t_da <= (t_stop + t_step):
-    array_da_prices.append(list_da_prices.iloc[math.floor(i/3600)][0])
+while t_da < (t_stop + t_step):
+    array_da_prices.append(list_da_prices.iloc[math.floor(i / 3600 * t_step)][0])
     t_da += t_step
     i += 1
 
@@ -354,6 +352,13 @@ if show_fig:
         grapfunc.add_vert_lines(plt=plt, period=t_isp, t_stop=t_stop, color='gray', linestyle='dotted', linewidth=0.5)
         grapfunc.add_vert_lines(plt=plt, period=t_mol, t_stop=t_stop, color='black', linestyle='dashed', linewidth=0.5)
         plt.legend([CA1.array_balancinggroups[7].name])
+
+        plt.figure(4)
+        plt.plot(t_vector, CA1.array_da_prices)
+        plt.title('DA price')
+        grapfunc.add_vert_lines(plt=plt, period=t_isp, t_stop=t_stop, color='gray', linestyle='dotted', linewidth=0.5)
+        grapfunc.add_vert_lines(plt=plt, period=t_mol, t_stop=t_stop, color='black', linestyle='dashed', linewidth=0.5)
+        plt.legend([CA1.name])
 
         plt.show()
 

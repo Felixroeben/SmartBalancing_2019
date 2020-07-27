@@ -278,7 +278,6 @@ def get_load_flex(scenario, control_area):
                         load.sb_costs = float(load_flex['sb_costs'])
                         bg.array_sb_assets.append(load)
 
-
 # Function reads all flexible generators (class 'GeneratorFlex') from a .csv
 # and assigns their smart balancing parameters to the already existing 'GeneratorFlex' objects of the control area
 # 'GeneratorFlex' objects need to be created first
@@ -614,7 +613,7 @@ def save_t_step_data(scenario, save_file_name, save_dict, t_step, t_isp, t_stop)
             outfile.write(l)
 
 def get_da_price_data(sim_duration_uct):
-    prices = pd.read_csv('Price_Data/Day-ahead Prices_2019.csv', sep=',')
+    prices = pd.read_csv('2019_Data/Day-ahead Prices_2019.csv', sep=',')
     prices = prices.set_index('MTU (CET)')
     prices_scenario = prices[sim_duration_uct[0]+ ' 00:00 - ' + sim_duration_uct[0] + ' 01:00' : sim_duration_uct[1]+ ' 23:00 - ' + sim_duration_uct[2] + ' 00:00' ]
     return prices_scenario
