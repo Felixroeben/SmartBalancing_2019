@@ -49,7 +49,7 @@ t_step = 60
 k_now = 0
 
 # ...Activation of simulation functions
-smartbalancing = False       # True: values being read from the .csv
+smartbalancing = True       # True: values being read from the .csv
 save_data = True            # True: write the simulation data to .csv
 show_fig = True             # True: show all figures at the end of the simulation
 
@@ -148,7 +148,7 @@ for i in range(len(array_bilanzkreise)):
 if smartbalancing:
 
     # Creating smart balancing assets from .csv files and assigning them to the respective balancing groups
-    array_assets = fileexch.get_assets(scenario)
+    array_assets = fileexch.get_sb_assets(scenario)
     for asset in array_assets:
         for i in range(len(CA1.array_balancinggroups)):
             if CA1.array_balancinggroups[i].name == asset.bg_name:
@@ -354,11 +354,21 @@ if show_fig:
         plt.legend([CA1.array_balancinggroups[7].name])
 
         plt.figure(4)
-        plt.plot(t_vector, CA1.array_da_prices)
-        plt.title('DA price')
-        grapfunc.add_vert_lines(plt=plt, period=t_isp, t_stop=t_stop, color='gray', linestyle='dotted', linewidth=0.5)
-        grapfunc.add_vert_lines(plt=plt, period=t_mol, t_stop=t_stop, color='black', linestyle='dashed', linewidth=0.5)
-        plt.legend([CA1.name])
+        plt.plot(t_vector, CA1.array_da_prices,
+                 t_vector, CA1.array_AEP)
+        plt.title('Price signals')
+        #grapfunc.add_vert_lines(plt=plt, period=t_isp, t_stop=t_stop, color='gray', linestyle='dotted', linewidth=0.5)
+        #grapfunc.add_vert_lines(plt=plt, period=t_mol, t_stop=t_stop, color='black', linestyle='dashed', linewidth=0.5)
+        plt.legend(['DA price', 'AEP'])
+
+        plt.figure(5)
+        plt.plot(t_vector, CA1.array_balancinggroups[17].array_sb_P,
+                 t_vector, CA1.array_balancinggroups[18].array_sb_P)
+        plt.title('Smart Balancing')
+        #grapfunc.add_vert_lines(plt=plt, period=t_isp, t_stop=t_stop, color='gray', linestyle='dotted', linewidth=0.5)
+        #grapfunc.add_vert_lines(plt=plt, period=t_mol, t_stop=t_stop, color='black', linestyle='dashed', linewidth=0.5)
+        plt.legend([CA1.array_balancinggroups[17].name,
+                    CA1.array_balancinggroups[18].name])
 
         plt.show()
 

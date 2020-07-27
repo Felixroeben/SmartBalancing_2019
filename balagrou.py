@@ -264,23 +264,9 @@ class BalancingGroup:
                 P_max_sum += i.sb_pot_pos
                 P_min_sum += i.sb_pot_neg
 
-            # Decision making for Balancing Group "Arcelor Mittal"
-            if self.name == 'Arcelor Mittal':
-                if (AEP - da_price) < -50:
-                    for i in self.array_sb_assets:
-                        if i.sb_pot_neg < 0:
-                            SB_Asset_ID.append(i.name)
-                            sb_activation = i.sb_pot_neg
-
-                            # Optional limitation of the targeted Smart Balancing power using the total FRCE
-                            if sb_activation < FRCE_sb:
-                                sb_activation = FRCE_sb
-
-                            SB_per_asset.append(sb_activation)
-                        else:
-                            SB_Asset_ID.append(i.name)
-                            SB_per_asset.append(0.0)
-                elif (AEP - da_price) > 250:
+            # Decision making for Balancing Group "Aluminium"
+            if self.name == 'Aluminium':
+                if (AEP - da_price) > 100:
                     for i in self.array_sb_assets:
                         if i.sb_pot_pos > 0:
                             SB_Asset_ID.append(i.name)
@@ -299,77 +285,10 @@ class BalancingGroup:
                         SB_Asset_ID.append(i.name)
                         SB_per_asset.append(0.0)
 
-            # Decision making for Balancing Group "ARGE Netz"
-            elif self.name == 'ARGE Netz':
-                sb_sum = 0.0
-                for i in self.array_sb_assets:
-                    sb_activation = 0.0
-                    if AEP < -i.sb_costs and i.sb_pot_neg < 0:
-                        SB_Asset_ID.append(i.name)
-                        sb_activation = i.sb_pot_neg
-
-                        # Optional limitation of the targeted Smart Balancing power using the total FRCE
-                        if sb_sum + sb_activation < FRCE_sb:
-                            sb_activation = FRCE_sb - sb_sum
-
-                        SB_per_asset.append(sb_activation)
-                    else:
-                        SB_Asset_ID.append(i.name)
-                        SB_per_asset.append(0.0)
-
-                    sb_sum += sb_activation
-
-            # Decision making for Balancing Group "Aurubis"
-            elif self.name == 'Aurubis':
-                if AEP < 10:
-                    for i in self.array_sb_assets:
-                        if i.sb_pot_neg < 0:
-                            SB_Asset_ID.append(i.name)
-                            sb_activation = i.sb_pot_neg
-
-                            # Optional limitation of the targeted Smart Balancing power using the total FRCE
-                            if sb_activation < FRCE_sb:
-                                sb_activation = FRCE_sb
-
-                            SB_per_asset.append(sb_activation)
-                        else:
-                            SB_Asset_ID.append(i.name)
-                            SB_per_asset.append(0.0)
-                elif AEP > da_price:
-                    for i in self.array_sb_assets:
-                        if i.sb_pot_pos > 0:
-                            SB_Asset_ID.append(i.name)
-                            sb_activation = i.sb_pot_pos
-
-                            # Optional limitation of the targeted Smart Balancing power using the total FRCE
-                            if sb_activation > FRCE_sb:
-                                sb_activation = FRCE_sb
-
-                            SB_per_asset.append(sb_activation)
-                        else:
-                            SB_Asset_ID.append(i.name)
-                            SB_per_asset.append(0.0)
-                else:
-                    SB_Asset_ID.append(i.name)
-                    SB_per_asset.append(0.0)
-
-            # Decision making for Balancing Group "Trimet"
-            elif self.name == 'Trimet':
-                if AEP < 10:
-                    for i in self.array_sb_assets:
-                        if i.sb_pot_neg < 0:
-                            SB_Asset_ID.append(i.name)
-                            sb_activation = i.sb_pot_neg
-
-                            # Optional limitation of the targeted Smart Balancing power using the total FRCE
-                            if sb_activation < FRCE_sb:
-                                sb_activation = FRCE_sb
-
-                            SB_per_asset.append(sb_activation)
-                        else:
-                            SB_Asset_ID.append(i.name)
-                            SB_per_asset.append(0.0)
-                elif (AEP - da_price) > 50:
+            # Decision making for Balancing Group "Steel"
+            elif self.name == 'Steel':
+                print('Steel')
+                if (AEP - da_price) > 250:
                     for i in self.array_sb_assets:
                         if i.sb_pot_pos > 0:
                             SB_Asset_ID.append(i.name)
@@ -387,6 +306,18 @@ class BalancingGroup:
                     for i in self.array_sb_assets:
                         SB_Asset_ID.append(i.name)
                         SB_per_asset.append(0.0)
+
+            # Decision making for Balancing Group "Cement"
+            elif self.name == 'Cement':
+                pass
+
+            # Decision making for Balancing Group "Paper"
+            elif self.name == 'Paper':
+                pass
+
+            # Decision making for Balancing Group "Chlorine"
+            elif self.name == 'Chlorine':
+                pass
 
             # Other Balancing Groups get triggered by the arithmetic sign of the signal FRCE_sb
             else:

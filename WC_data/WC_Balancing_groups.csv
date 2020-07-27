@@ -16,10 +16,9 @@ Solar;-;Solar Gen;-;-;False
 Waste;-;Waste Gen;-;-;False
 Wind_Offshore;-;Wind_Offshore Gen;-;-;False
 Wind_Onshore;-;Wind_Onshore Gen;-;-;False
-Aluminium;-;-;-;-;False
-Steel;-;-;-;-;False
+Aluminium;-;-;-;-;True
+Steel;-;-;-;-;True
 Cement;-;-;-;-;False
-Wood;-;-;-;-;False
 Paper;-;-;-;-;False
 Chlorine;-;-;-;-;False
 Dummy;Dummy Load;Dummy Gen;-;-;False

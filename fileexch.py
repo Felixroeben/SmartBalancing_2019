@@ -108,7 +108,7 @@ def fill_power_load(scenario, balancing_groups, sim_duration):
             csv_file2.seek(0)
             csv_file2.__next__()
 
-    print('Power/Loads initialized')
+    print('Generators and loads initialized')
 
 
 # a CSV with all BGs will be automatically read and the objects created
@@ -231,7 +231,7 @@ def get_balancing_groups(scenario, sb_ON, sim_duration):
 
 # Function reads all smart balancing assets (class 'SmartBalancingAsset') from a .csv
 # creates 'SmartBalancingAsset' objects and returns a list of these objects
-def get_assets(scenario):
+def get_sb_assets(scenario):
     obj_assets = []
     asset_file = scenario + 'SB_Assets.csv'
     csv_assets = open(asset_file, mode='r')
