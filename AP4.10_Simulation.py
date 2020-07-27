@@ -6,10 +6,10 @@
 # ...Institution:    Fraunhofer Institute for Silicon Technologies (ISIT)
 # ...Department:     Power Electronics for Renewable Energy Systems
 # ....................................................................................
-# ...Purpose:        Simulation of various ancillary services in power systems
+# ...Purpose:        Simulation of energy balancing markets
 # ....................................................................................
-# ...Version:        1.1
-# ...Date:           July 16th 2020
+# ...Version:        1.2
+# ...Date:           July 24th 2020
 # ....................................................................................
 
 # ------------------------------------------------------------------------------------
@@ -38,10 +38,8 @@ import math
 # ---DEFINITION OF SIMULATION PARAMETERS----------------------------------------------
 # ------------------------------------------------------------------------------------
 
-savefilename_period = 'sim_output_period.csv'       # name of save file, location defined by "scenario"
-savefilename_all = 'sim_output_all.csv'             # name of save file, location defined by "scenario"
-#scenario = 'Test_data//Test_'
-#scenario = 'Feldtest_data//Feldtest_'
+savefilename_period = 'Sim_output_period.csv'       # name of save file, location defined by "scenario"
+savefilename_all = 'Sim_output_all.csv'             # name of save file, location defined by "scenario"
 scenario = 'WC_data//WC_'
 start = 0                                           # simulation time
 
@@ -54,22 +52,21 @@ k_now = 0
 smartbalancing = False       # True: values being read from the .csv
 save_data = True            # True: write the Simulation data to .csv
 show_fig = True             # True: show all figures at the end of the simulation
-save_fig = False            # True: figures are saved as .png files at the end of the simulation
 
 # ...Set simulation time settings in seconds
 day_count = 0                       # number of the first day...needed for correct MOL access
 t_now = 0                           # start of simulation in s
 t_day = t_now                       # time of current day in s
 t_isp = 900                         # duration of an Imbalance Settlement Period in s
-t_mol = 14400                       # time in s, after which the MOL gets updated
+t_mol = 14400                       # time in s, after which the MOLs gets updated
 
 # end of simulation in s
-t_stop = (14 * 24 * 60 * 60) - t_step
+t_stop = (1 * 24 * 60 * 60) - t_step
 
 sim_duration = t_stop - t_now
 sim_steps = int(((t_stop + t_step) - t_now) / t_step)
 
-print('Simulating', sim_steps, 'steps with t_step =', t_step, 's')
+print('Simulating', sim_steps, 'time steps with a step size of', t_step, 's')
 
 # ...Checking divisibility of time constants
 if (86400 % t_step) != 0:
@@ -84,7 +81,6 @@ else:
     pass
 
 # ...Set simulation time settings in timestamps utc
-#sim_duration_utc = ['18.11.2019', '25.11.2019', '26.11.2019']
 sim_duration_utc = ['01.01.2019', '30.12.2019', '31.12.2019']
 
 array_bilanzkreise = []
@@ -332,10 +328,6 @@ if show_fig:
         plt.xlabel('time / s')
         plt.ylabel('Power / MW')
         plt.legend(['Total Imbalance', CA1.array_balancinggroups[7].name])
-        if save_fig:
-            plt.savefig('Bilder//Feldtest1.png', bbox_inches='tight')
-        else:
-            pass
 
         plt.figure(2)
         plt.plot(t_vector, CA1.array_FRCE_sb,
@@ -352,10 +344,6 @@ if show_fig:
                     CA1.array_balancinggroups[3].name,
                     CA1.array_balancinggroups[4].name,
                     CA1.array_balancinggroups[5].name])
-        if save_fig:
-            plt.savefig('Bilder//Feldtest3.png', bbox_inches='tight')
-        else:
-            pass
 
         plt.figure(3)
         plt.plot(t_vector, CA1.array_FRCE,
@@ -368,10 +356,6 @@ if show_fig:
         grapfunc.add_vert_lines(plt=plt, period=t_isp, t_stop=t_stop, color='gray', linestyle='dotted', linewidth=0.5)
         grapfunc.add_vert_lines(plt=plt, period=t_mol, t_stop=t_stop, color='black', linestyle='dashed', linewidth=0.5)
         plt.legend(['FRCE', 'FRCE_ol', 'aFRR_P_pos', 'aFRR_P_neg', 'mFRR_P_pos', 'mFRR_P_neg'])
-        if save_fig:
-            plt.savefig('Bilder//Feldtest3.png', bbox_inches='tight')
-        else:
-            pass
 
     elif scenario == 'WC_data//WC_':
 
@@ -386,10 +370,6 @@ if show_fig:
         grapfunc.add_vert_lines(plt=plt, period=t_isp, t_stop=t_stop, color='gray', linestyle='dotted', linewidth=0.5)
         grapfunc.add_vert_lines(plt=plt, period=t_mol, t_stop=t_stop, color='black', linestyle='dashed', linewidth=0.5)
         plt.legend(['FRCE', 'FRCE_ol', 'aFRR_P_pos', 'aFRR_P_neg', 'mFRR_P_pos', 'mFRR_P_neg'])
-        if save_fig:
-            plt.savefig('Bilder//Feldtest3.png', bbox_inches='tight')
-        else:
-            pass
 
         plt.figure(2)
         plt.plot(t_vector, CA1.array_balancinggroups[2].array_gen_P,
@@ -427,10 +407,6 @@ if show_fig:
                     CA1.array_balancinggroups[15].name,
                     CA1.array_balancinggroups[16].name,
                     CA1.array_balancinggroups[17].name])
-        if save_fig:
-            plt.savefig('Bilder//Feldtest3.png', bbox_inches='tight')
-        else:
-            pass
 
         plt.figure(3)
         plt.plot(t_vector, CA1.array_balancinggroups[8].array_load_P)
@@ -438,10 +414,6 @@ if show_fig:
         grapfunc.add_vert_lines(plt=plt, period=t_isp, t_stop=t_stop, color='gray', linestyle='dotted', linewidth=0.5)
         grapfunc.add_vert_lines(plt=plt, period=t_mol, t_stop=t_stop, color='black', linestyle='dashed', linewidth=0.5)
         plt.legend([CA1.array_balancinggroups[8].name])
-        if save_fig:
-            plt.savefig('Bilder//Feldtest3.png', bbox_inches='tight')
-        else:
-            pass
 
         plt.show()
 

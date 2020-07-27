@@ -24,7 +24,7 @@ def fill_schedule(scenario, balancing_groups, sim_duration):
 
     count = 0
     # ------getting the power schedule------- #
-    gen_schedule = scenario + 'Erzeugung_Soll.csv'
+    gen_schedule = scenario + 'Generation_schedule.csv'
     csv_gen_schedule = open(gen_schedule, mode='r')
     file_gen = csv.DictReader(csv_gen_schedule, delimiter=';')
 
@@ -42,7 +42,7 @@ def fill_schedule(scenario, balancing_groups, sim_duration):
 
 
     # ------getting the load schedule------- #
-    load_schedule = scenario + 'Verbrauch_Soll.csv'
+    load_schedule = scenario + 'Consumption_schedule.csv'
     csv_load_schedule = open(load_schedule, mode='r')
     file_load = csv.DictReader(csv_load_schedule, delimiter=';')
     count = 0
@@ -66,7 +66,7 @@ def fill_schedule(scenario, balancing_groups, sim_duration):
 # a CSV with all power and load will be automatically read and the objects created and appended to their belonging BG
 def fill_power_load(scenario, balancing_groups, sim_duration):
     # ------getting the power values------- #
-    kw_gen_file = scenario + 'Erzeugung_Ist.csv'
+    kw_gen_file = scenario + 'Generation.csv'
     csv_file1 = open(kw_gen_file, mode='r')
     file1 = csv.DictReader(csv_file1, delimiter=';')
     i = 0
@@ -89,7 +89,7 @@ def fill_power_load(scenario, balancing_groups, sim_duration):
             csv_file1.__next__()
 
     # ------getting the load values------- #
-    kw_load_file = scenario + 'Verbrauch_Ist.csv'
+    kw_load_file = scenario + 'Consumption.csv'
     csv_file2 = open(kw_load_file, mode='r')
     file2 = csv.DictReader(csv_file2, delimiter=';')
     # search through the BG array
@@ -115,7 +115,7 @@ def fill_power_load(scenario, balancing_groups, sim_duration):
 def get_balancing_groups(scenario, sb_ON, sim_duration):
 
     obj_balancing_groups = []    # Array with BalancingGroup Objects
-    bg_file = scenario + 'bilanzkreise.csv'
+    bg_file = scenario + 'Balancing_groups.csv'
 
     # open CSV
     csv_bgs = open(bg_file, mode='r')
@@ -126,40 +126,40 @@ def get_balancing_groups(scenario, sb_ON, sim_duration):
     for count, row in enumerate(file):
         if sb_ON:
             if row['smart'] == 'True':
-                obj_balancing_groups.append(balagrou.BalancingGroup(name=row['Bilanzkreis'],
+                obj_balancing_groups.append(balagrou.BalancingGroup(name=row['Balancing Group'],
                                                                     read=True,
                                                                     smart=True))
             elif row['smart'] == 'False':
-                obj_balancing_groups.append(balagrou.BalancingGroup(name=row['Bilanzkreis'],
+                obj_balancing_groups.append(balagrou.BalancingGroup(name=row['Balancing Group'],
                                                                     read=True,
                                                                     smart=False))
             else:
-                print('Could not determine, if', row['Bilanzkreis'], 'is smart. "self.smart" set to "False"')
+                print('Could not determine, if', row['Balancing Group'], 'is smart. "self.smart" set to "False"')
 
         elif not sb_ON:
-            obj_balancing_groups.append(balagrou.BalancingGroup(name=row['Bilanzkreis'],
+            obj_balancing_groups.append(balagrou.BalancingGroup(name=row['Balancing Group'],
                                                                read=True,
                                                                smart=False))
 
-        if row['Verbraucher'] != '-':
-            array_verbraucher = str(row['Verbraucher'])
+        if row['Load'] != '-':
+            array_loads = str(row['Load'])
             # check, if there is more then one consumer in the row, separated by ","
-            if array_verbraucher.find(',') == -1:   # no separator in the row
-                obj_balancing_groups[count].array_loads.append(loadload.Load(name=row['Verbraucher'],
+            if array_loads.find(',') == -1:   # no separator in the row
+                obj_balancing_groups[count].array_loads.append(loadload.Load(name=row['Load'],
                                                                             read=True,
                                                                             load_P=0.0))
             else:   # separator "," in the row
-                verbraucher_liste = array_verbraucher.split(',')    # separate the row by "," and loop through list
-                for counter in range(len(verbraucher_liste)):
-                    obj_balancing_groups[count].array_loads.append(loadload.Load(name=str(verbraucher_liste[counter]),
+                loads_list = array_loads.split(',')    # separate the row by "," and loop through list
+                for counter in range(len(loads_list)):
+                    obj_balancing_groups[count].array_loads.append(loadload.Load(name=str(loads_list[counter]),
                                                                                 read=True,
                                                                                 load_P=0.0))
 
-        if row['Flex Verbraucher'] != '-':
-             array_verbraucher = str(row['Flex Verbraucher'])
+        if row['Flex Load'] != '-':
+             array_loads = str(row['Flex Load'])
              # check, if there is more then one consumer in the row, separated by ","
-             if array_verbraucher.find(',') == -1:  # no separator in the row
-                 obj_balancing_groups[count].array_loads.append(loadload.LoadFlex(name=row['Flex Verbraucher'],
+             if array_loads.find(',') == -1:  # no separator in the row
+                 obj_balancing_groups[count].array_loads.append(loadload.LoadFlex(name=row['Flex Load'],
                                                                                  read=True,
                                                                                  load_P=0.0,
                                                                                  sb_rate_pos=0.0,
@@ -169,9 +169,9 @@ def get_balancing_groups(scenario, sb_ON, sim_duration):
                                                                                  sb_costs=0.0,
                                                                                  bg_name=obj_balancing_groups[count].name))
              else:   # separator "," in the row
-                 verbraucher_liste = array_verbraucher.split(',')  # separate the row by "," and loop through list
-                 for counter in range(len(verbraucher_liste)):
-                     obj_balancing_groups[count].array_loads.append(loadload.LoadFlex(name=str(verbraucher_liste[counter]),
+                 loads_list = array_loadsr.split(',')  # separate the row by "," and loop through list
+                 for counter in range(len(loads_list)):
+                     obj_balancing_groups[count].array_loads.append(loadload.LoadFlex(name=str(loads_list[counter]),
                                                                                      read=True,
                                                                                      load_P=0.0,
                                                                                      sb_rate_pos=0.0,
@@ -181,25 +181,25 @@ def get_balancing_groups(scenario, sb_ON, sim_duration):
                                                                                      sb_costs=0.0,
                                                                                      bg_name=obj_balancing_groups[count].name))
 
-        if row['Erzeuger'] != '-':
-            array_erzeuger = str(row['Erzeuger'])
+        if row['Generator'] != '-':
+            array_generators = str(row['Generator'])
             # check, if there is more then one generator in the row, separated by ","
-            if array_erzeuger.find(',') == -1:  # no separator in the row
-                obj_balancing_groups[count].array_generators.append(generato.Generator(name=row['Erzeuger'],
+            if array_generators.find(',') == -1:  # no separator in the row
+                obj_balancing_groups[count].array_generators.append(generato.Generator(name=row['Generator'],
                                                                                         read=True,
                                                                                         gen_P=0.0))
             else:   # separator "," in the row
-                erzeuger_liste = array_erzeuger.split(',')  # separate the row by "," and loop through list
-                for counter in range(len(erzeuger_liste)):
-                    obj_balancing_groups[count].array_generators.append(generato.Generator(name=str(erzeuger_liste[counter]),
+                generators_list = array_generators.split(',')  # separate the row by "," and loop through list
+                for counter in range(len(generators_list)):
+                    obj_balancing_groups[count].array_generators.append(generato.Generator(name=str(generators_list[counter]),
                                                                                            read=True,
                                                                                            gen_P=0.0))
 
-        if row['Flex Erzeuger'] != '-':
-            array_erzeuger = str(row['Flex Erzeuger'])
+        if row['Flex Generator'] != '-':
+            array_generators = str(row['Flex Generator'])
             # check, if there is more then one generator in the row, separated by ","
-            if array_erzeuger.find(',') == -1:  # no separator in the row
-                obj_balancing_groups[count].array_generators.append(generato.GeneratorFlex(name=row['Flex Erzeuger'],
+            if array_generators.find(',') == -1:  # no separator in the row
+                obj_balancing_groups[count].array_generators.append(generato.GeneratorFlex(name=row['Flex Generator'],
                                                                                            read=True,
                                                                                            gen_P=0.0,
                                                                                            sb_rate_pos=0.0,
@@ -209,9 +209,9 @@ def get_balancing_groups(scenario, sb_ON, sim_duration):
                                                                                            sb_costs=0.0,
                                                                                            bg_name=obj_balancing_groups[count].name))
             else:   # separator "," in the row
-                erzeuger_liste = array_erzeuger.split(',')  # separate the row by "," and loop through list
-                for counter in range(len(erzeuger_liste)):
-                    obj_balancing_groups[count].array_generators.append(generato.GeneratorFlex(name=str(erzeuger_liste[counter]),
+                generators_list = array_generators.split(',')  # separate the row by "," and loop through list
+                for counter in range(len(generators_list)):
+                    obj_balancing_groups[count].array_generators.append(generato.GeneratorFlex(name=str(generators_list[counter]),
                                                                                                read=True,
                                                                                                gen_P=0.0,
                                                                                                sb_rate_pos=0.0,
@@ -233,7 +233,7 @@ def get_balancing_groups(scenario, sb_ON, sim_duration):
 # creates 'SmartBalancingAsset' objects and returns a list of these objects
 def get_assets(scenario):
     obj_assets = []
-    asset_file = scenario + 'Assets.csv'
+    asset_file = scenario + 'SB_Assets.csv'
     csv_assets = open(asset_file, mode='r')
     file = csv.DictReader(csv_assets, delimiter=';')
 
@@ -254,7 +254,7 @@ def get_assets(scenario):
 # and assigns their smart balancing parameters to the already existing 'LoadFlex'-objects of the control area
 # 'LoadFlex'-objects need to be created first
 def get_load_flex(scenario, control_area):
-    load_flex_file = scenario + 'Assets.csv'
+    load_flex_file = scenario + 'SB_Assets.csv'
     csv_assets = open(load_flex_file, mode='r')
     file = csv.DictReader(csv_assets, delimiter=';')
 
@@ -283,7 +283,7 @@ def get_load_flex(scenario, control_area):
 # and assigns their smart balancing parameters to the already existing 'GeneratorFlex' objects of the control area
 # 'GeneratorFlex' objects need to be created first
 def get_gen_flex(scenario, control_area):
-    gen_flex_file = scenario + 'Assets.csv'
+    gen_flex_file = scenario + 'SB_Assets.csv'
     csv_assets = open(gen_flex_file, mode='r')
     file = csv.DictReader(csv_assets, delimiter=';')
 

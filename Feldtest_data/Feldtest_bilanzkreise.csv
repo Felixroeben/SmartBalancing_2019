@@ -1,8 +1,0 @@
-Bilanzkreis;Verbraucher;Erzeuger;Flex Verbraucher;Flex Erzeuger;smart
-Arcelor Mittal;Arcelor Mittal Grundlast;-;Arcelor_Mittal_Kessel;-;True
-ARGE Netz;-;ARGE_PV,ARGE_Bio;-;ARGE_Wind_1,ARGE_Wind_2,ARGE_Wind_3,ARGE_Wind_4,ARGE_Wind_5,ARGE_Wind_6,ARGE_Wind_7,ARGE_Wind_8;True
-Aurubis;-;-;Aurubis_E_Kessel;-;True
-Hansewerk;-;-;Hansewerk_E_Kessel;-;False
-Trimet;-;-;Trimet_Elektrolyseur;-;True
-Verbraucher Ausgleich;Verbraucher Ausgleich Load;Verbraucher Ausgleich Gen;-;-;False
-SRL Sollwert;-;SRL Sollwert Gen;-;-;False
