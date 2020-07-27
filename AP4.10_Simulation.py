@@ -140,11 +140,6 @@ SZ.array_subordinates.append(CA1)
 CA1.array_da_prices = array_da_prices
 
 # ...Initialization of Balancing Groups
-BG0 = balagrou.BalancingGroup(name='Rest von Deutschland',
-                              read=False,
-                              smart=smartbalancing)
-CA1.array_balancinggroups.append(BG0)
-
 # read balance Groups from csv and add to Control area
 array_bilanzkreise = fileexch.get_balancing_groups(scenario, smartbalancing, sim_steps)
 
@@ -176,22 +171,6 @@ CA1.array_aFRR_molpos, CA1.array_aFRR_molneg = fileexch.read_afrr_mol(scenario, 
 CA1.array_mFRR_molpos, CA1.array_mFRR_molneg = fileexch.read_mfrr_mol(scenario, 0, 0, 0)
 
 print('\nInitialization Done! It took %.5f seconds' % (time.time() - start))
-
-# The time series for load_P of the FlexLoad "Aurubis_E_Kessel" does not get read from the .csv file...
-# ...and its load gets set to a default value of zero
-# if True:
-#     CA1.array_balancinggroups[3].read = False
-#     CA1.array_balancinggroups[3].array_load_P_schedule = []
-#     CA1.array_balancinggroups[3].load_P_schedule = 0.0
-#     for i in CA1.array_balancinggroups[3].array_loads:
-#         if i.name == 'Aurubis_E_Kessel':
-#             i.read = False
-#             i.array_load_P = []
-#             i.array_load_P_schedule = []
-#             i.load_P = 0.0
-#             i.load_P_schedule = 0.0
-# else:
-#     pass
 
 
 
@@ -318,46 +297,7 @@ else:
 
 if show_fig:
 
-    if scenario == 'Feldtest_data//Feldtest_':
-
-        plt.figure(1)
-        plt.plot(t_vector, CA1.array_imba_P_sc,
-                 t_vector, CA1.array_balancinggroups[7].array_gen_P)
-        plt.title(CA1.name)
-        plt.grid()
-        plt.xlabel('time / s')
-        plt.ylabel('Power / MW')
-        plt.legend(['Total Imbalance', CA1.array_balancinggroups[7].name])
-
-        plt.figure(2)
-        plt.plot(t_vector, CA1.array_FRCE_sb,
-                 t_vector, CA1.array_balancinggroups[1].array_sb_P,
-                 t_vector, CA1.array_balancinggroups[2].array_sb_P,
-                 t_vector, CA1.array_balancinggroups[3].array_sb_P,
-                 t_vector, CA1.array_balancinggroups[4].array_sb_P,
-                 t_vector, CA1.array_balancinggroups[5].array_sb_P)
-        plt.title(CA1.name)
-        plt.grid()
-        plt.legend(['FRCE_sb',
-                    CA1.array_balancinggroups[1].name,
-                    CA1.array_balancinggroups[2].name,
-                    CA1.array_balancinggroups[3].name,
-                    CA1.array_balancinggroups[4].name,
-                    CA1.array_balancinggroups[5].name])
-
-        plt.figure(3)
-        plt.plot(t_vector, CA1.array_FRCE,
-                 t_vector, CA1.array_FRCE_ol,
-                 t_vector, CA1.array_aFRR_P_pos,
-                 t_vector, CA1.array_aFRR_P_neg,
-                 t_vector, CA1.array_mFRR_P_pos,
-                 t_vector, CA1.array_mFRR_P_neg)
-        plt.title(CA1.name)
-        grapfunc.add_vert_lines(plt=plt, period=t_isp, t_stop=t_stop, color='gray', linestyle='dotted', linewidth=0.5)
-        grapfunc.add_vert_lines(plt=plt, period=t_mol, t_stop=t_stop, color='black', linestyle='dashed', linewidth=0.5)
-        plt.legend(['FRCE', 'FRCE_ol', 'aFRR_P_pos', 'aFRR_P_neg', 'mFRR_P_pos', 'mFRR_P_neg'])
-
-    elif scenario == 'WC_data//WC_':
+    if scenario == 'WC_data//WC_':
 
         plt.figure(1)
         plt.plot(t_vector, CA1.array_FRCE,
@@ -372,7 +312,8 @@ if show_fig:
         plt.legend(['FRCE', 'FRCE_ol', 'aFRR_P_pos', 'aFRR_P_neg', 'mFRR_P_pos', 'mFRR_P_neg'])
 
         plt.figure(2)
-        plt.plot(t_vector, CA1.array_balancinggroups[2].array_gen_P,
+        plt.plot(t_vector, CA1.array_balancinggroups[1].array_gen_P,
+                 t_vector, CA1.array_balancinggroups[2].array_gen_P,
                  t_vector, CA1.array_balancinggroups[3].array_gen_P,
                  t_vector, CA1.array_balancinggroups[4].array_gen_P,
                  t_vector, CA1.array_balancinggroups[5].array_gen_P,
@@ -386,12 +327,12 @@ if show_fig:
                  t_vector, CA1.array_balancinggroups[13].array_gen_P,
                  t_vector, CA1.array_balancinggroups[14].array_gen_P,
                  t_vector, CA1.array_balancinggroups[15].array_gen_P,
-                 t_vector, CA1.array_balancinggroups[16].array_gen_P,
-                 t_vector, CA1.array_balancinggroups[17].array_gen_P)
+                 t_vector, CA1.array_balancinggroups[16].array_gen_P)
         plt.title('Generation')
         grapfunc.add_vert_lines(plt=plt, period=t_isp, t_stop=t_stop, color='gray', linestyle='dotted', linewidth=0.5)
         grapfunc.add_vert_lines(plt=plt, period=t_mol, t_stop=t_stop, color='black', linestyle='dashed', linewidth=0.5)
-        plt.legend([CA1.array_balancinggroups[2].name,
+        plt.legend([CA1.array_balancinggroups[1].name,
+                    CA1.array_balancinggroups[2].name,
                     CA1.array_balancinggroups[3].name,
                     CA1.array_balancinggroups[4].name,
                     CA1.array_balancinggroups[5].name,
@@ -405,15 +346,14 @@ if show_fig:
                     CA1.array_balancinggroups[13].name,
                     CA1.array_balancinggroups[14].name,
                     CA1.array_balancinggroups[15].name,
-                    CA1.array_balancinggroups[16].name,
-                    CA1.array_balancinggroups[17].name])
+                    CA1.array_balancinggroups[16].name])
 
         plt.figure(3)
-        plt.plot(t_vector, CA1.array_balancinggroups[8].array_load_P)
+        plt.plot(t_vector, CA1.array_balancinggroups[7].array_load_P)
         plt.title('Consumption')
         grapfunc.add_vert_lines(plt=plt, period=t_isp, t_stop=t_stop, color='gray', linestyle='dotted', linewidth=0.5)
         grapfunc.add_vert_lines(plt=plt, period=t_mol, t_stop=t_stop, color='black', linestyle='dashed', linewidth=0.5)
-        plt.legend([CA1.array_balancinggroups[8].name])
+        plt.legend([CA1.array_balancinggroups[7].name])
 
         plt.show()
 
