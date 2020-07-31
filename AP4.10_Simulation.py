@@ -49,7 +49,7 @@ t_step = 60
 k_now = 0
 
 # ...Activation of simulation functions
-smartbalancing = True       # True: values being read from the .csv
+smartbalancing = False       # True: values being read from the .csv
 save_data = True            # True: write the simulation data to .csv
 show_fig = True             # True: show all figures at the end of the simulation
 
@@ -61,7 +61,7 @@ t_isp = 900                         # duration of an Imbalance Settlement Period
 t_mol = 14400                       # time in s, after which the MOLs gets updated
 
 # end of simulation in s
-t_stop = (1 * 24 * 60 * 60) - t_step
+t_stop = (364 * 24 * 60 * 60) - t_step
 
 sim_duration = t_stop - t_now
 sim_steps = int(((t_stop + t_step) - t_now) / t_step)
