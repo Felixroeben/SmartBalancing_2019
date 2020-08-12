@@ -54,14 +54,15 @@ save_data = True            # True: write the simulation data to .csv
 show_fig = True             # True: show all figures at the end of the simulation
 
 # ...Set simulation time settings in seconds
-day_count = 0                       # number of the first day...needed for correct MOL access
+day_count = 0                       # number of the day of the year
+month_count = 0                     # number of the month of the year
 t_now = 0                           # start of simulation in s
 t_day = t_now                       # time of current day in s
 t_isp = 900                         # duration of an Imbalance Settlement Period in s
 t_mol = 14400                       # time in s, after which the MOLs gets updated
 
 # end of simulation in s
-t_stop = (364 * 24 * 60 * 60) - t_step
+t_stop = (14 * 24 * 60 * 60) - t_step
 
 sim_duration = t_stop - t_now
 sim_steps = int(((t_stop + t_step) - t_now) / t_step)
@@ -81,6 +82,12 @@ else:
 # ...Set simulation time settings in timestamps utc
 sim_duration_utc = ['01.01.2019', '30.12.2019', '31.12.2019']
 
+# ...Arrays with the "Monatsmarktwerte" in EUR/MWh for each month of 2019 for Wind onshore, Wind offshore, and PV
+array_windon_mmw =  [38.33, 38.11, 24.23, 32.62, 35.64, 22.31, 36.41, 30.29, 30.64, 31.94, 37.09, 25.99]
+array_windoff_mmw = [42.98, 40.88, 26.72, 34.16, 35.59, 26.62, 36.44, 32.00, 33.17, 33.23, 38.35, 29.36]
+array_pv_mmw =      [59.06, 42.13, 30.75, 31.72, 35.30, 29.10, 39.17, 33.76, 33.45, 37.88, 43.83, 36.96]
+
+# ...Array buffering the set of Balancing Groups during initialization
 array_bilanzkreise = []
 
 t_vector = []
@@ -203,6 +210,7 @@ SZ.energy_costs_calc(k_now=k_now, t_now=t_now, t_step=t_step, t_isp=t_isp)
 SZ.write_results()
 
 day_count += 1
+
 print('#-----------Day %d-----------#' % day_count)
 
 # ...Simulation of every time step
@@ -218,6 +226,39 @@ while t_now < t_stop:
         (CA1.array_aFRR_molpos, CA1.array_aFRR_molneg) = fileexch.read_afrr_mol(scenario, t_day, t_mol, day_count)
         (CA1.array_mFRR_molpos, CA1.array_mFRR_molneg) = fileexch.read_mfrr_mol(scenario, t_day, t_mol, day_count)
         SZ.mol_update()
+
+    # Update of month count
+    if day_count > 0 and day_count <= 31:
+        month_count = 1
+    elif day_count > 31 and day_count <= 59:
+        month_count = 2
+    elif day_count > 59 and day_count <= 90:
+        month_count = 3
+    elif day_count > 90 and day_count <= 120:
+        month_count = 4
+    elif day_count > 120 and day_count <= 151:
+        month_count = 5
+    elif day_count > 151 and day_count <= 181:
+        month_count = 6
+    elif day_count > 181 and day_count <= 212:
+        month_count = 7
+    elif day_count > 212 and day_count <= 243:
+        month_count = 8
+    elif day_count > 243 and day_count <= 273:
+        month_count = 9
+    elif day_count > 273 and day_count <= 304:
+        month_count = 10
+    elif day_count > 304 and day_count <= 334:
+        month_count = 11
+    elif day_count > 334 and day_count <= 365:
+        month_count = 12
+    else:
+        pass
+
+    # Update of "Monatsmarktwert" variables
+    CA1.windon_mmw = array_windon_mmw[month_count - 1]
+    CA1.windoff_mmw = array_windoff_mmw[month_count - 1]
+    CA1.pv_mmw = array_pv_mmw[month_count - 1]
 
     t_now += t_step
     t_day += t_step
@@ -298,6 +339,15 @@ if show_fig:
     if scenario == 'WC_data//WC_':
 
         plt.figure(1)
+        plt.plot(t_vector, CA1.array_imba_P_sc,
+                 t_vector, CA1.array_balancinggroups[0].array_gen_P)
+        plt.title(CA1.name)
+        plt.grid()
+        plt.xlabel('time / s')
+        plt.ylabel('Power / MW')
+        plt.legend(['Total Imbalance', CA1.array_balancinggroups[7].name])
+
+        plt.figure(2)
         plt.plot(t_vector, CA1.array_FRCE,
                  t_vector, CA1.array_FRCE_ol,
                  t_vector, CA1.array_aFRR_P_pos,
@@ -309,7 +359,7 @@ if show_fig:
         grapfunc.add_vert_lines(plt=plt, period=t_mol, t_stop=t_stop, color='black', linestyle='dashed', linewidth=0.5)
         plt.legend(['FRCE', 'FRCE_ol', 'aFRR_P_pos', 'aFRR_P_neg', 'mFRR_P_pos', 'mFRR_P_neg'])
 
-        plt.figure(2)
+        plt.figure(3)
         plt.plot(t_vector, CA1.array_balancinggroups[1].array_gen_P,
                  t_vector, CA1.array_balancinggroups[2].array_gen_P,
                  t_vector, CA1.array_balancinggroups[3].array_gen_P,
@@ -346,27 +396,23 @@ if show_fig:
                     CA1.array_balancinggroups[15].name,
                     CA1.array_balancinggroups[16].name])
 
-        plt.figure(3)
+        plt.figure(4)
         plt.plot(t_vector, CA1.array_balancinggroups[7].array_load_P)
         plt.title('Consumption')
         grapfunc.add_vert_lines(plt=plt, period=t_isp, t_stop=t_stop, color='gray', linestyle='dotted', linewidth=0.5)
         grapfunc.add_vert_lines(plt=plt, period=t_mol, t_stop=t_stop, color='black', linestyle='dashed', linewidth=0.5)
         plt.legend([CA1.array_balancinggroups[7].name])
 
-        plt.figure(4)
+        plt.figure(5)
         plt.plot(t_vector, CA1.array_da_prices,
                  t_vector, CA1.array_AEP)
         plt.title('Price signals')
-        #grapfunc.add_vert_lines(plt=plt, period=t_isp, t_stop=t_stop, color='gray', linestyle='dotted', linewidth=0.5)
-        #grapfunc.add_vert_lines(plt=plt, period=t_mol, t_stop=t_stop, color='black', linestyle='dashed', linewidth=0.5)
         plt.legend(['DA price', 'AEP'])
 
-        plt.figure(5)
+        plt.figure(6)
         plt.plot(t_vector, CA1.array_balancinggroups[17].array_sb_P,
                  t_vector, CA1.array_balancinggroups[18].array_sb_P)
         plt.title('Smart Balancing')
-        #grapfunc.add_vert_lines(plt=plt, period=t_isp, t_stop=t_stop, color='gray', linestyle='dotted', linewidth=0.5)
-        #grapfunc.add_vert_lines(plt=plt, period=t_mol, t_stop=t_stop, color='black', linestyle='dashed', linewidth=0.5)
         plt.legend([CA1.array_balancinggroups[17].name,
                     CA1.array_balancinggroups[18].name])
 
