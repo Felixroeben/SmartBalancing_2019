@@ -889,7 +889,10 @@ class ControlArea(CalculatingGridElement):
                       AEP=self.AEP,
                       t_step=t_step,
                       t_now=t_now,
-                      da_price=self.da_price)
+                      da_price=self.da_price,
+                      windon_mmw=self.windon_mmw,
+                      windoff_mmw=self.windoff_mmw,
+                      pv_mmw=self.pv_mmw)
             self.sb_P += i.sb_P
 
     # Method calculating a price for aFRR using the pay-as-bid priciple

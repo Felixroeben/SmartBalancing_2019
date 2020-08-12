@@ -49,7 +49,7 @@ t_step = 60
 k_now = 0
 
 # ...Activation of simulation functions
-smartbalancing = False       # True: values being read from the .csv
+smartbalancing = True       # True: values being read from the .csv
 save_data = True            # True: write the simulation data to .csv
 show_fig = True             # True: show all figures at the end of the simulation
 
@@ -410,10 +410,16 @@ if show_fig:
         plt.legend(['DA price', 'AEP'])
 
         plt.figure(6)
-        plt.plot(t_vector, CA1.array_balancinggroups[17].array_sb_P,
+        plt.plot(t_vector, CA1.array_balancinggroups[13].array_sb_P,
+                 t_vector, CA1.array_balancinggroups[15].array_sb_P,
+                 t_vector, CA1.array_balancinggroups[16].array_sb_P,
+                 t_vector, CA1.array_balancinggroups[17].array_sb_P,
                  t_vector, CA1.array_balancinggroups[18].array_sb_P)
         plt.title('Smart Balancing')
-        plt.legend([CA1.array_balancinggroups[17].name,
+        plt.legend([CA1.array_balancinggroups[13].name,
+                    CA1.array_balancinggroups[15].name,
+                    CA1.array_balancinggroups[16].name,
+                    CA1.array_balancinggroups[17].name,
                     CA1.array_balancinggroups[18].name])
 
         plt.show()
