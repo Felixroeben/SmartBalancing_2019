@@ -219,38 +219,13 @@ class BalancingGroup:
                                 'Price': array_price,
                                 'Power': array_power}
 
-    def sb_calc(self, FRCE_sb, AEP, t_step, t_now, da_price):
-        # Balancing Group "Aurubis" uses their FlexLoad "Aurubis_E_Kessel", if the day-ahead price is below 10 €/MWh
-        # The variables "load_P" and "load_P_schedule" are set accordingly
-        if self.name == 'Aurubis':
-            if da_price < 10:
-                self.load_P_schedule = 10.0
-                for i in self.array_loads:
-                    if i.name == 'Aurubis_E_Kessel':
-                        i.load_P = 10.0
-            else:
-                self.load_P_schedule = 0.0
-                for i in self.array_loads:
-                    if i.name == 'Aurubis_E_Kessel':
-                        i.load_P = 0.0
-        else:
-            pass
-
+    def sb_calc(self, FRCE_sb, AEP, t_step, t_now, da_price, windon_mmw, windoff_mmw, pv_mmw):
         # The positive and negative SB potentials of all assets get updated.
         for i in self.array_sb_assets:
             i.sb_pot_calc()
 
         if self.smart:
             self.sb_P = 0.0
-
-            # Activation of SB Assets via Fuzz Logic
-            # array_sb_activate = {"SB_Asset_ID": [], "SB_per_asset": []}
-            # if FRCE_sb < 0:
-            #     array_sb_activate = fuzzlogi.fuzz(FRCE_sb, AEP, self.array_sb_molneg)
-            # elif FRCE_sb > 0:
-            #     array_sb_activate = fuzzlogi.fuzz(FRCE_sb, AEP, self.array_sb_molpos)
-            # else:
-            #     pass
 
             # Activation of SB Assets without Fuzzy Logic
             SB_Asset_ID = []
@@ -264,8 +239,68 @@ class BalancingGroup:
                 P_max_sum += i.sb_pot_pos
                 P_min_sum += i.sb_pot_neg
 
+            # Decision making for Balancing Group "Solar"
+            if self.name == 'Solar':
+                sb_sum = 0.0
+                for i in self.array_sb_assets:
+                    sb_activation = 0.0
+                    if AEP > (i.sb_costs - pv_mmw) and i.sb_pot_neg < 0:
+                        SB_Asset_ID.append(i.name)
+                        sb_activation = i.sb_pot_neg
+
+                        # Optional limitation of the targeted Smart Balancing power using the total FRCE
+                        if sb_sum + sb_activation < FRCE_sb:
+                            sb_activation = FRCE_sb - sb_sum
+
+                        SB_per_asset.append(sb_activation)
+                    else:
+                        SB_Asset_ID.append(i.name)
+                        SB_per_asset.append(0.0)
+
+                    sb_sum += sb_activation
+
+            # Decision making for Balancing Group "Wind_Onshore"
+            if self.name == 'Wind_Onshore':
+                sb_sum = 0.0
+                for i in self.array_sb_assets:
+                    sb_activation = 0.0
+                    if AEP > (i.sb_costs - windon_mmw) and i.sb_pot_neg < 0:
+                        SB_Asset_ID.append(i.name)
+                        sb_activation = i.sb_pot_neg
+
+                        # Optional limitation of the targeted Smart Balancing power using the total FRCE
+                        if sb_sum + sb_activation < FRCE_sb:
+                            sb_activation = FRCE_sb - sb_sum
+
+                        SB_per_asset.append(sb_activation)
+                    else:
+                        SB_Asset_ID.append(i.name)
+                        SB_per_asset.append(0.0)
+
+                    sb_sum += sb_activation
+
+            # Decision making for Balancing Group "Wind_Offshore"
+            if self.name == 'Wind_Offshore':
+                sb_sum = 0.0
+                for i in self.array_sb_assets:
+                    sb_activation = 0.0
+                    if AEP > (i.sb_costs - windoff_mmw) and i.sb_pot_neg < 0:
+                        SB_Asset_ID.append(i.name)
+                        sb_activation = i.sb_pot_neg
+
+                        # Optional limitation of the targeted Smart Balancing power using the total FRCE
+                        if sb_sum + sb_activation < FRCE_sb:
+                            sb_activation = FRCE_sb - sb_sum
+
+                        SB_per_asset.append(sb_activation)
+                    else:
+                        SB_Asset_ID.append(i.name)
+                        SB_per_asset.append(0.0)
+
+                    sb_sum += sb_activation
+
             # Decision making for Balancing Group "Aluminium"
-            if self.name == 'Aluminium':
+            elif self.name == 'Aluminium':
                 if (AEP - da_price) > 100:
                     for i in self.array_sb_assets:
                         if i.sb_pot_pos > 0:
@@ -287,7 +322,6 @@ class BalancingGroup:
 
             # Decision making for Balancing Group "Steel"
             elif self.name == 'Steel':
-                print('Steel')
                 if (AEP - da_price) > 250:
                     for i in self.array_sb_assets:
                         if i.sb_pot_pos > 0:

@@ -12,10 +12,10 @@ Hydro_Reservoir;-;Hydro_Reservoir Gen;-;-;False
 Nuclear;-;Nuclear Gen;-;-;False
 Other;-;Other Gen;-;-;False
 Other_Renew;-;Other_Renew Gen;-;-;False
-Solar;-;Solar Gen;-;-;False
+Solar;-;Solar_REST Gen;-;Solar_2017_1 Gen,Solar_2017_2 Gen,Solar_2017_3 Gen,Solar_2018_1 Gen,Solar_2018_2 Gen,Solar_2018_3 Gen;True
 Waste;-;Waste Gen;-;-;False
-Wind_Offshore;-;Wind_Offshore Gen;-;-;False
-Wind_Onshore;-;Wind_Onshore Gen;-;-;False
+Wind_Offshore;-;Wind_Offshore_REST Gen;-;Wind_Offshore_2017 Gen,Wind_Offshore_2018 Gen;True
+Wind_Onshore;-;Wind_Onshore_REST Gen;-;Wind_Onshore_2017_1 Gen,Wind_Onshore_2017_2 Gen,Wind_Onshore_2017_3 Gen,Wind_Onshore_2018_1 Gen,Wind_Onshore_2018_2 Gen,Wind_Onshore_2018_3 Gen,Wind_Onshore_2018_4 Gen;True
 Aluminium;-;-;-;-;True
 Steel;-;-;-;-;True
 Cement;-;-;-;-;False

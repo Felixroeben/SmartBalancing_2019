@@ -53,8 +53,9 @@ class GeneratorFlex(Generator):
     # In this method, variables for the current positive and negative SB potentials get updated...
     # ...using the current active power generation (self.gen_P)
     def sb_pot_calc(self):
-        # Calculation for flexible generators of Balancing Group "ARGE Netz"
-        if self.bg_name == "ARGE Netz":
+        # Calculation for flexible generators of Balancing Groups "Solar", "Wind_Onshore", and "Wind_Offshore"
+        # Positive SB potential is always set to zero for these generators
+        if self.bg_name == "Solar" or self.bg_name == "Wind_Onshore" or self.bg_name == "Wind_Offshore":
             self.sb_pot_pos = 0.0
             if self.gen_P > self.sb_P_min:
                 self.sb_pot_neg = self.sb_P_min - self.gen_P

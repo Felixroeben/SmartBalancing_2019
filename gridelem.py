@@ -722,6 +722,15 @@ class ControlArea(CalculatingGridElement):
         self.da_price = 0.0
         self.array_da_prices = []
 
+        # Variables for the "Monatsmarktwert" of PV, Wind onshore and Wind offshore
+        self.windon_mmw = 0.0
+        self.windoff_mmw = 0.0
+        self.pv_mmw = 0.0
+
+        self.array_windon_mmw = []
+        self.array_windoff_mmw = []
+        self.array_pv_mmw = []
+
     # Method initializing the schedule for generation and load.
     # The method calls a method of the same name in all subordinated Balancing Groups
     # and sets the current generation and load as the schedule.
@@ -880,7 +889,10 @@ class ControlArea(CalculatingGridElement):
                       AEP=self.AEP,
                       t_step=t_step,
                       t_now=t_now,
-                      da_price=self.da_price)
+                      da_price=self.da_price,
+                      windon_mmw=self.windon_mmw,
+                      windoff_mmw=self.windoff_mmw,
+                      pv_mmw=self.pv_mmw)
             self.sb_P += i.sb_P
 
     # Method calculating a price for aFRR using the pay-as-bid priciple
@@ -1762,3 +1774,6 @@ class ControlArea(CalculatingGridElement):
         self.array_load_costs.append(self.load_costs)
         self.array_gen_income_period.append(self.gen_income_period)
         self.array_load_costs_period.append(self.load_costs_period)
+        self.array_windon_mmw.append(self.windon_mmw)
+        self.array_windoff_mmw.append(self.windoff_mmw)
+        self.array_pv_mmw.append(self.pv_mmw)
