@@ -43,6 +43,10 @@ savefilename_all = 'Sim_output_all.csv'             # name of save file, locatio
 scenario = 'WC_data//WC_'
 start = 0                                           # simulation time
 
+# definition of pricing method:
+# "0" for pay-as-bid, "1" for marginal pricing              (int)
+pricingmethod = 0
+
 # ...Set simulation time step in s
 t_step = 60
 # ...Set simulation discrete time variable
@@ -134,11 +138,11 @@ CA1 = gridelem.ControlArea(name='Deutschland',
                            aFRR_T=170.0,
                            aFRR_beta=0.1,
                            aFRR_delay=0.0,
-                           aFRR_pricing=0,
+                           aFRR_pricing=pricingmethod,
                            mFRR_trigger=0.6,
                            mFRR_target=0.4,
                            mFRR_time=300.0,
-                           mFRR_pricing=0,
+                           mFRR_pricing=pricingmethod,
                            sb_delay=0.0)
 SZ.array_subordinates.append(CA1)
 
