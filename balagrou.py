@@ -219,15 +219,19 @@ class BalancingGroup:
                                 'Price': array_price,
                                 'Power': array_power}
 
-    def sb_calc(self, FRCE_sb, AEP, t_step, t_now, da_price, windon_mmw, windoff_mmw, pv_mmw, pricingmethod):
+    def sb_calc(self, FRCE_sb, AEP, t_step, t_now, da_price, windon_mmw, windoff_mmw, pv_mmw, aFRR_pricing, mFRR_pricing, fuzzy):
         # The positive and negative SB potentials of all assets get updated.
         for i in self.array_sb_assets:
             i.sb_pot_calc()
 
-        if self.smart:
+        # Activation of SB Assets using Fuzzy Logic
+        if self.smart and fuzzy:
             self.sb_P = 0.0
 
-            # Activation of SB Assets without Fuzzy Logic
+        # Activation of SB Assets without Fuzzy Logic
+        elif self.smart and not fuzzy:
+            self.sb_P = 0.0
+
             SB_Asset_ID = []
             SB_per_asset = []
 
