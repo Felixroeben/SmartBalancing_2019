@@ -64,7 +64,7 @@ t_isp = 900                         # duration of an Imbalance Settlement Period
 t_mol = 14400                       # time in s, after which the MOLs gets updated
 
 # end of simulation in s
-t_stop = (1 * 24 * 60 * 60) - t_step
+t_stop = (100 * 24 * 60 * 60) - t_step
 
 sim_duration = t_stop - t_now
 sim_steps = int(((t_stop + t_step) - t_now) / t_step)
@@ -300,7 +300,10 @@ if save_data:
                  'GER neg. energy mFRR [MWh]': CA1.array_mFRR_E_neg_period,
                  'GER pos. mFRR costs [EUR]': CA1.array_mFRR_costs_pos_period,
                  'GER neg. mFRR costs [EUR]': CA1.array_mFRR_costs_neg_period,
-                 'GER AEP [EUR/MWh]': CA1.array_AEP
+                 'GER AEP [EUR/MWh]': CA1.array_AEP,
+                 'Solar AEP costs [EUR]': CA1.array_balancinggroups[13].array_AEP_costs_period,
+                 'Wind onshore AEP costs [EUR]': CA1.array_balancinggroups[15].array_AEP_costs_period,
+                 'Wind offshore AEP costs [EUR]': CA1.array_balancinggroups[16].array_AEP_costs_period,
                 }
     fileexch.save_period_data(scenario=scenario,
                               save_file_name=savefilename_period,

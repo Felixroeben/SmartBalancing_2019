@@ -162,7 +162,7 @@ class BalancingGroup:
             pass
 
         # in the last time step of each ISP, the costs for imbalances are calculated
-        if ((t_now + 1) % t_isp) == 0:
+        if ((t_now + t_step) % t_isp) == 0:
             self.aep_costs_calc(AEP)
 
     # Method that calculates the costs for imbalances at the end of an ISP...
@@ -248,7 +248,18 @@ class BalancingGroup:
                 sb_sum = 0.0
                 for i in self.array_sb_assets:
                     sb_activation = 0.0
-                    if AEP > (i.sb_costs - pv_mmw) and i.sb_pot_neg < 0:
+
+                    # Definition of additional margin in EUR/MWh
+                    margin = 60.0
+
+                    # Calculation of the current "Marktprämie" for the asset, which is never smaller than zero
+                    mp = i.sb_costs - pv_mmw
+                    if mp < 0:
+                        mp = 0.0
+                    else:
+                        pass
+
+                    if AEP < -(mp + margin) and i.sb_pot_neg < 0:
                         SB_Asset_ID.append(i.name)
                         sb_activation = i.sb_pot_neg
 
@@ -264,11 +275,22 @@ class BalancingGroup:
                     sb_sum += sb_activation
 
             # Decision making for Balancing Group "Wind_Onshore"
-            if self.name == 'Wind_Onshore':
+            elif self.name == 'Wind_Onshore':
                 sb_sum = 0.0
                 for i in self.array_sb_assets:
                     sb_activation = 0.0
-                    if AEP > (i.sb_costs - windon_mmw) and i.sb_pot_neg < 0:
+
+                    # Definition of additional margin in EUR/MWh
+                    margin = 40.0
+
+                    # Calculation of the current "Marktprämie" for the asset, which is never smaller than zero
+                    mp = i.sb_costs - windon_mmw
+                    if mp < 0:
+                        mp = 0.0
+                    else:
+                        pass
+
+                    if AEP < -(mp + margin) and i.sb_pot_neg < 0:
                         SB_Asset_ID.append(i.name)
                         sb_activation = i.sb_pot_neg
 
@@ -284,11 +306,22 @@ class BalancingGroup:
                     sb_sum += sb_activation
 
             # Decision making for Balancing Group "Wind_Offshore"
-            if self.name == 'Wind_Offshore':
+            elif self.name == 'Wind_Offshore':
                 sb_sum = 0.0
                 for i in self.array_sb_assets:
                     sb_activation = 0.0
-                    if AEP > (i.sb_costs - windoff_mmw) and i.sb_pot_neg < 0:
+
+                    # Definition of additional margin in EUR/MWh
+                    margin = 40.0
+
+                    # Calculation of the current "Marktprämie" for the asset, which is never smaller than zero
+                    mp = i.sb_costs - windoff_mmw
+                    if mp < 0:
+                        mp = 0.0
+                    else:
+                        pass
+
+                    if AEP < -(mp + margin) and i.sb_pot_neg < 0:
                         SB_Asset_ID.append(i.name)
                         sb_activation = i.sb_pot_neg
 
