@@ -219,7 +219,7 @@ class BalancingGroup:
                                 'Price': array_price,
                                 'Power': array_power}
 
-    def sb_calc(self, FRCE_sb, AEP, t_step, t_now, da_price, windon_mmw, windoff_mmw, pv_mmw):
+    def sb_calc(self, FRCE_sb, AEP, t_step, t_now, da_price, windon_mmw, windoff_mmw, pv_mmw, pricingmethod):
         # The positive and negative SB potentials of all assets get updated.
         for i in self.array_sb_assets:
             i.sb_pot_calc()
@@ -343,7 +343,38 @@ class BalancingGroup:
 
             # Decision making for Balancing Group "Cement"
             elif self.name == 'Cement':
-                pass
+                if (AEP - da_price) > 250:
+                    for i in self.array_sb_assets:
+                        if i.sb_pot_pos > 0:
+                            SB_Asset_ID.append(i.name)
+                            sb_activation = i.sb_pot_pos
+
+                            # Optional limitation of the targeted Smart Balancing power using the total FRCE
+                            if sb_activation > FRCE_sb:
+                                sb_activation = FRCE_sb
+
+                            SB_per_asset.append(sb_activation)
+                        else:
+                            SB_Asset_ID.append(i.name)
+                            SB_per_asset.append(0.0)
+                elif AEP < 10:
+                    for i in self.array_sb_assets:
+                        if i.sb_pot_neg < 0:
+                            SB_Asset_ID.append(i.name)
+                            sb_activation = i.sb_pot_neg
+
+                            # Optional limitation of the targeted Smart Balancing power using the total FRCE
+                            if sb_activation < FRCE_sb:
+                                sb_activation = FRCE_sb
+
+                            SB_per_asset.append(sb_activation)
+                        else:
+                            SB_Asset_ID.append(i.name)
+                            SB_per_asset.append(0.0)
+                else:
+                    for i in self.array_sb_assets:
+                        SB_Asset_ID.append(i.name)
+                        SB_per_asset.append(0.0)
 
             # Decision making for Balancing Group "Paper"
             elif self.name == 'Paper':
