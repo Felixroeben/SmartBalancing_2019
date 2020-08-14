@@ -49,7 +49,9 @@ t_step = 60
 k_now = 0
 
 # ...Activation of simulation functions
-smartbalancing = True       # True: values being read from the .csv
+smartbalancing = True       # True: Smart Balancing is globally switched on
+fuzzy = False               # True: Smart Balancing is globally activated via Fuzzy Logic
+FRR_pricing = 1             # Global variable to switch both aFRR & mFRR from pay-as-bid (0) to marginal pricing (1)
 save_data = True            # True: write the simulation data to .csv
 show_fig = True             # True: show all figures at the end of the simulation
 
@@ -62,7 +64,7 @@ t_isp = 900                         # duration of an Imbalance Settlement Period
 t_mol = 14400                       # time in s, after which the MOLs gets updated
 
 # end of simulation in s
-t_stop = (14 * 24 * 60 * 60) - t_step
+t_stop = (1 * 24 * 60 * 60) - t_step
 
 sim_duration = t_stop - t_now
 sim_steps = int(((t_stop + t_step) - t_now) / t_step)
@@ -82,7 +84,7 @@ else:
 # ...Set simulation time settings in timestamps utc
 sim_duration_utc = ['01.01.2019', '30.12.2019', '31.12.2019']
 
-# ...Arrays with the "Monatsmarktwerte" in EUR/MWh for each month of 2019 for Wind onshore, Wind offshore, and PV
+# ...Arrays with the "Monatsmarktwert" in EUR/MWh for each month of 2019 for Wind onshore, Wind offshore, and PV
 array_windon_mmw =  [38.33, 38.11, 24.23, 32.62, 35.64, 22.31, 36.41, 30.29, 30.64, 31.94, 37.09, 25.99]
 array_windoff_mmw = [42.98, 40.88, 26.72, 34.16, 35.59, 26.62, 36.44, 32.00, 33.17, 33.23, 38.35, 29.36]
 array_pv_mmw =      [59.06, 42.13, 30.75, 31.72, 35.30, 29.10, 39.17, 33.76, 33.45, 37.88, 43.83, 36.96]
@@ -134,11 +136,11 @@ CA1 = gridelem.ControlArea(name='Deutschland',
                            aFRR_T=170.0,
                            aFRR_beta=0.1,
                            aFRR_delay=0.0,
-                           aFRR_pricing=0,
+                           aFRR_pricing=FRR_pricing,
                            mFRR_trigger=0.6,
                            mFRR_target=0.4,
                            mFRR_time=300.0,
-                           mFRR_pricing=0,
+                           mFRR_pricing=FRR_pricing,
                            sb_delay=0.0)
 SZ.array_subordinates.append(CA1)
 
@@ -204,7 +206,7 @@ SZ.load_schedule_calc()
 SZ.imba_calc()
 SZ.f_calc()
 SZ.fcr_calc()
-SZ.afrr_calc(k_now=k_now, t_now=t_now, t_step=t_step, t_isp=t_isp)
+SZ.afrr_calc(k_now=k_now, t_now=t_now, t_step=t_step, t_isp=t_isp, fuzzy=fuzzy)
 SZ.mfrr_calc(t_now=t_now, t_step=t_step, t_isp=t_isp)
 SZ.energy_costs_calc(k_now=k_now, t_now=t_now, t_step=t_step, t_isp=t_isp)
 SZ.write_results()
@@ -274,7 +276,7 @@ while t_now < t_stop:
     SZ.imba_calc()
     SZ.f_calc()
     SZ.fcr_calc()
-    SZ.afrr_calc(k_now=k_now, t_now=t_now, t_step=t_step, t_isp=t_isp)
+    SZ.afrr_calc(k_now=k_now, t_now=t_now, t_step=t_step, t_isp=t_isp, fuzzy=fuzzy)
     SZ.mfrr_calc(t_now=t_now, t_step=t_step, t_isp=t_isp)
     SZ.energy_costs_calc(k_now=k_now, t_now=t_now, t_step=t_step, t_isp=t_isp)
     SZ.write_results()

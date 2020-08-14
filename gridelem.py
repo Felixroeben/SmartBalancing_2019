@@ -155,7 +155,7 @@ class GridElement:
 
     # Method calculating the activated aFRR power of the grid element.
     # The method sums up the activated aFRR power of all subordinated grid elements
-    def afrr_calc(self, f_delta, k_now, t_now, t_step, t_isp):
+    def afrr_calc(self, f_delta, k_now, t_now, t_step, t_isp, fuzzy):
         self.aFRR_P = 0.0
         self.sb_P = 0.0
         for i in self.array_subordinates:
@@ -163,7 +163,8 @@ class GridElement:
                         k_now=k_now,
                         t_now=t_now,
                         t_step=t_step,
-                        t_isp=t_isp)
+                        t_isp=t_isp,
+                        fuzzy=fuzzy)
             self.aFRR_P += i.aFRR_P
             self.sb_P += i.sb_P
 
@@ -359,7 +360,7 @@ class CalculatingGridElement(GridElement):
 
     # Method calculating the aFRR using a discrete PI controller.
     # All aFRR related variables except for the open loop FRCE signal are processed in this method.
-    def afrr_calc(self, f_delta, k_now, t_now, t_step, t_isp):
+    def afrr_calc(self, f_delta, k_now, t_now, t_step, t_isp, fuzzy):
         self.FRCE_cl_pos_before = self.FRCE_cl_pos
         self.FRCE_cl_neg_before = self.FRCE_cl_neg
 
@@ -486,7 +487,7 @@ class SynchronousZone(GridElement):
 
     # Method calculating the activated aFRR power of the system
     # The method sums up the activated aFRR power of all subordinated grid elements
-    def afrr_calc(self, k_now, t_now, t_step, t_isp):
+    def afrr_calc(self, k_now, t_now, t_step, t_isp, fuzzy):
         self.aFRR_P = 0.0
         self.sb_P = 0.0
         for i in self.array_subordinates:
@@ -494,7 +495,8 @@ class SynchronousZone(GridElement):
                         k_now=k_now,
                         t_now=t_now,
                         t_step=t_step,
-                        t_isp=t_isp)
+                        t_isp=t_isp,
+                        fuzzy=fuzzy)
             self.aFRR_P += i.aFRR_P
             self.sb_P += i.sb_P
 
@@ -818,7 +820,7 @@ class ControlArea(CalculatingGridElement):
     # Method calculating the activated aFRR power of the system.
     # Added call of method afrr_price_calc for this class.
     # Added activation of smart balancing in subordinated Balancing Groups
-    def afrr_calc(self, f_delta, k_now, t_now, t_step, t_isp):
+    def afrr_calc(self, f_delta, k_now, t_now, t_step, t_isp, fuzzy):
         self.FRCE_cl_pos_before = self.FRCE_cl_pos
         self.FRCE_cl_neg_before = self.FRCE_cl_neg
 
@@ -892,7 +894,10 @@ class ControlArea(CalculatingGridElement):
                       da_price=self.da_price,
                       windon_mmw=self.windon_mmw,
                       windoff_mmw=self.windoff_mmw,
-                      pv_mmw=self.pv_mmw)
+                      pv_mmw=self.pv_mmw,
+                      aFRR_pricing=self.aFRR_pricing,
+                      mFRR_pricing=self.mFRR_pricing,
+                      fuzzy=fuzzy)
             self.sb_P += i.sb_P
 
     # Method calculating a price for aFRR using the pay-as-bid priciple
