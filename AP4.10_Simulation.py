@@ -49,7 +49,7 @@ t_step = 60
 k_now = 0
 
 # ...Activation of simulation functions
-smartbalancing = False      # True: Smart Balancing is globally switched on
+smartbalancing = True       # True: Smart Balancing is globally switched on
 fuzzy = False               # True: Smart Balancing is globally activated via Fuzzy Logic
 FRR_pricing = 0             # Global variable to switch both aFRR & mFRR from pay-as-bid (0) to marginal pricing (1)
 save_data = True            # True: write the simulation data to .csv
@@ -64,7 +64,7 @@ t_isp = 900                         # duration of an Imbalance Settlement Period
 t_mol = 14400                       # time in s, after which the MOLs gets updated
 
 # end of simulation in s
-t_stop = (365 * 24 * 60 * 60) - t_step
+t_stop = (1 * 24 * 60 * 60) - t_step
 
 sim_duration = t_stop - t_now
 sim_steps = int(((t_stop + t_step) - t_now) / t_step)
@@ -314,7 +314,8 @@ if save_data:
     print('Simulation results for every ISP were saved in file', savefilename_period)
 
     save_dict = {'time [s]': t_vector,
-                 'open loop FRCE [MW]': CA1.array_FRCE_ol,
+                 'FRCE [MW]': CA1.array_FRCE,
+                 'aFRR FRCE (open loop) [MW]': CA1.array_FRCE_ol,
                  'aFRR P [MW]': CA1.array_aFRR_P,
                  'mFRR P [MW]': CA1.array_mFRR_P,
                  'insufficient pos. aFRR': CA1.array_aFRR_pos_insuf,
@@ -419,13 +420,19 @@ if show_fig:
                  t_vector, CA1.array_balancinggroups[15].array_sb_P,
                  t_vector, CA1.array_balancinggroups[16].array_sb_P,
                  t_vector, CA1.array_balancinggroups[17].array_sb_P,
-                 t_vector, CA1.array_balancinggroups[18].array_sb_P)
+                 t_vector, CA1.array_balancinggroups[18].array_sb_P,
+                 t_vector, CA1.array_balancinggroups[19].array_sb_P,
+                 t_vector, CA1.array_balancinggroups[20].array_sb_P,
+                 t_vector, CA1.array_balancinggroups[21].array_sb_P)
         plt.title('Smart Balancing')
         plt.legend([CA1.array_balancinggroups[13].name,
                     CA1.array_balancinggroups[15].name,
                     CA1.array_balancinggroups[16].name,
                     CA1.array_balancinggroups[17].name,
-                    CA1.array_balancinggroups[18].name])
+                    CA1.array_balancinggroups[18].name,
+                    CA1.array_balancinggroups[19].name,
+                    CA1.array_balancinggroups[20].name,
+                    CA1.array_balancinggroups[21].name])
 
         plt.show()
 

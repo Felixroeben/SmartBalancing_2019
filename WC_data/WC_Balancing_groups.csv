@@ -18,7 +18,7 @@ Wind_Offshore;-;Wind_Offshore_REST Gen;-;Wind_Offshore_2017 Gen,Wind_Offshore_20
 Wind_Onshore;-;Wind_Onshore_REST Gen;-;Wind_Onshore_2017_1 Gen,Wind_Onshore_2017_2 Gen,Wind_Onshore_2017_3 Gen,Wind_Onshore_2018_1 Gen,Wind_Onshore_2018_2 Gen,Wind_Onshore_2018_3 Gen,Wind_Onshore_2018_4 Gen;True
 Aluminium;-;-;-;-;True
 Steel;-;-;-;-;True
-Cement;-;-;-;-;False
-Paper;-;-;-;-;False
-Chlorine;-;-;-;-;False
+Cement;-;-;-;-;True
+Paper;-;-;-;-;True
+Chlorine;-;-;-;-;True
 Dummy;Dummy Load;Dummy Gen;-;-;False
