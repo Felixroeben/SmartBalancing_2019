@@ -49,7 +49,7 @@ t_step = 60
 k_now = 0
 
 # ...Activation of simulation functions
-smartbalancing = True       # True: Smart Balancing is globally switched on
+smartbalancing = False      # True: Smart Balancing is globally switched on
 fuzzy = False               # True: Smart Balancing is globally activated via Fuzzy Logic
 FRR_pricing = 0             # Global variable to switch both aFRR & mFRR from pay-as-bid (0) to marginal pricing (1)
 save_data = True            # True: write the simulation data to .csv
@@ -64,7 +64,7 @@ t_isp = 900                         # duration of an Imbalance Settlement Period
 t_mol = 14400                       # time in s, after which the MOLs gets updated
 
 # end of simulation in s
-t_stop = (100 * 24 * 60 * 60) - t_step
+t_stop = (365 * 24 * 60 * 60) - t_step
 
 sim_duration = t_stop - t_now
 sim_steps = int(((t_stop + t_step) - t_now) / t_step)
@@ -82,7 +82,7 @@ else:
     pass
 
 # ...Set simulation time settings in timestamps utc
-sim_duration_utc = ['01.01.2019', '30.12.2019', '31.12.2019']
+sim_duration_utc = ['01.01.2019', '31.12.2019', '01.01.2020']
 
 # ...Arrays with the "Monatsmarktwert" in EUR/MWh for each month of 2019 for Wind onshore, Wind offshore, and PV
 array_windon_mmw =  [38.33, 38.11, 24.23, 32.62, 35.64, 22.31, 36.41, 30.29, 30.64, 31.94, 37.09, 25.99]
