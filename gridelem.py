@@ -1675,7 +1675,10 @@ class ControlArea(CalculatingGridElement):
                                 t_now=t_now,
                                 t_step=t_step,
                                 t_isp=t_isp,
-                                da_price=self.da_price)
+                                da_price=self.da_price,
+                                windon_mmw=self.windon_mmw,
+                                windoff_mmw=self.windoff_mmw,
+                                pv_mmw=self.pv_mmw)
             self.gen_income += i.gen_income
             self.load_costs += i.load_costs
             self.gen_income_period += i.gen_income_period

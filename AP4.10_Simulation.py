@@ -55,16 +55,16 @@ FRR_pricing = 0             # Global variable to switch both aFRR & mFRR from pa
 save_data = True            # True: write the simulation data to .csv
 show_fig = True             # True: show all figures at the end of the simulation
 
-# ...Set simulation time settings in seconds
+# ...Set simulation time settings in secondsf
 day_count = 0                       # number of the day of the year
 month_count = 0                     # number of the month of the year
 t_now = 0                           # start of simulation in s
 t_day = t_now                       # time of current day in s
-t_isp = 900                         # duration of an Imbalance Settlement Period in s
-t_mol = 14400                       # time in s, after which the MOLs gets updated
+t_isp = 15 * 60                     # duration of an Imbalance Settlement Period in s
+t_mol = 4 * 60 * 60                 # time in s, after which the MOLs gets updated
 
 # end of simulation in s
-t_stop = (1 * 24 * 60 * 60) - t_step
+t_stop = (365 * 24 * 60 * 60) - t_step
 
 sim_duration = t_stop - t_now
 sim_steps = int(((t_stop + t_step) - t_now) / t_step)
@@ -153,26 +153,23 @@ array_bilanzkreise = fileexch.get_balancing_groups(scenario, smartbalancing, sim
 for i in range(len(array_bilanzkreise)):
     CA1.array_balancinggroups.append(array_bilanzkreise[i])
 
-# compare BG-name and Asset-BG and append to the right BG, if SB is turned on!
-if smartbalancing:
+# Creating smart balancing assets from .csv files and assigning them to the respective balancing groups
+array_assets = fileexch.get_sb_assets(scenario)
+for asset in array_assets:
+    for i in range(len(CA1.array_balancinggroups)):
+        if CA1.array_balancinggroups[i].name == asset.bg_name:
+            CA1.array_balancinggroups[i].array_sb_assets.append(asset)
+            break
 
-    # Creating smart balancing assets from .csv files and assigning them to the respective balancing groups
-    array_assets = fileexch.get_sb_assets(scenario)
-    for asset in array_assets:
-        for i in range(len(CA1.array_balancinggroups)):
-            if CA1.array_balancinggroups[i].name == asset.bg_name:
-                CA1.array_balancinggroups[i].array_sb_assets.append(asset)
-                break
+# Assign smart balancing parameters of flexible generators to already existing 'GeneratorFlex'-objects
+# 'GeneratorFlex'-objects need to be created first
+fileexch.get_gen_flex(scenario=scenario,
+                      control_area=CA1)
 
-    # Assign smart balancing parameters of flexible generators to already existing 'GeneratorFlex'-objects
-    # 'GeneratorFlex'-objects need to be created first
-    fileexch.get_gen_flex(scenario=scenario,
-                          control_area=CA1)
-
-    # Assign smart balancing parameters of flexible loads to already existing 'LoadFlex'-objects
-    # 'LoadFlex'-objects need to be created first
-    fileexch.get_load_flex(scenario=scenario,
-                           control_area=CA1)
+# Assign smart balancing parameters of flexible loads to already existing 'LoadFlex'-objects
+# 'LoadFlex'-objects need to be created first
+fileexch.get_load_flex(scenario=scenario,
+                       control_area=CA1)
 
 CA1.array_aFRR_molpos, CA1.array_aFRR_molneg = fileexch.read_afrr_mol(scenario, 0, 0, 0)
 CA1.array_mFRR_molpos, CA1.array_mFRR_molneg = fileexch.read_mfrr_mol(scenario, 0, 0, 0)
@@ -301,9 +298,17 @@ if save_data:
                  'GER pos. mFRR costs [EUR]': CA1.array_mFRR_costs_pos_period,
                  'GER neg. mFRR costs [EUR]': CA1.array_mFRR_costs_neg_period,
                  'GER AEP [EUR/MWh]': CA1.array_AEP,
-                 'Solar AEP costs [EUR]': CA1.array_balancinggroups[13].array_AEP_costs_period,
-                 'Wind onshore AEP costs [EUR]': CA1.array_balancinggroups[15].array_AEP_costs_period,
-                 'Wind offshore AEP costs [EUR]': CA1.array_balancinggroups[16].array_AEP_costs_period,
+                 'Solar AEP costs [EUR]': CA1.array_balancinggroups[14].array_AEP_costs_period,
+                 'Solar Marktprämie [EUR]': CA1.array_balancinggroups[14].array_gen_income_period,
+                 'Wind offshore AEP costs [EUR]': CA1.array_balancinggroups[15].array_AEP_costs_period,
+                 'Wind offshore Marktprämie [EUR]': CA1.array_balancinggroups[15].array_gen_income_period,
+                 'Wind onshore AEP costs [EUR]': CA1.array_balancinggroups[16].array_AEP_costs_period,
+                 'Wind onshore Marktprämie [EUR]': CA1.array_balancinggroups[16].array_gen_income_period,
+                 'Aluminium AEP costs [EUR]': CA1.array_balancinggroups[17].array_AEP_costs_period,
+                 'Steel AEP costs [EUR]': CA1.array_balancinggroups[18].array_AEP_costs_period,
+                 'Cement AEP costs [EUR]': CA1.array_balancinggroups[19].array_AEP_costs_period,
+                 'Paper AEP costs [EUR]': CA1.array_balancinggroups[20].array_AEP_costs_period,
+                 'Chlorine AEP costs [EUR]': CA1.array_balancinggroups[21].array_AEP_costs_period
                 }
     fileexch.save_period_data(scenario=scenario,
                               save_file_name=savefilename_period,
@@ -314,6 +319,7 @@ if save_data:
     print('Simulation results for every ISP were saved in file', savefilename_period)
 
     save_dict = {'time [s]': t_vector,
+                 'f [Hz]': SZ.array_f,
                  'FRCE [MW]': CA1.array_FRCE,
                  'aFRR FRCE (open loop) [MW]': CA1.array_FRCE_ol,
                  'aFRR P [MW]': CA1.array_aFRR_P,
@@ -351,7 +357,7 @@ if show_fig:
         plt.grid()
         plt.xlabel('time / s')
         plt.ylabel('Power / MW')
-        plt.legend(['Total Imbalance', CA1.array_balancinggroups[7].name])
+        plt.legend(['Total Imbalance', CA1.array_balancinggroups[0].name])
 
         plt.figure(2)
         plt.plot(t_vector, CA1.array_FRCE,
@@ -416,7 +422,7 @@ if show_fig:
         plt.legend(['DA price', 'AEP'])
 
         plt.figure(6)
-        plt.plot(t_vector, CA1.array_balancinggroups[13].array_sb_P,
+        plt.plot(t_vector, CA1.array_balancinggroups[14].array_sb_P,
                  t_vector, CA1.array_balancinggroups[15].array_sb_P,
                  t_vector, CA1.array_balancinggroups[16].array_sb_P,
                  t_vector, CA1.array_balancinggroups[17].array_sb_P,
@@ -425,7 +431,7 @@ if show_fig:
                  t_vector, CA1.array_balancinggroups[20].array_sb_P,
                  t_vector, CA1.array_balancinggroups[21].array_sb_P)
         plt.title('Smart Balancing')
-        plt.legend([CA1.array_balancinggroups[13].name,
+        plt.legend([CA1.array_balancinggroups[14].name,
                     CA1.array_balancinggroups[15].name,
                     CA1.array_balancinggroups[16].name,
                     CA1.array_balancinggroups[17].name,
@@ -433,6 +439,15 @@ if show_fig:
                     CA1.array_balancinggroups[19].name,
                     CA1.array_balancinggroups[20].name,
                     CA1.array_balancinggroups[21].name])
+
+        plt.figure(7)
+        plt.plot(t_vector, CA1.array_balancinggroups[14].array_gen_income_period,
+                 t_vector, CA1.array_balancinggroups[15].array_gen_income_period,
+                 t_vector, CA1.array_balancinggroups[16].array_gen_income_period)
+        plt.title('Generator income')
+        plt.legend([CA1.array_balancinggroups[14].name,
+                    CA1.array_balancinggroups[15].name,
+                    CA1.array_balancinggroups[16].name])
 
         plt.show()
 

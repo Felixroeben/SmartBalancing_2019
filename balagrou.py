@@ -544,10 +544,40 @@ class BalancingGroup:
 
     # Method calculating the costs for consumed energy and the income of produced energy of the grid element.
     # The method multiplies the consumed and produced amounts of energy per t_step with the current day-ahead price
-    def energy_costs_calc(self, k_now, t_now, t_step, t_isp, da_price):
-        # Calculation of costs and income for the whole simulation
-        self.gen_income += self.gen_P_schedule * da_price * t_step / 3600
-        self.load_costs += self.load_P_schedule * da_price * t_step / 3600
+    def energy_costs_calc(self, k_now, t_now, t_step, t_isp, da_price, windon_mmw, windoff_mmw, pv_mmw):
+        # Calculation of income for Balancing Groups "Solar", "Wind_Onshore", and "Wind_Offshore"
+        # Using the "Marktprämie" (mp) for each generator
+        if self.name == "Solar":
+            for i in self.array_sb_assets:
+                mp = i.sb_costs - pv_mmw
+                if mp < 0:
+                    mp = 0.0
+                else:
+                    pass
+                self.gen_income += (i.gen_P + i.sb_P) * mp * t_step / 3600
+
+        elif self.name == "Wind_Onshore":
+            for i in self.array_sb_assets:
+                mp = i.sb_costs - windon_mmw
+                if mp < 0:
+                    mp = 0.0
+                else:
+                    pass
+                self.gen_income += (i.gen_P + i.sb_P) * mp * t_step / 3600
+
+        elif self.name == "Wind_Offshore":
+            for i in self.array_sb_assets:
+                mp = i.sb_costs - windoff_mmw
+                if mp < 0:
+                    mp = 0.0
+                else:
+                    pass
+                self.gen_income += (i.gen_P + i.sb_P) * mp * t_step / 3600
+
+        # Calculation of costs and income for other Balancing Groups
+        else:
+            self.gen_income += self.gen_P_schedule * da_price * t_step / 3600
+            self.load_costs += self.load_P_schedule * da_price * t_step / 3600
 
         # Calculation of costs and income per ISP
         # Variables get set to zero after every ISP
@@ -555,8 +585,39 @@ class BalancingGroup:
             self.gen_income_period = 0.0
             self.load_costs_period = 0.0
 
-        self.gen_income_period += self.gen_P_schedule * da_price * t_step / 3600
-        self.load_costs_period += self.load_P_schedule * da_price * t_step / 3600
+        # Calculation of income for Balancing Groups "Solar", "Wind_Onshore", and "Wind_Offshore"
+        # Using the "Monatsmarktwert" and "anzulegender Wert" for each generator (GeneratorFlex)
+        if self.name == "Solar":
+            for i in self.array_sb_assets:
+                mp = i.sb_costs - pv_mmw
+                if mp < 0:
+                    mp = 0.0
+                else:
+                    pass
+                self.gen_income_period += (i.gen_P + i.sb_P) * mp * t_step / 3600
+
+        elif self.name == "Wind_Onshore":
+            for i in self.array_sb_assets:
+                mp = i.sb_costs - windon_mmw
+                if mp < 0:
+                    mp = 0.0
+                else:
+                    pass
+                self.gen_income_period += (i.gen_P + i.sb_P) * mp * t_step / 3600
+
+        elif self.name == "Wind_Offshore":
+            for i in self.array_sb_assets:
+                mp = i.sb_costs - windoff_mmw
+                if mp < 0:
+                    mp = 0.0
+                else:
+                    pass
+                self.gen_income_period += (i.gen_P + i.sb_P) * mp * t_step / 3600
+
+        # Calculation of costs and income for other Balancing Groups for each ISP
+        else:
+            self.gen_income_period += self.gen_P_schedule * da_price * t_step / 3600
+            self.load_costs_period += self.load_P_schedule * da_price * t_step / 3600
 
     def readarray(self, k_now):
         if self.read:
