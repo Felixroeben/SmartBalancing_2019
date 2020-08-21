@@ -1,5 +1,14 @@
+# ----------------------------------------------------------------------------------------------------------------------
+# --- CLASS DEFINITION FOR SMART BALANCING ASSETS ----------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
+
+# Objects of this class represent flexible assets of Balancing Groups.
+# Their potentials for positive and negative balancing power are independent of other variables.
 class SmartBalancingAsset:
 
+    # CONSTRUCTOR METHOD
+    # The constructor method is called to create an object of this class.
+    # In the construction of an object of this class, all following variables are initialized...
     def __init__(self, name, sb_rate_pos, sb_rate_neg, sb_P_min, sb_P_max, sb_costs, bg_name):
         self.name = name
 

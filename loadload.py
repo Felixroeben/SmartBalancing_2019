@@ -1,7 +1,15 @@
-# General class for loads
+# ----------------------------------------------------------------------------------------------------------------------
+# --- CLASS DEFINITIONS FOR LOADS --------------------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
+
+# General class for loads. These objects do not have any other property than consuming active power.
+# The consumed power can be set to a constant value during the construction of the object...
+# ...or be externally defined by a time series.
 class Load:
 
     # CONSTRUCTOR METHOD
+    # The constructor method is called to create an object of this class.
+    # In the construction of an object of this class, all following variables are initialized...
     def __init__(self, name, read, load_P):
         self.name = name                    # String for the name of the load
         self.read = read                    # Boolean variable defining, if time series are read from .csv files
@@ -20,10 +28,19 @@ class Load:
 
 
 
-# Class for flexible loads, that can adjust their active power consumption to provide Smart Balancing
+# Class for flexible loads, that can adjust their active power consumption to provide Smart Balancing.
+# Objects of class combine the properties of classes 'Load' and 'SmartBalancingAsset'.
+# Firstly, 'LoadFlex'-objects consume power, which can be defined by an external time series.
+# Secondly, 'LoadFlex'-objects do have the potentials to provide Smart Balancing power.
+# Therefore, an object of class 'LoadFlex' is to be subordinated to both arrays of the object 'BalancingGroup':
+# 1. self.array_loads
+# 2. self.array_sb_assets
+# Their potentials for positive and negative balancing power depend on the currently consumed power.
 class LoadFlex(Load):
 
     # CONSTRUCTOR METHOD
+    # The constructor method is called to create an object of this class.
+    # In the construction of an object of this class, all following variables are initialized...
     def __init__(self, name, read, load_P, sb_rate_pos, sb_rate_neg, sb_P_max, sb_P_min, sb_costs, bg_name):
         self.sb_rate_pos = sb_rate_pos      # Positive ramp rate for Smart Balancing in MW/s
         self.sb_rate_neg = sb_rate_neg      # Negative ramp rate for Smart Balancing in MW/s
@@ -32,7 +49,8 @@ class LoadFlex(Load):
         self.sb_costs = sb_costs            # Marginal costs in EUR, that need to met to make Smart Balancing economical
         self.bg_name = bg_name              # Name of the Balancing Group, the flexible load is assigned to
 
-        # Other parameters are inherited from the super class 'Load'
+        # Other parameters and variables are inherited from the super class 'Load'.
+        # Therefore, the constructor method of the super class is called to initialize these parameters and variables.
         Load.__init__(self,
                       name=name,
                       read=read,

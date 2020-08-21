@@ -1,8 +1,18 @@
+# ----------------------------------------------------------------------------------------------------------------------
+# --- CLASS DEFINITION FOR BALANCING GROUPS ----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------------------------
+
 import fuzzlogi
 import math
 
+# Objects of class 'BalancingGroups' represent the Balancing Groups of a Control Area.
+# 'BalancingGroups' are to be subordinated to objects of class 'ControlArea' only.
+# In turn, any object of class 'ControlArea' needs subordinated 'BalancingGroups' to function properly.
 class BalancingGroup:
 
+    # CONSTRUCTOR METHOD
+    # The constructor method is called to create an object of this class.
+    # In the construction of an object of this class, all following variables are initialized...
     def __init__(self, name, read, smart):
 
         # ...Initialization of name
@@ -219,6 +229,7 @@ class BalancingGroup:
                                 'Price': array_price,
                                 'Power': array_power}
 
+    # This method calculates the Smart Balancing power of the Smart Balancing Assets of the Balancing Group
     def sb_calc(self, FRCE_sb, AEP, t_step, t_now, da_price, windon_mmw, windoff_mmw, pv_mmw, aFRR_pricing, mFRR_pricing, fuzzy):
         # The positive and negative SB potentials of all assets get updated.
         for i in self.array_sb_assets:

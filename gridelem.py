@@ -9,14 +9,18 @@ import math
 # ----------------------------------------------------------------------------------------------------------------------
 # --- CLASS DEFINITION FOR GRID ELEMENTS WITH SUBORDINATED GRID ELEMENTS -----------------------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
-# The generic class 'GridElement' can be used for all kinds of grid structures
-# like Coordination Centers, Control Blocks, or Control Areas.
+# The generic class 'GridElement' can be used for all kinds of grid structures...
+# ...like Coordination Centers, Control Blocks.
 # An object of the class 'GridElement' contains subordinated grid elements to which it passes its methods.
-# No true calculations are executed in the class 'GridElement'.
+# An object of the class 'GridElement' does need subordinated grid elements to function, as...
+# ...no true calculations are executed in the class 'GridElement'.
+# Objects of class 'GridElement', 'CalculatingGridElement', and 'ControlArea' can be subordinated to 'GridElements'
 
 class GridElement:
 
     # CONSTRUCTOR METHOD
+    # The constructor method is called to create an object of this class.
+    # In the construction of an object of this class, all following variables are initialized...
     def __init__(self,
                  name):           # name of the grid element            (string)
 
@@ -235,12 +239,14 @@ class GridElement:
 # --- CLASS DEFINITION FOR GRID ELEMENTS WITHOUT SUBORDINATED GRID ELEMENTS --------------------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
 # The class 'CalculatingGridElement' can be used for Coordination Centers, Control Blocks, and Control Areas.
-# Variables for load flow, FCR, and aFRR are calculated by the respective methods.
+# Variables for load flow, FCR, and aFRR are calculated within this class by the respective methods.
 # An object of the class 'CalculatingGridElement' does not have any subordinated grid elements.
 
 class CalculatingGridElement(GridElement):
 
     # CONSTRUCTOR METHOD
+    # The constructor method is called to create an object of this class.
+    # In the construction of an object of this class, all following variables are initialized.
     # The FCR and aFRR constants correspond the UCTE grid code
     def __init__(self,
                  name,              # name of the grid element                      (string)
@@ -252,7 +258,8 @@ class CalculatingGridElement(GridElement):
                  aFRR_beta,         # aFRR constant 'beta' in p.u.                  (float)
                  aFRR_delay):       # delay time for the activation of aFRR in s    (float)
 
-        # Other parameters are inherited from the super class 'GridElement'
+        # Other parameters and variables are inherited from the super class 'GridElement'.
+        # Therefore, the constructor method of the super class is called to initialize these parameters and variables.
         GridElement.__init__(self, name=name)
 
         # Load flow parameters
@@ -449,12 +456,18 @@ class CalculatingGridElement(GridElement):
 # --- CLASS DEFINITION FOR SYNCHRONOUS ZONES ---------------------------------------------------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
 # A synchronous zone is made up of subordinated grid elements.
-# An object of the class 'SynchronousZone' is not to be subordinated to other grid elements.
+# It therefore needs subordinated structures, to which it passes calculating methods.
+# An object of the class 'SynchronousZone' is not to be subordinated to other grid element.
+# Any grid model needs one but only one object of class 'SynchronousZone' to function properly.
 # The unique property of a synchronous zone is the system-wide grid frequency f.
+# The grid frequency f is calculated as a function of the total imbalance of the grid and the total FCR of the grid.
+# The grid frequency f therefore represents the quasi-static frequency, no transient effects are modelled.
 
 class SynchronousZone(GridElement):
 
     # CONSTRUCTOR METHOD
+    # The constructor method is called to create an object of this class.
+    # In the construction of an object of this class, all following variables are initialized...
     def __init__(self,
                  name,                  # name of the synchronous zone                  (string)
                  f_nom):                # nominal frequency in Hz                       (float)
@@ -466,7 +479,8 @@ class SynchronousZone(GridElement):
 
         self.array_f = []
 
-        # Other parameters are inherited from the super class 'GridElement'
+        # Other parameters and variables are inherited from the super class 'GridElement'.
+        # Therefore, the contructor method of the super class is called to initialize these parameters and variables.
         GridElement.__init__(self,
                              name=name)
 
@@ -538,12 +552,20 @@ class SynchronousZone(GridElement):
 # --- CLASS DEFINITION FOR CONTROL AREAS -------------------------------------------------------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
 # The class 'ControlArea' is to be used for Control Areas with subordinated Balancing Groups.
-# The class largely corresponds the class 'CalculatingGridElement'.
+# The class partly corresponds the class 'CalculatingGridElement',...
+# ...as certain calculations are executed in objects of the class 'ControlArea'
+# In contrast to a 'CalculatingGridElement, a 'ControlArea' does have and does need subordinated structures,...
+# ...the Balancing Groups.
+# Ónly objects of class 'BalancingGroup' are to be subordinated to a 'ControlArea'.
+# Additional functionalities of 'ControlArea' are the calculation of mFRR, Merit Order Lists for aFRR and mFRR,...
+# ...as well as price and cost calculation methods.
 
 class ControlArea(CalculatingGridElement):
 
     # CONSTRUCTOR METHOD
-    # The FCR and aFRR constants correspond the UCTE grid code
+    # The constructor method is called to create an object of this class.
+    # In the construction of an object of this class, all following variables are initialized.
+    # The FCR and aFRR constants correspond the UCTE grid code.
     def __init__(self,
                  name,                  # name of the grid element                                  (string)
                  FCR_lambda,            # FCR parameter 'lambda' in MW/Hz                           (float)
@@ -558,7 +580,8 @@ class ControlArea(CalculatingGridElement):
                  mFRR_pricing,          # "0" for pay-as-bid, "1" for marginal pricing              (int)
                  sb_delay):             # delay time of the Smart Balancing signal in s             (float)
 
-        # Other parameters are inherited from the super class 'CalculatingGridElement'
+        # Other parameters and variables are inherited from the super class 'CalculatingGridElement'.
+        # Therefore, the constructor method of the super class is called to initialize these parameters and variables.
         CalculatingGridElement.__init__(self,
                                         name=name,
                                         gen_P=0.0,
