@@ -9,6 +9,7 @@ import math
 # ----------------------------------------------------------------------------------------------------------------------
 # --- CLASS DEFINITION FOR GRID ELEMENTS WITH SUBORDINATED GRID ELEMENTS -----------------------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
+
 # The generic class 'GridElement' can be used for all kinds of grid structures...
 # ...like Coordination Centers, Control Blocks.
 # An object of the class 'GridElement' contains subordinated grid elements to which it passes its methods.
@@ -238,6 +239,7 @@ class GridElement:
 # ----------------------------------------------------------------------------------------------------------------------
 # --- CLASS DEFINITION FOR GRID ELEMENTS WITHOUT SUBORDINATED GRID ELEMENTS --------------------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
+
 # The class 'CalculatingGridElement' can be used for Coordination Centers, Control Blocks, and Control Areas.
 # Variables for load flow, FCR, and aFRR are calculated within this class by the respective methods.
 # An object of the class 'CalculatingGridElement' does not have any subordinated grid elements.
@@ -455,6 +457,7 @@ class CalculatingGridElement(GridElement):
 # ----------------------------------------------------------------------------------------------------------------------
 # --- CLASS DEFINITION FOR SYNCHRONOUS ZONES ---------------------------------------------------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
+
 # A synchronous zone is made up of subordinated grid elements.
 # It therefore needs subordinated structures, to which it passes calculating methods.
 # An object of the class 'SynchronousZone' is not to be subordinated to other grid element.
@@ -551,6 +554,7 @@ class SynchronousZone(GridElement):
 # ----------------------------------------------------------------------------------------------------------------------
 # --- CLASS DEFINITION FOR CONTROL AREAS -------------------------------------------------------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
+
 # The class 'ControlArea' is to be used for Control Areas with subordinated Balancing Groups.
 # The class partly corresponds the class 'CalculatingGridElement',...
 # ...as certain calculations are executed in objects of the class 'ControlArea'

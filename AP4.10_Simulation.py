@@ -41,35 +41,28 @@ import math
 savefilename_period = 'Sim_output_period.csv'       # name of save file, location defined by "scenario"
 savefilename_all = 'Sim_output_all.csv'             # name of save file, location defined by "scenario"
 scenario = 'WC_data//WC_'
-start = 0                                           # simulation time
-
-# ...Set simulation time step in s
-t_step = 60
-# ...Set simulation discrete time variable
-k_now = 0
 
 # ...Activation of simulation functions
-smartbalancing = True       # True: Smart Balancing is globally switched on
+smartbalancing = False      # True: Smart Balancing is globally switched on
 fuzzy = False               # True: Smart Balancing is globally activated via Fuzzy Logic
 FRR_pricing = 0             # Global variable to switch both aFRR & mFRR from pay-as-bid (0) to marginal pricing (1)
 save_data = True            # True: write the simulation data to .csv
-show_fig = True             # True: show all figures at the end of the simulation
+show_fig = False            # True: show all figures at the end of the simulation
 
-# ...Set simulation time settings in secondsf
-day_count = 0                       # number of the day of the year
-month_count = 0                     # number of the month of the year
-t_now = 0                           # start of simulation in s
-t_day = t_now                       # time of current day in s
-t_isp = 15 * 60                     # duration of an Imbalance Settlement Period in s
-t_mol = 4 * 60 * 60                 # time in s, after which the MOLs gets updated
+# ...Simulation time settings
+t_step = 60                             # simulation time step in s
+t_now = 0                               # start of simulation in s
+t_stop = (365 * 24 * 60 * 60) - t_step  # time, at which the simulation ends in s
+k_now = 0                               # discrete time variable
+t_day = t_now                           # time of current day in s
+t_isp = 15 * 60                         # duration of an Imbalance Settlement Period in s
+t_mol = 4 * 60 * 60                     # time in s, after which the MOLs gets updated
+day_count = 0                           # number of the day of the year
+month_count = 0                         # number of the month of the year
 
-# end of simulation in s
-t_stop = (365 * 24 * 60 * 60) - t_step
-
-sim_duration = t_stop - t_now
-sim_steps = int(((t_stop + t_step) - t_now) / t_step)
-
-print('Simulating', sim_steps, 'time steps with a step size of', t_step, 's')
+# ...Vectors for the simulation time variables
+t_vector = []
+k_vector = []
 
 # ...Checking divisibility of time constants
 if (86400 % t_step) != 0:
@@ -81,27 +74,33 @@ elif (t_mol % t_step) != 0:
 else:
     pass
 
+# ...Calculation of duration of simulation
+sim_duration = t_stop - t_now
+sim_steps = int(((t_stop + t_step) - t_now) / t_step)
+print('Simulating', sim_steps, 'time steps with a step size of', t_step, 's')
+
 # ...Set simulation time settings in timestamps utc
 sim_duration_utc = ['01.01.2019', '31.12.2019', '01.01.2020']
 
-# ...Arrays with the "Monatsmarktwert" in EUR/MWh for each month of 2019 for Wind onshore, Wind offshore, and PV
-array_windon_mmw =  [38.33, 38.11, 24.23, 32.62, 35.64, 22.31, 36.41, 30.29, 30.64, 31.94, 37.09, 25.99]
-array_windoff_mmw = [42.98, 40.88, 26.72, 34.16, 35.59, 26.62, 36.44, 32.00, 33.17, 33.23, 38.35, 29.36]
-array_pv_mmw =      [59.06, 42.13, 30.75, 31.72, 35.30, 29.10, 39.17, 33.76, 33.45, 37.88, 43.83, 36.96]
-
-# ...Array buffering the set of Balancing Groups during initialization
-array_bilanzkreise = []
-
-t_vector = []
-k_vector = []
-os.system("cls")
+# Measurement of simulation time
+start = 0.0
 start = time.time()
+
+os.system("cls")
 
 
 
 # ------------------------------------------------------------------------------------
 # ---INITIALIZATION OF GRID MODEL-----------------------------------------------------
 # ------------------------------------------------------------------------------------
+
+# ...Array buffering the set of Balancing Groups during initialization
+array_bilanzkreise = []
+
+# ...Arrays with the "Monatsmarktwert" in EUR/MWh for each month of 2019 for Wind onshore, Wind offshore, and PV
+array_windon_mmw =  [38.33, 38.11, 24.23, 32.62, 35.64, 22.31, 36.41, 30.29, 30.64, 31.94, 37.09, 25.99]
+array_windoff_mmw = [42.98, 40.88, 26.72, 34.16, 35.59, 26.62, 36.44, 32.00, 33.17, 33.23, 38.35, 29.36]
+array_pv_mmw =      [59.06, 42.13, 30.75, 31.72, 35.30, 29.10, 39.17, 33.76, 33.45, 37.88, 43.83, 36.96]
 
 print('\nInitializing data from CSV files')
 
@@ -137,8 +136,8 @@ CA1 = gridelem.ControlArea(name='Deutschland',
                            aFRR_beta=0.1,
                            aFRR_delay=0.0,
                            aFRR_pricing=FRR_pricing,
-                           mFRR_trigger=0.6,
-                           mFRR_target=0.4,
+                           mFRR_trigger=0.45,
+                           mFRR_target=0.35,
                            mFRR_time=300.0,
                            mFRR_pricing=FRR_pricing,
                            sb_delay=0.0)
