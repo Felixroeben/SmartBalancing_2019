@@ -43,16 +43,16 @@ savefilename_all = 'Sim_output_all.csv'             # name of save file, locatio
 scenario = 'WC_data//WC_'
 
 # ...Activation of simulation functions
-smartbalancing = False      # True: Smart Balancing is globally switched on
+smartbalancing = True       # True: Smart Balancing is globally switched on
 fuzzy = False               # True: Smart Balancing is globally activated via Fuzzy Logic
 FRR_pricing = 0             # Global variable to switch both aFRR & mFRR from pay-as-bid (0) to marginal pricing (1)
 save_data = True            # True: write the simulation data to .csv
-show_fig = False            # True: show all figures at the end of the simulation
+show_fig = True             # True: show all figures at the end of the simulation
 
 # ...Simulation time settings
 t_step = 60                             # simulation time step in s
 t_now = 0                               # start of simulation in s
-t_stop = (365 * 24 * 60 * 60) - t_step  # time, at which the simulation ends in s
+t_stop = (1 * 24 * 60 * 60) - t_step  # time, at which the simulation ends in s
 k_now = 0                               # discrete time variable
 t_day = t_now                           # time of current day in s
 t_isp = 15 * 60                         # duration of an Imbalance Settlement Period in s
@@ -136,8 +136,10 @@ CA1 = gridelem.ControlArea(name='Deutschland',
                            aFRR_beta=0.1,
                            aFRR_delay=0.0,
                            aFRR_pricing=FRR_pricing,
-                           mFRR_trigger=0.45,
-                           mFRR_target=0.35,
+                           mFRR_pos_trigger=0.45,
+                           mFRR_neg_trigger=0.45,
+                           mFRR_pos_target=0.35,
+                           mFRR_neg_target=0.35,
                            mFRR_time=300.0,
                            mFRR_pricing=FRR_pricing,
                            sb_delay=0.0)

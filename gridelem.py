@@ -571,18 +571,20 @@ class ControlArea(CalculatingGridElement):
     # In the construction of an object of this class, all following variables are initialized.
     # The FCR and aFRR constants correspond the UCTE grid code.
     def __init__(self,
-                 name,                  # name of the grid element                                  (string)
-                 FCR_lambda,            # FCR parameter 'lambda' in MW/Hz                           (float)
-                 aFRR_Kr,               # aFRR constant 'Kr' in MW/Hz                               (float)
-                 aFRR_T,                # aFRR time constant 'T' in s                               (float)
-                 aFRR_beta,             # aFRR constant 'beta' in p.u.                              (float)
-                 aFRR_delay,            # delay time for the activation of aFRR in s                (float)
-                 aFRR_pricing,          # "0" for pay-as-bid, "1" for marginal pricing              (int)
-                 mFRR_trigger,          # ratio of aFRR, at which mFRR gets triggered in p.u.       (float)
-                 mFRR_target,           # target ratio for aFRR reduction by mFRR in p.u.           (float)
-                 mFRR_time,             # time of each ISP in s, at which mFRR decision is taken    (float)
-                 mFRR_pricing,          # "0" for pay-as-bid, "1" for marginal pricing              (int)
-                 sb_delay):             # delay time of the Smart Balancing signal in s             (float)
+                 name,                  # name of the grid element                                          (string)
+                 FCR_lambda,            # FCR parameter 'lambda' in MW/Hz                                   (float)
+                 aFRR_Kr,               # aFRR constant 'Kr' in MW/Hz                                       (float)
+                 aFRR_T,                # aFRR time constant 'T' in s                                       (float)
+                 aFRR_beta,             # aFRR constant 'beta' in p.u.                                      (float)
+                 aFRR_delay,            # delay time for the activation of aFRR in s                        (float)
+                 aFRR_pricing,          # "0" for pay-as-bid, "1" for marginal pricing                      (int)
+                 mFRR_pos_trigger,      # ratio of positive aFRR, at which mFRR gets triggered in p.u.      (float)
+                 mFRR_neg_trigger,      # ratio of negative aFRR, at which mFRR gets triggered in p.u.      (float)
+                 mFRR_pos_target,       # target ratio for aFRR reduction by positive mFRR in p.u.          (float)
+                 mFRR_neg_target,       # target ratio for aFRR reduction by negative mFRR in p.u.          (float)
+                 mFRR_time,             # time of each ISP in s, at which mFRR decision is taken            (float)
+                 mFRR_pricing,          # "0" for pay-as-bid, "1" for marginal pricing                      (int)
+                 sb_delay):             # delay time of the Smart Balancing signal in s                     (float)
 
         # Other parameters and variables are inherited from the super class 'CalculatingGridElement'.
         # Therefore, the constructor method of the super class is called to initialize these parameters and variables.
@@ -653,8 +655,10 @@ class ControlArea(CalculatingGridElement):
         self.array_aFRR_costs_neg_period = []
 
         # mFRR constants
-        self.mFRR_trigger = mFRR_trigger
-        self.mFRR_target = mFRR_target
+        self.mFRR_pos_trigger = mFRR_pos_trigger
+        self.mFRR_neg_trigger = mFRR_neg_trigger
+        self.mFRR_pos_target = mFRR_pos_target
+        self.mFRR_neg_target = mFRR_neg_target
         self.mFRR_time = mFRR_time
         self.mFRR_pricing = mFRR_pricing
 
@@ -1239,33 +1243,17 @@ class ControlArea(CalculatingGridElement):
                     i += 1
 
         if ((t_now - self.mFRR_time) % t_isp) == 0:
-            if self.FRCE_avg > 0 and self.FRCE_avg > self.mFRR_trigger * self.aFRR_cap_pos:
-                self.mFRR_P_pos_setp = self.FRCE_avg - self.aFRR_cap_pos * self.mFRR_target
+            if self.FRCE_avg > 0 and self.FRCE_avg > self.mFRR_pos_trigger * self.aFRR_cap_pos:
+                self.mFRR_P_pos_setp = self.FRCE_avg - self.aFRR_cap_pos * self.mFRR_pos_target
                 self.mFRR_P_pos_setp = int((self.mFRR_P_pos_setp + 100) / 100) * 100
-                #print(self.mFRR_P_pos_setp, 'of pos. mFRR power to be activated in the next ISP')
             else:
                 self.mFRR_P_pos_setp = 0.0
 
-            if self.FRCE_avg < 0 and self.FRCE_avg < self.mFRR_trigger * self.aFRR_cap_neg:
-                self.mFRR_P_neg_setp = (self.aFRR_E_neg_period * 3600 / self.mFRR_time) - self.aFRR_cap_neg * self.mFRR_target
+            if self.FRCE_avg < 0 and self.FRCE_avg < self.mFRR_neg_trigger * self.aFRR_cap_neg:
+                self.mFRR_P_neg_setp = (self.aFRR_E_neg_period * 3600 / self.mFRR_time) - self.aFRR_cap_neg * self.mFRR_neg_target
                 self.mFRR_P_neg_setp = int((self.mFRR_P_neg_setp - 100) / 100) * 100
-                #print(self.mFRR_P_neg_setp, 'of neg. mFRR power to be activated in the next ISP')
             else:
                 self.mFRR_P_neg_setp = 0.0
-
-        # mFRR activation using the activated aFRR
-        # if ((t_now - self.mFRR_time) % t_isp) == 0:
-        #     if self.aFRR_E_pos_period > self.mFRR_trigger * self.aFRR_cap_pos * self.mFRR_time / 3600:
-        #         self.mFRR_P_pos_setp = XXXX - self.aFRR_cap_pos * self.mFRR_target
-        #         self.mFRR_P_pos_setp = int((self.mFRR_P_pos_setp + 100) / 100) * 100
-        #     else:
-        #         self.mFRR_P_pos_setp = 0.0
-        #
-        #     if self.aFRR_E_neg_period < self.mFRR_trigger * self.aFRR_cap_neg * self.mFRR_time / 3600:
-        #         self.mFRR_P_neg_setp = (self.aFRR_E_neg_period * 3600 / self.mFRR_time) - self.aFRR_cap_neg * self.mFRR_target
-        #         self.mFRR_P_neg_setp = int((self.mFRR_P_neg_setp - 100) / 100) * 100
-        #     else:
-        #         self.mFRR_P_neg_setp = 0.0
 
         if (t_now % t_isp) == 0:
             self.mFRR_P_pos = self.mFRR_P_pos_setp
