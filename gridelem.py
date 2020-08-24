@@ -1245,13 +1245,13 @@ class ControlArea(CalculatingGridElement):
         if ((t_now - self.mFRR_time) % t_isp) == 0:
             if self.FRCE_avg > 0 and self.FRCE_avg > self.mFRR_pos_trigger * self.aFRR_cap_pos:
                 self.mFRR_P_pos_setp = self.FRCE_avg - self.aFRR_cap_pos * self.mFRR_pos_target
-                self.mFRR_P_pos_setp = int((self.mFRR_P_pos_setp + 100) / 100) * 100
+                #self.mFRR_P_pos_setp = int((self.mFRR_P_pos_setp + 100) / 100) * 100
             else:
                 self.mFRR_P_pos_setp = 0.0
 
             if self.FRCE_avg < 0 and self.FRCE_avg < self.mFRR_neg_trigger * self.aFRR_cap_neg:
                 self.mFRR_P_neg_setp = (self.aFRR_E_neg_period * 3600 / self.mFRR_time) - self.aFRR_cap_neg * self.mFRR_neg_target
-                self.mFRR_P_neg_setp = int((self.mFRR_P_neg_setp - 100) / 100) * 100
+                #self.mFRR_P_neg_setp = int((self.mFRR_P_neg_setp - 100) / 100) * 100
             else:
                 self.mFRR_P_neg_setp = 0.0
 
