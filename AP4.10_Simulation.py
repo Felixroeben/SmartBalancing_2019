@@ -43,11 +43,12 @@ savefilename_all = 'Sim_output_all.csv'             # name of save file, locatio
 scenario = 'WC_data//WC_'
 
 # ...Activation of simulation functions
-smartbalancing = False      # True: Smart Balancing is globally switched on
-fuzzy = False               # True: Smart Balancing is globally activated via Fuzzy Logic
+smartbalancing = True      # True: Smart Balancing is globally switched on
+fuzzy = True               # True: Smart Balancing is globally activated via Fuzzy Logic
 FRR_pricing = 0             # Global variable to switch both aFRR & mFRR from pay-as-bid (0) to marginal pricing (1)
+imbalance_clearing = 0      # For fuzzy SB: Switch from single imbalance pricing (0) to "combined pricing" as in NL (1)
 save_data = True            # True: write the simulation data to .csv
-show_fig = False            # True: show all figures at the end of the simulation
+show_fig = True            # True: show all figures at the end of the simulation
 
 # ...Simulation time settings
 t_step = 60                             # simulation time step in s
@@ -136,6 +137,7 @@ CA1 = gridelem.ControlArea(name='Deutschland',
                            aFRR_beta=0.1,
                            aFRR_delay=0.0,
                            aFRR_pricing=FRR_pricing,
+                           imbalance_clearing = imbalance_clearing,
                            mFRR_pos_trigger=0.37,
                            mFRR_neg_trigger=0.41,
                            mFRR_pos_target=0.36,
@@ -204,7 +206,7 @@ SZ.load_schedule_calc()
 SZ.imba_calc()
 SZ.f_calc()
 SZ.fcr_calc()
-SZ.afrr_calc(k_now=k_now, t_now=t_now, t_step=t_step, t_isp=t_isp, fuzzy=fuzzy)
+SZ.afrr_calc(k_now=k_now, t_now=t_now, t_step=t_step, t_isp=t_isp, fuzzy=fuzzy,imbalance_clearing=imbalance_clearing)
 SZ.mfrr_calc(t_now=t_now, t_step=t_step, t_isp=t_isp)
 SZ.energy_costs_calc(k_now=k_now, t_now=t_now, t_step=t_step, t_isp=t_isp)
 SZ.write_results()
@@ -266,17 +268,24 @@ while t_now < t_stop:
     k_now += 1
     k_vector.append(k_now)
 
+    #todo inserte explanaition of simulaiton order
+
+# 1.read arrays with time series consumption, generation
     SZ.readarray(k_now)
+# 2. calculate generation, load, schedules and resulting imbalance
     SZ.gen_calc()
     SZ.load_calc()
     SZ.gen_schedule_calc()
     SZ.load_schedule_calc()
     SZ.imba_calc()
+# 3. calculate frequency deviation and FCR
     SZ.f_calc()
     SZ.fcr_calc()
-    SZ.afrr_calc(k_now=k_now, t_now=t_now, t_step=t_step, t_isp=t_isp, fuzzy=fuzzy)
+    # 3. calculate FRR and resulting cost / prices. Smart Balancing is calculated in afrr_calc
+    SZ.afrr_calc(k_now=k_now, t_now=t_now, t_step=t_step, t_isp=t_isp, fuzzy=fuzzy,imbalance_clearing=imbalance_clearing)
     SZ.mfrr_calc(t_now=t_now, t_step=t_step, t_isp=t_isp)
     SZ.energy_costs_calc(k_now=k_now, t_now=t_now, t_step=t_step, t_isp=t_isp)
+# 4. write results
     SZ.write_results()
 
 print('#-----------Simulation Done-----------#\n')

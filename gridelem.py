@@ -160,7 +160,7 @@ class GridElement:
 
     # Method calculating the activated aFRR power of the grid element.
     # The method sums up the activated aFRR power of all subordinated grid elements
-    def afrr_calc(self, f_delta, k_now, t_now, t_step, t_isp, fuzzy):
+    def afrr_calc(self, f_delta, k_now, t_now, t_step, t_isp, fuzzy, imbalance_clearing):
         self.aFRR_P = 0.0
         self.sb_P = 0.0
         for i in self.array_subordinates:
@@ -169,7 +169,8 @@ class GridElement:
                         t_now=t_now,
                         t_step=t_step,
                         t_isp=t_isp,
-                        fuzzy=fuzzy)
+                        fuzzy=fuzzy,
+                        imbalance_clearing=imbalance_clearing)
             self.aFRR_P += i.aFRR_P
             self.sb_P += i.sb_P
 
@@ -369,7 +370,7 @@ class CalculatingGridElement(GridElement):
 
     # Method calculating the aFRR using a discrete PI controller.
     # All aFRR related variables except for the open loop FRCE signal are processed in this method.
-    def afrr_calc(self, f_delta, k_now, t_now, t_step, t_isp, fuzzy):
+    def afrr_calc(self, f_delta, k_now, t_now, t_step, t_isp, fuzzy, imbalance_clearing):
         self.FRCE_cl_pos_before = self.FRCE_cl_pos
         self.FRCE_cl_neg_before = self.FRCE_cl_neg
 
@@ -504,7 +505,7 @@ class SynchronousZone(GridElement):
 
     # Method calculating the activated aFRR power of the system
     # The method sums up the activated aFRR power of all subordinated grid elements
-    def afrr_calc(self, k_now, t_now, t_step, t_isp, fuzzy):
+    def afrr_calc(self, k_now, t_now, t_step, t_isp, fuzzy,imbalance_clearing):
         self.aFRR_P = 0.0
         self.sb_P = 0.0
         for i in self.array_subordinates:
@@ -513,7 +514,8 @@ class SynchronousZone(GridElement):
                         t_now=t_now,
                         t_step=t_step,
                         t_isp=t_isp,
-                        fuzzy=fuzzy)
+                        fuzzy=fuzzy,
+                        imbalance_clearing=imbalance_clearing)
             self.aFRR_P += i.aFRR_P
             self.sb_P += i.sb_P
 
@@ -578,6 +580,7 @@ class ControlArea(CalculatingGridElement):
                  aFRR_beta,             # aFRR constant 'beta' in p.u.                                      (float)
                  aFRR_delay,            # delay time for the activation of aFRR in s                        (float)
                  aFRR_pricing,          # "0" for pay-as-bid, "1" for marginal pricing                      (int)
+                 imbalance_clearing,    # "0" for single pricing, "1" for NL combined pricing approach      (int)
                  mFRR_pos_trigger,      # ratio of positive aFRR, at which mFRR gets triggered in p.u.      (float)
                  mFRR_neg_trigger,      # ratio of negative aFRR, at which mFRR gets triggered in p.u.      (float)
                  mFRR_pos_target,       # target ratio for aFRR reduction by positive mFRR in p.u.          (float)
@@ -851,7 +854,7 @@ class ControlArea(CalculatingGridElement):
     # Method calculating the activated aFRR power of the system.
     # Added call of method afrr_price_calc for this class.
     # Added activation of smart balancing in subordinated Balancing Groups
-    def afrr_calc(self, f_delta, k_now, t_now, t_step, t_isp, fuzzy):
+    def afrr_calc(self, f_delta, k_now, t_now, t_step, t_isp, fuzzy,imbalance_clearing):
         self.FRCE_cl_pos_before = self.FRCE_cl_pos
         self.FRCE_cl_neg_before = self.FRCE_cl_neg
 
@@ -926,9 +929,10 @@ class ControlArea(CalculatingGridElement):
                       windon_mmw=self.windon_mmw,
                       windoff_mmw=self.windoff_mmw,
                       pv_mmw=self.pv_mmw,
-                      aFRR_pricing=self.aFRR_pricing,
-                      mFRR_pricing=self.mFRR_pricing,
-                      fuzzy=fuzzy)
+                      aFRR_E_pos_period=self.aFRR_E_pos_period,
+                      aFRR_E_neg_period=self.aFRR_E_neg_period,
+                      fuzzy=fuzzy,
+                      imbalance_clearing=imbalance_clearing)
             self.sb_P += i.sb_P
 
     # Method calculating a price for aFRR using the pay-as-bid priciple

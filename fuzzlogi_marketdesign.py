@@ -50,7 +50,7 @@ plt.figure(4)
 
 
 # to make these triangles useful, we define the fuzzy relationship between input and output variables.
-# the rules are fuzzy. Mapping the imprecise rules into a defined, actionable tip is a challenge.
+# the rules are fuzzy. Mapping the imprecise rules into a defined, actionable sb contribution is a challenge.
 # This is the kind of task at which fuzzy logic excels.
 
 # Netmargin based rules, apply for all market designs
@@ -136,7 +136,7 @@ def fuzz(Marge, Imba, Time, p_average, pricing): #imba, price, GKL):
 
         return(sb_dual.output['smartbalancing_percent'] / 100)
 
-    if pricing == "single":
+    if pricing == 0:
         #sb_single.input['imbalance_MW'] = Imba
         sb_single.input['netmargin_Euro/MWh'] = Marge
         sb_single.input['time_min'] = Time
@@ -147,7 +147,7 @@ def fuzz(Marge, Imba, Time, p_average, pricing): #imba, price, GKL):
 
         return (sb_single.output['smartbalancing_percent'] / 100)
 
-    if pricing == "NL":
+    if pricing == 1:
         #sb_NL.input['imbalance_MW'] = Imba
         sb_NL.input['netmargin_Euro/MWh'] = Marge
         sb_NL.input['time_min'] = Time

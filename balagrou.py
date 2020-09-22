@@ -2,7 +2,7 @@
 # --- CLASS DEFINITION FOR BALANCING GROUPS ----------------------------------------------------------------------------
 # ----------------------------------------------------------------------------------------------------------------------
 
-import fuzzlogi
+import fuzzlogi_marketdesign
 import math
 
 # Objects of class 'BalancingGroups' represent the Balancing Groups of a Control Area.
@@ -230,17 +230,23 @@ class BalancingGroup:
                                 'Power': array_power}
 
     # This method calculates the Smart Balancing power of the Smart Balancing Assets of the Balancing Group
-    def sb_calc(self, FRCE_sb, AEP, t_step, t_now, da_price, windon_mmw, windoff_mmw, pv_mmw, aFRR_pricing, mFRR_pricing, fuzzy):
+    def sb_calc(self, FRCE_sb, AEP, t_step, t_now, da_price, windon_mmw, windoff_mmw, pv_mmw, aFRR_E_pos_period, aFRR_E_neg_period, fuzzy, imbalance_clearing):
         # The positive and negative SB potentials of all assets get updated.
+
+        ## 13.09.2020 restructure sb_calc to better implement fuzzy logic (FR)
+        # delete multiple condition "smart and fuzzy" - ask for fuzzy condition if smart
+        #  imbalance clearing ("0" for single and "1" for combined/NL)
+        # 1. sb_pot_calc() = individual SB potential in MW - see generato.py / loadload.py
+        # 2. if smart -> calculate sb_P, ask if fuzzy and call sb_activatio() - see generato.py / loadload.py
+        # 3.    if fuzzy -> manipulate sb_P with fuzzilogi_marketdesign.py
+        # 4.    activate sb_P accoring to sb_activate (ramp max)- - see generato.py / loadload.py
+
+
         for i in self.array_sb_assets:
             i.sb_pot_calc()
 
-        # Activation of SB Assets using Fuzzy Logic
-        if self.smart and fuzzy:
-            self.sb_P = 0.0
-
-        # Activation of SB Assets without Fuzzy Logic
-        elif self.smart and not fuzzy:
+        # Activation of SB Assets (if fuzzy = true) using Fuzzy Logic
+        if self.smart:
             self.sb_P = 0.0
 
             SB_Asset_ID = []
@@ -254,11 +260,19 @@ class BalancingGroup:
                 P_max_sum += i.sb_pot_pos
                 P_min_sum += i.sb_pot_neg
 
+            if fuzzy:
+                # Calc time within 15 Min ISP in Minute (between 0 and 14) for fuzzy
+                time_in_ISP = (t_now / 60) % 15
+                # calc p_average in MW in ISP for fuzzy (from aFRR of ISP in MWh)
+                p_average = (aFRR_E_pos_period + aFRR_E_neg_period)/((time_in_ISP + 1)/60)
+
+
             # Decision making for Balancing Group "Solar"
             if self.name == 'Solar':
                 sb_sum = 0.0
                 for i in self.array_sb_assets:
                     sb_activation = 0.0
+                    sb_marge = 0.0
 
                     # Definition of additional margin in EUR/MWh
                     margin = 60.0
@@ -271,18 +285,23 @@ class BalancingGroup:
                         pass
 
                     if AEP < -(mp + margin) and i.sb_pot_neg < 0:
-                        SB_Asset_ID.append(i.name)
-                        sb_activation = i.sb_pot_neg
+                        #def fuzz(Marge, Imba, Time, p_average, pricing)
+                        if fuzzy:
+                            sb_marge = AEP < -(mp + margin)
+                            sb_percent = fuzzlogi_marketdesign.fuzz(sb_marge,FRCE_sb,time_in_ISP,p_average, imbalance_clearing)
+                            sb_activation = i.sb_pot_neg * sb_percent
+                        else:
+                            sb_activation = i.sb_pot_neg
 
                         # Optional limitation of the targeted Smart Balancing power using the total FRCE
                         if sb_sum + sb_activation < FRCE_sb:
                             sb_activation = FRCE_sb - sb_sum
 
-                        SB_per_asset.append(sb_activation)
                     else:
-                        SB_Asset_ID.append(i.name)
-                        SB_per_asset.append(0.0)
+                        sb_activation = 0.0
 
+                    SB_Asset_ID.append(i.name)
+                    SB_per_asset.append(sb_activation)
                     sb_sum += sb_activation
 
             # Decision making for Balancing Group "Wind_Onshore"
@@ -302,18 +321,23 @@ class BalancingGroup:
                         pass
 
                     if AEP < -(mp + margin) and i.sb_pot_neg < 0:
-                        SB_Asset_ID.append(i.name)
-                        sb_activation = i.sb_pot_neg
+                        if fuzzy:
+                            sb_marge = AEP < -(mp + margin)
+                            sb_percent = fuzzlogi_marketdesign.fuzz(sb_marge, FRCE_sb, time_in_ISP, p_average, imbalance_clearing)
+                            sb_activation = i.sb_pot_neg * sb_percent
+                        else:
+                            sb_activation = i.sb_pot_neg
 
                         # Optional limitation of the targeted Smart Balancing power using the total FRCE
                         if sb_sum + sb_activation < FRCE_sb:
                             sb_activation = FRCE_sb - sb_sum
 
-                        SB_per_asset.append(sb_activation)
-                    else:
-                        SB_Asset_ID.append(i.name)
-                        SB_per_asset.append(0.0)
 
+                    else:
+                        sb_activation = 0.0
+
+                    SB_Asset_ID.append(i.name)
+                    SB_per_asset.append(sb_activation)
                     sb_sum += sb_activation
 
             # Decision making for Balancing Group "Wind_Offshore"
@@ -333,18 +357,23 @@ class BalancingGroup:
                         pass
 
                     if AEP < -(mp + margin) and i.sb_pot_neg < 0:
-                        SB_Asset_ID.append(i.name)
-                        sb_activation = i.sb_pot_neg
+
+                        if fuzzy:
+                            sb_marge = AEP < -(mp + margin)
+                            sb_percent = fuzzlogi_marketdesign.fuzz(sb_marge, FRCE_sb, time_in_ISP, p_average, imbalance_clearing)
+                            sb_activation = i.sb_pot_neg * sb_percent
+                        else:
+                            sb_activation = i.sb_pot_neg
 
                         # Optional limitation of the targeted Smart Balancing power using the total FRCE
                         if sb_sum + sb_activation < FRCE_sb:
                             sb_activation = FRCE_sb - sb_sum
 
-                        SB_per_asset.append(sb_activation)
                     else:
-                        SB_Asset_ID.append(i.name)
-                        SB_per_asset.append(0.0)
+                        sb_activation = 0.0
 
+                    SB_Asset_ID.append(i.name)
+                    SB_per_asset.append(sb_activation)
                     sb_sum += sb_activation
 
             # Decision making for Balancing Group "Aluminium"
@@ -494,6 +523,8 @@ class BalancingGroup:
                         SB_Asset_ID.append(i.name)
                         SB_per_asset.append(0.0)
 
+            #todo is the following used? BGs would react only to ACE
+
             # Other Balancing Groups get triggered by the arithmetic sign of the signal FRCE_sb
             else:
                 if FRCE_sb < 0:
@@ -539,6 +570,11 @@ class BalancingGroup:
                 else:
                     pass
 
+
+
+            # Last step within smart = true condition:
+            # Activation of SB Assets within physical boundaries of ramp
+            # > see sb_activate() in generator.py / loadload.py
             array_sb_activate = {"SB_Asset_ID": SB_Asset_ID, "SB_per_asset": SB_per_asset}
 
             j = 0
@@ -550,6 +586,7 @@ class BalancingGroup:
 
             for i in self.array_sb_assets:
                 self.sb_P += i.sb_P
+        # smart not true:
         else:
             self.sb_P = 0.0
 
@@ -589,6 +626,9 @@ class BalancingGroup:
         else:
             self.gen_income += self.gen_P_schedule * da_price * t_step / 3600
             self.load_costs += self.load_P_schedule * da_price * t_step / 3600
+
+
+
 
         # Calculation of costs and income per ISP
         # Variables get set to zero after every ISP

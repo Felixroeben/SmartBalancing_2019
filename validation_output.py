@@ -26,6 +26,10 @@ no_SB_no_mFRR = pd.read_csv("validation_and_analysis/2019, 1min, no mFRR, no SB/
 # simulation data without Smart Balancing for validation - with mFRR
 no_SB_with_mFRR = pd.read_csv("validation_and_analysis/2019, 1min, with mFRR, no SB/WC_Sim_output_period.csv",sep=';')
 
+no_SB_FR = pd.read_csv("validation_and_analysis/results Felix/1 no SB/WC_Sim_output_period.csv",sep=';')
+fuzzySolar_SB_FR = pd.read_csv("validation_and_analysis/results Felix/2 Solar fuzzy SB/WC_Sim_output_period.csv",sep=';')
+Solar_SB_FR = pd.read_csv("validation_and_analysis/results Felix/3 Solar no fuzzy SB/WC_Sim_output_period.csv",sep=';')
+
 #time [s]	GER pos. energy aFRR [MWh]	GER neg. energy aFRR [MWh]	GER pos. aFRR costs [EUR]	GER neg. aFRR costs [EUR]	GER pos. energy mFRR [MWh]	GER neg. energy mFRR [MWh]	GER pos. mFRR costs [EUR]	GER neg. mFRR costs [EUR]	GER AEP [EUR/MWh]
 #Feldt.index = pd.date_range(start='00:00 01.01.2019', end = '23:30 24.11.2019',freq='15 min')
 
@@ -41,12 +45,20 @@ Vergleich_aFRR_pow["aFRR_pow_up_no_mFRR"] = no_SB_no_mFRR["GER pos. energy aFRR 
 #correlation factor is 0.73
 Vergleich_aFRR_pow["aFRR_pow_up_sim_with_mFRR"] = no_SB_with_mFRR["GER pos. energy aFRR [MWh]"]*4
 #correlation factor is 0.85
+Vergleich_aFRR_pow["aFRR_pow_up_sim_no_SB"] = no_SB_FR["GER pos. energy aFRR [MWh]"]*4
+#correlation factor is 0.86
+Vergleich_aFRR_pow["aFRR_pow_up_sim_fuzzySolar"] = fuzzySolar_SB_FR["GER pos. energy aFRR [MWh]"]*4
+Vergleich_aFRR_pow["aFRR_pow_up_sim_Solar"] = Solar_SB_FR["GER pos. energy aFRR [MWh]"]*4
 
-Vergleich_aFRR_pow["aFRR_pow_down_sim_hist"] = hist["aFRR_down_MW"]
-Vergleich_aFRR_pow["aFRR_pow_down_no_mFRR"] = no_SB_no_mFRR["GER neg. energy aFRR [MWh]"]*(-4)
+Vergleich_aFRR_pow["aFRR_pow_down_sim_hist"] = -hist["aFRR_down_MW"]
+Vergleich_aFRR_pow["aFRR_pow_down_no_mFRR"] = no_SB_no_mFRR["GER neg. energy aFRR [MWh]"]*(4)
 #correlation factor is 0.88
-Vergleich_aFRR_pow["aFRR_pow_down_sim_with_mFRR"] = no_SB_with_mFRR["GER neg. energy aFRR [MWh]"]*(-4)
+Vergleich_aFRR_pow["aFRR_pow_down_sim_with_mFRR"] = no_SB_with_mFRR["GER neg. energy aFRR [MWh]"]*(4)
 #correlation factor is 0.90
+Vergleich_aFRR_pow["aFRR_pow_down_sim_no_SB"] = no_SB_FR["GER neg. energy aFRR [MWh]"]*(4)
+#correlation factor is 0.89
+Vergleich_aFRR_pow["aFRR_pow_down_sim_fuzzySolar"] = fuzzySolar_SB_FR["GER neg. energy aFRR [MWh]"]*4
+Vergleich_aFRR_pow["aFRR_pow_down_sim_Solar"] = Solar_SB_FR["GER neg. energy aFRR [MWh]"]*4
 
 # calculate and export correlation factors to csv
 #Vergleich_aFRR_pow.corr().to_csv("validation_and_analysis/aFRR_pow_validation_via_correlation.csv",sep=';')
@@ -58,12 +70,16 @@ Vergleich_aFRR_cost["aFRR_cost_up_sim_no_mFRR"] = no_SB_no_mFRR["GER pos. aFRR c
 #correlation factor is 0.77
 Vergleich_aFRR_cost["aFRR_cost_up_sim_with_mFRR"] = no_SB_with_mFRR["GER pos. aFRR costs [EUR]"]
 #correlation factor is 0.63
+Vergleich_aFRR_cost["aFRR_cost_up_sim_no_SB"] = no_SB_FR["GER pos. aFRR costs [EUR]"]
+#correlation factor is 0.93
 
 Vergleich_aFRR_cost["aFRR_cost_down_hist"] = hist["aFRR_down_price"]*hist['aFRR_down_MW']/(-4)
 Vergleich_aFRR_cost["aFRR_cost_down_sim_no_mFRR"] = no_SB_no_mFRR["GER neg. aFRR costs [EUR]"]
 #correlation factor is 0.77
 Vergleich_aFRR_cost["aFRR_cost_down_sim_with_mFRR"] = no_SB_with_mFRR["GER neg. aFRR costs [EUR]"]
 #correlation factor is 0.82
+Vergleich_aFRR_cost["aFRR_cost_down_sim_no_SB"] = no_SB_FR["GER neg. aFRR costs [EUR]"]
+#correlation factor is 0.72
 
 # calculate and export correlation factors to csv
 #Vergleich_aFRR_cost.corr().to_csv("validation_and_analysis/aFRR_cost_validation_via_correlation.csv",sep=';')
@@ -73,13 +89,19 @@ Vergleich_mFRR_pow = pd.DataFrame()
 Vergleich_mFRR_pow["mFRR_pow_up_sim_hist"] = hist["mFRR_up_MW"]
 Vergleich_mFRR_pow["mFRR_pow_up_sim_with_mFRR"] = no_SB_with_mFRR["GER pos. energy mFRR [MWh]"]*4
 #correlation factor is 0.50
+Vergleich_mFRR_pow["mFRR_pow_up_sim_no_SB"] = no_SB_FR["GER pos. energy mFRR [MWh]"]*4
+#correlation factor is 0.
 
-Vergleich_mFRR_pow["mFRR_pow_down_sim_hist"] = hist["mFRR_down_MW"]
-Vergleich_mFRR_pow["mFRR_pow_down_sim_with_mFRR"] = no_SB_with_mFRR["GER neg. energy mFRR [MWh]"]*(-4)
+
+Vergleich_mFRR_pow["mFRR_pow_down_sim_hist"] = -hist["mFRR_down_MW"]
+Vergleich_mFRR_pow["mFRR_pow_down_sim_with_mFRR"] = no_SB_with_mFRR["GER neg. energy mFRR [MWh]"]*(4)
 #correlation factor is 0.55
+Vergleich_mFRR_pow["mFRR_pow_down_sim_no_SB"] = no_SB_FR["GER neg. energy mFRR [MWh]"]*(4)
+#correlation factor is 0.
+
 
 # calculate and export correlation factors to csv
-Vergleich_mFRR_pow.corr().to_csv("validation_and_analysis/mFRR_pow_validation_via_correlation.csv",sep=';')
+#Vergleich_mFRR_pow.corr().to_csv("validation_and_analysis/mFRR_pow_validation_via_correlation.csv",sep=';')
 #_______________
 
 #compare historic imbalance price with simulation output via correlation factor
@@ -88,6 +110,8 @@ Vergleich_AEP_imbalance_price["imbalance_price_Euro_per_MWh_hist"] = hist["AEP"]
 Vergleich_AEP_imbalance_price["imbalance_price_Euro_per_MWh_sim_no_mFRR"] = no_SB_no_mFRR["GER AEP [EUR/MWh]"]
 #correlation factor is 0.48
 Vergleich_AEP_imbalance_price["imbalance_price_Euro_per_MWh_sim_with_mFRR"] = no_SB_with_mFRR["GER AEP [EUR/MWh]"]
+#correlation factor is 0.37
+Vergleich_AEP_imbalance_price["imbalance_price_Euro_per_MWh_sim_FR"] = no_SB_FR["GER AEP [EUR/MWh]"]
 #correlation factor is 0.37
 
 # calculate and export correlation factors to csv
@@ -99,7 +123,7 @@ Vergleich_AEP_imbalance_price["imbalance_price_Euro_per_MWh_sim_with_mFRR"] = no
 # (ii) benefit estimation
 
 # sum up cost and energy values and save to new csv
-#Historic.sum().to_csv("validation_and_analysis/sum_energy_and_costs_historic.csv",header=["historic"])
+#hist.sum().to_csv("validation_and_analysis/sum_energy_and_costs_historic.csv",header=["historic"])
 #sum_energy_and_costs = pd.read_csv("validation_and_analysis/sum_energy_and_costs_simulation.csv",index_col=0)
 #sum_energy_and_costs["SB limit to ACE"] = Feldt.sum()
 #sum_energy_and_costs.to_csv("validation_and_analysis/sum_energy_and_costs_simulation.csv")
@@ -123,7 +147,7 @@ Vergleich_AEP_imbalance_price.index = pd.date_range(start='00:00 01.01.2019', en
 
 plt.figure(1,figsize=(8, 6))
 plt.plot(Vergleich_aFRR_pow["18.11.2019"])
-plt.legend(["aFRR_up_pow_hist","aFRR_up_pow_sim_no_mFRR","aFRR_up_pow_sim_with_mFRR","aFRR_down_pow_hist","aFRR_down_pow_sim_no_mFRR","aFRR_down_pow_sim_with_mFRR"])
+plt.legend(["aFRR_up_pow_hist","aFRR_up_pow_sim_no_mFRR","aFRR_up_pow_sim_with_mFRR","sim_FR","sim_fuzzySolar","sim_Solar","aFRR_down_pow_hist","aFRR_down_pow_sim_no_mFRR","aFRR_down_pow_sim_with_mFRR","sim_FRd","sim_fuzzySolard","sim_Solard"])
 plt.ylabel('aFRR power in MW')
 plt.xlabel('Field test week')
 
@@ -131,7 +155,7 @@ plt.savefig('validation_and_analysis//aFRR_pow_validation.png')
 
 plt.figure(2,figsize=(8, 6))
 plt.plot(Vergleich_aFRR_cost["18.11.2019"])
-plt.legend(["aFRR_up_cost_hist","aFRR_up_cost_sim_no_mFRR","aFRR_up_cost_sim_with_mFRR","aFRR_down_cost_hist","aFRR_down_cost_sim_no_mFRR","aFRR_down_cost_sim_with_mFRR"])
+plt.legend(["aFRR_up_cost_hist","aFRR_up_cost_sim_no_mFRR","aFRR_up_cost_sim_with_mFRR","sim_FR","aFRR_down_cost_hist","aFRR_down_cost_sim_no_mFRR","aFRR_down_cost_sim_with_mFRR","sim_FR"])
 plt.ylabel('aFRR costs in Euro')
 plt.xlabel('Field test week')
 
@@ -139,7 +163,7 @@ plt.savefig('validation_and_analysis//aFRR_cost_validation.png')
 
 plt.figure(3,figsize=(8, 6))
 plt.plot(Vergleich_AEP_imbalance_price["18.11.2019"])
-plt.legend(["imbalance_price_hist","imbalance_price_sim_no_mFRR","imbalance_price_sim_with_mFRR"])
+plt.legend(["imbalance_price_hist","imbalance_price_sim_no_mFRR","imbalance_price_sim_with_mFRR", "imbalance_price_sim_FR"])
 plt.ylabel('imbalance price in Euro per MWh')
 plt.xlabel('Field test week')
 
@@ -147,7 +171,7 @@ plt.savefig('validation_and_analysis//imbalance_price_validation.png')
 
 plt.figure(4,figsize=(8, 6))
 plt.plot(Vergleich_mFRR_pow["18.11.2019"])
-plt.legend(["mFRR_up_pow_hist","mFRR_up_pow_sim_with_mFRR","mFRR_down_pow_hist","mFRR_down_pow_sim_with_mFRR"])
+plt.legend(["mFRR_up_pow_hist","mFRR_up_pow_sim_with_mFRR","sim_FR","mFRR_down_pow_hist","mFRR_down_pow_sim_with_mFRR","sim_FR"])
 plt.ylabel('mFRR power in MW')
 plt.xlabel('Field test week')
 
