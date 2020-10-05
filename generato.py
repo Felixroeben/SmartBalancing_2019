@@ -80,7 +80,14 @@ class GeneratorFlex(Generator):
             else:
                 self.sb_pot_neg = 0.0
 
-        # Default calculation for flexible generators
+        #Calculate flex potential for Gas power plants in Germany
+        #Assumption: All power plants run with 80% of inst. cap.
+        # Flex up is to ramp up to 100%, Flex down is to ramp down to 40% inst. cap.
+        elif self.bg_name == "Group_Gas":
+            self.sb_pot_pos = 0.2*(self.gen_P/0.8)
+            self.sb_pot_neg = -0.4*(self.gen_P/0.8)
+
+        # Default calculation for flexible generators - if e.g. 1 plant is considered
         elif self.gen_P > self.sb_P_min and self.gen_P < self.sb_P_max:
             if self.sb_P_max > self.gen_P:
                 self.sb_pot_pos = self.sb_P_max - self.gen_P

@@ -231,7 +231,6 @@ class BalancingGroup:
 
     # This method calculates the Smart Balancing power of the Smart Balancing Assets of the Balancing Group
     def sb_calc(self, FRCE_sb, AEP, t_step, t_now, da_price, windon_mmw, windoff_mmw, pv_mmw, aFRR_E_pos_period, aFRR_E_neg_period, fuzzy, imbalance_clearing):
-        # The positive and negative SB potentials of all assets get updated.
 
         ## 13.09.2020 restructure sb_calc to better implement fuzzy logic (FR)
         # delete multiple condition "smart and fuzzy" - ask for fuzzy condition if smart
@@ -241,7 +240,7 @@ class BalancingGroup:
         # 3.    if fuzzy -> manipulate sb_P with fuzzilogi_marketdesign.py
         # 4.    activate sb_P accoring to sb_activate (ramp max)- - see generato.py / loadload.py
 
-
+        # The positive and negative SB potentials of all assets get updated.
         for i in self.array_sb_assets:
             i.sb_pot_calc()
 
@@ -287,7 +286,8 @@ class BalancingGroup:
                     if AEP < -(mp + margin) and i.sb_pot_neg < 0:
                         #def fuzz(Marge, Imba, Time, p_average, pricing)
                         if fuzzy:
-                            sb_marge = AEP < -(mp + margin)
+                            # marge for SB is (negativ) AEP minus (plus) current "Marktprämie" and additional margin
+                            sb_marge = -AEP + (mp + margin)
                             sb_percent = fuzzlogi_marketdesign.fuzz(sb_marge,FRCE_sb,time_in_ISP,p_average, imbalance_clearing)
                             sb_activation = i.sb_pot_neg * sb_percent
                         else:
@@ -322,7 +322,8 @@ class BalancingGroup:
 
                     if AEP < -(mp + margin) and i.sb_pot_neg < 0:
                         if fuzzy:
-                            sb_marge = AEP < -(mp + margin)
+                            # marge for SB is (negativ) AEP minus (plus) current "Marktprämie" and additional margin
+                            sb_marge = -AEP + (mp + margin)
                             sb_percent = fuzzlogi_marketdesign.fuzz(sb_marge, FRCE_sb, time_in_ISP, p_average, imbalance_clearing)
                             sb_activation = i.sb_pot_neg * sb_percent
                         else:
@@ -359,7 +360,8 @@ class BalancingGroup:
                     if AEP < -(mp + margin) and i.sb_pot_neg < 0:
 
                         if fuzzy:
-                            sb_marge = AEP < -(mp + margin)
+                            #marge for SB is (negativ) AEP minus (plus) current "Marktprämie" and additional margin
+                            sb_marge = -AEP + (mp + margin)
                             sb_percent = fuzzlogi_marketdesign.fuzz(sb_marge, FRCE_sb, time_in_ISP, p_average, imbalance_clearing)
                             sb_activation = i.sb_pot_neg * sb_percent
                         else:
