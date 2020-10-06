@@ -22,4 +22,4 @@ Paper_polisher;207;207;-46;207;0;Paper;SmartBalancingAsset
 Paper_refiner;105;105;-23;105;0;Paper;SmartBalancingAsset
 Chlorine_amalgam;114;114;-72;114;0;Chlorine;SmartBalancingAsset
 Chlorine_membrane;359;359;-227;359;0;Chlorine;SmartBalancingAsset
-Fossil_Gas Gen;5;5;0;32000;35;Group_Gas;GeneratorFlex
+Fossil_Gas Gen;200;200;0;32000;35;Group_Gas;GeneratorFlex

@@ -44,7 +44,7 @@ scenario = 'WC_data//WC_'
 
 # ...Activation of simulation functions
 smartbalancing = True      # True: Smart Balancing is globally switched on
-fuzzy = False               # True: Smart Balancing is globally activated via Fuzzy Logic
+fuzzy = True               # True: Smart Balancing is globally activated via Fuzzy Logic
 FRR_pricing = 0             # Global variable to switch both aFRR & mFRR from pay-as-bid (0) to marginal pricing (1)
 imbalance_clearing = 0      # For fuzzy SB: Switch from single imbalance pricing (0) to "combined pricing" as in NL (1)
 save_data = True            # True: write the simulation data to .csv

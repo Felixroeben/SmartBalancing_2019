@@ -287,7 +287,7 @@ class BalancingGroup:
                         #def fuzz(Marge, Imba, Time, p_average, pricing)
                         if fuzzy:
                             # marge for SB is (negativ) AEP minus (plus) current "Marktprämie" and additional margin
-                            sb_marge = -AEP + (mp + margin)
+                            sb_marge = -AEP - (mp + margin)
                             sb_percent = fuzzlogi_marketdesign.fuzz(sb_marge,FRCE_sb,time_in_ISP,p_average, imbalance_clearing)
                             sb_activation = i.sb_pot_neg * sb_percent
                         else:
@@ -323,7 +323,7 @@ class BalancingGroup:
                     if AEP < -(mp + margin) and i.sb_pot_neg < 0:
                         if fuzzy:
                             # marge for SB is (negativ) AEP minus (plus) current "Marktprämie" and additional margin
-                            sb_marge = -AEP + (mp + margin)
+                            sb_marge = -AEP - (mp + margin)
                             sb_percent = fuzzlogi_marketdesign.fuzz(sb_marge, FRCE_sb, time_in_ISP, p_average, imbalance_clearing)
                             sb_activation = i.sb_pot_neg * sb_percent
                         else:
@@ -361,7 +361,7 @@ class BalancingGroup:
 
                         if fuzzy:
                             #marge for SB is (negativ) AEP minus (plus) current "Marktprämie" and additional margin
-                            sb_marge = -AEP + (mp + margin)
+                            sb_marge = -AEP - (mp + margin)
                             sb_percent = fuzzlogi_marketdesign.fuzz(sb_marge, FRCE_sb, time_in_ISP, p_average, imbalance_clearing)
                             sb_activation = i.sb_pot_neg * sb_percent
                         else:
@@ -378,18 +378,25 @@ class BalancingGroup:
                     SB_per_asset.append(sb_activation)
                     sb_sum += sb_activation
 
-            # Decision making for Balancing Group "Aluminium"
+            # Decision making for Balancing Group "Aluminium" - decrease load in case of high AEP
             elif self.name == 'Aluminium':
                 if (AEP - da_price) > 100:
                     for i in self.array_sb_assets:
                         if i.sb_pot_pos > 0:
-                            SB_Asset_ID.append(i.name)
-                            sb_activation = i.sb_pot_pos
+                            if fuzzy:
+                                # marge for SB is (negativ) AEP minus (plus) current "Marktprämie" and additional margin
+                                sb_marge = AEP - da_price - 100
+                                sb_percent = fuzzlogi_marketdesign.fuzz(sb_marge, FRCE_sb, time_in_ISP, p_average,
+                                                                        imbalance_clearing)
+                                sb_activation = i.sb_pot_pos * sb_percent
+                            else:
+                                sb_activation = i.sb_pot_pos
 
                             # Optional limitation of the targeted Smart Balancing power using the total FRCE
                             if sb_activation > FRCE_sb:
                                 sb_activation = FRCE_sb
 
+                            SB_Asset_ID.append(i.name)
                             SB_per_asset.append(sb_activation)
                         else:
                             SB_Asset_ID.append(i.name)
@@ -399,18 +406,25 @@ class BalancingGroup:
                         SB_Asset_ID.append(i.name)
                         SB_per_asset.append(0.0)
 
-            # Decision making for Balancing Group "Steel"
+            # Decision making for Balancing Group "Steel" - decrease load in case of high AEP
             elif self.name == 'Steel':
                 if (AEP - da_price) > 250:
                     for i in self.array_sb_assets:
                         if i.sb_pot_pos > 0:
-                            SB_Asset_ID.append(i.name)
-                            sb_activation = i.sb_pot_pos
+                            if fuzzy:
+                                # marge for SB is (negativ) AEP minus (plus) current "Marktprämie" and additional margin
+                                sb_marge = AEP - da_price - 250
+                                sb_percent = fuzzlogi_marketdesign.fuzz(sb_marge, FRCE_sb, time_in_ISP, p_average,
+                                                                        imbalance_clearing)
+                                sb_activation = i.sb_pot_pos * sb_percent
+                            else:
+                                sb_activation = i.sb_pot_pos
 
                             # Optional limitation of the targeted Smart Balancing power using the total FRCE
                             if sb_activation > FRCE_sb:
                                 sb_activation = FRCE_sb
 
+                            SB_Asset_ID.append(i.name)
                             SB_per_asset.append(sb_activation)
                         else:
                             SB_Asset_ID.append(i.name)
@@ -420,18 +434,25 @@ class BalancingGroup:
                         SB_Asset_ID.append(i.name)
                         SB_per_asset.append(0.0)
 
-            # Decision making for Balancing Group "Cement"
+            # Decision making for Balancing Group "Cement" - increase (neg AEP) or decrease (high AEP) of load
             elif self.name == 'Cement':
                 if (AEP - da_price) > 250:
                     for i in self.array_sb_assets:
                         if i.sb_pot_pos > 0:
-                            SB_Asset_ID.append(i.name)
-                            sb_activation = i.sb_pot_pos
+                            if fuzzy:
+                                # marge for SB is (negativ) AEP minus (plus) current "Marktprämie" and additional margin
+                                sb_marge = AEP - da_price - 250
+                                sb_percent = fuzzlogi_marketdesign.fuzz(sb_marge, FRCE_sb, time_in_ISP, p_average,
+                                                                        imbalance_clearing)
+                                sb_activation = i.sb_pot_pos * sb_percent
+                            else:
+                                sb_activation = i.sb_pot_pos
 
                             # Optional limitation of the targeted Smart Balancing power using the total FRCE
                             if sb_activation > FRCE_sb:
                                 sb_activation = FRCE_sb
 
+                            SB_Asset_ID.append(i.name)
                             SB_per_asset.append(sb_activation)
                         else:
                             SB_Asset_ID.append(i.name)
@@ -439,13 +460,20 @@ class BalancingGroup:
                 elif AEP < 10:
                     for i in self.array_sb_assets:
                         if i.sb_pot_neg < 0:
-                            SB_Asset_ID.append(i.name)
-                            sb_activation = i.sb_pot_neg
+                            if fuzzy:
+                                # marge for SB is (negativ) AEP minus (plus) current "Marktprämie" and additional margin
+                                sb_marge = 10 - AEP
+                                sb_percent = fuzzlogi_marketdesign.fuzz(sb_marge, FRCE_sb, time_in_ISP, p_average,
+                                                                        imbalance_clearing)
+                                sb_activation = i.sb_pot_neg * sb_percent
+                            else:
+                                sb_activation = i.sb_pot_neg
 
                             # Optional limitation of the targeted Smart Balancing power using the total FRCE
                             if sb_activation < FRCE_sb:
                                 sb_activation = FRCE_sb
 
+                            SB_Asset_ID.append(i.name)
                             SB_per_asset.append(sb_activation)
                         else:
                             SB_Asset_ID.append(i.name)
@@ -460,13 +488,20 @@ class BalancingGroup:
                 if (AEP - da_price) > 250:
                     for i in self.array_sb_assets:
                         if i.sb_pot_pos > 0:
-                            SB_Asset_ID.append(i.name)
-                            sb_activation = i.sb_pot_pos
+                            if fuzzy:
+                                # marge for SB is (negativ) AEP minus (plus) current "Marktprämie" and additional margin
+                                sb_marge = AEP - da_price - 250
+                                sb_percent = fuzzlogi_marketdesign.fuzz(sb_marge, FRCE_sb, time_in_ISP, p_average,
+                                                                        imbalance_clearing)
+                                sb_activation = i.sb_pot_pos * sb_percent
+                            else:
+                                sb_activation = i.sb_pot_pos
 
                             # Optional limitation of the targeted Smart Balancing power using the total FRCE
                             if sb_activation > FRCE_sb:
                                 sb_activation = FRCE_sb
 
+                            SB_Asset_ID.append(i.name)
                             SB_per_asset.append(sb_activation)
                         else:
                             SB_Asset_ID.append(i.name)
@@ -474,13 +509,20 @@ class BalancingGroup:
                 elif AEP < 10:
                     for i in self.array_sb_assets:
                         if i.sb_pot_neg < 0:
-                            SB_Asset_ID.append(i.name)
-                            sb_activation = i.sb_pot_neg
+                            if fuzzy:
+                                # marge for SB is (negativ) AEP minus (plus) current "Marktprämie" and additional margin
+                                sb_marge = 10 - AEP
+                                sb_percent = fuzzlogi_marketdesign.fuzz(sb_marge, FRCE_sb, time_in_ISP, p_average,
+                                                                        imbalance_clearing)
+                                sb_activation = i.sb_pot_neg * sb_percent
+                            else:
+                                sb_activation = i.sb_pot_neg
 
                             # Optional limitation of the targeted Smart Balancing power using the total FRCE
                             if sb_activation < FRCE_sb:
                                 sb_activation = FRCE_sb
 
+                            SB_Asset_ID.append(i.name)
                             SB_per_asset.append(sb_activation)
                         else:
                             SB_Asset_ID.append(i.name)
@@ -495,13 +537,20 @@ class BalancingGroup:
                 if (AEP - da_price) > 250:
                     for i in self.array_sb_assets:
                         if i.sb_pot_pos > 0:
-                            SB_Asset_ID.append(i.name)
-                            sb_activation = i.sb_pot_pos
+                            if fuzzy:
+                                # marge for SB is (negativ) AEP minus (plus) current "Marktprämie" and additional margin
+                                sb_marge = AEP - da_price - 250
+                                sb_percent = fuzzlogi_marketdesign.fuzz(sb_marge, FRCE_sb, time_in_ISP, p_average,
+                                                                        imbalance_clearing)
+                                sb_activation = i.sb_pot_pos * sb_percent
+                            else:
+                                sb_activation = i.sb_pot_pos
 
                             # Optional limitation of the targeted Smart Balancing power using the total FRCE
                             if sb_activation > FRCE_sb:
                                 sb_activation = FRCE_sb
 
+                            SB_Asset_ID.append(i.name)
                             SB_per_asset.append(sb_activation)
                         else:
                             SB_Asset_ID.append(i.name)
@@ -509,13 +558,20 @@ class BalancingGroup:
                 elif AEP < 10:
                     for i in self.array_sb_assets:
                         if i.sb_pot_neg < 0:
-                            SB_Asset_ID.append(i.name)
-                            sb_activation = i.sb_pot_neg
+                            if fuzzy:
+                                # marge for SB is (negativ) AEP minus (plus) current "Marktprämie" and additional margin
+                                sb_marge = 10 - AEP
+                                sb_percent = fuzzlogi_marketdesign.fuzz(sb_marge, FRCE_sb, time_in_ISP, p_average,
+                                                                        imbalance_clearing)
+                                sb_activation = i.sb_pot_neg * sb_percent
+                            else:
+                                sb_activation = i.sb_pot_neg
 
                             # Optional limitation of the targeted Smart Balancing power using the total FRCE
                             if sb_activation < FRCE_sb:
                                 sb_activation = FRCE_sb
 
+                            SB_Asset_ID.append(i.name)
                             SB_per_asset.append(sb_activation)
                         else:
                             SB_Asset_ID.append(i.name)
@@ -525,44 +581,46 @@ class BalancingGroup:
                         SB_Asset_ID.append(i.name)
                         SB_per_asset.append(0.0)
 
-            #todo is the following used? BGs would react only to ACE
-
-            # Other Balancing Groups get triggered by the arithmetic sign of the signal FRCE_sb
+            # Other Balancing Groups get triggered by the arithmetic sign of the signal FRCE_sb and AEP
             else:
                 if FRCE_sb < 0:
-                    # In case, the total negative SB potential is greater than FRCE_sb, all SB assets are set to zero...
-                    # ...to prevent overshoots
-                    if FRCE_sb >= P_min_sum:
-                        for i in self.array_sb_assets:
+                    for i in self.array_sb_assets:
+                        if i.sb_pot_neg < 0 and i.sb_costs > AEP:
+
+                            if fuzzy:
+                                # marge for SB is (negativ) AEP minus (plus) current "Marktprämie" and additional margin
+                                sb_marge = i.sb_costs - AEP
+                                sb_percent = fuzzlogi_marketdesign.fuzz(sb_marge, FRCE_sb, time_in_ISP, p_average,
+                                                                        imbalance_clearing)
+                                sb_activation = i.sb_pot_neg * sb_percent
+                            else:
+                                sb_activation = i.sb_pot_neg
+
+                            SB_Asset_ID.append(i.name)
+                            SB_per_asset.append(sb_activation)
+                        else:
                             SB_Asset_ID.append(i.name)
                             SB_per_asset.append(0.0)
-                    # Otherwise, negative SB assets are triggered and positive assets are set to zero
-                    else:
-                        for i in self.array_sb_assets:
-                            if i.sb_pot_neg < 0:
-                                SB_Asset_ID.append(i.name)
-                                SB_per_asset.append(i.sb_pot_neg)
-                            else:
-                                SB_Asset_ID.append(i.name)
-                                SB_per_asset.append(0.0)
 
                 # In case of positive FRCE_sb, positive SB assets are triggered
                 elif FRCE_sb > 0:
-                    # In case, the total positive SB potential is smaller than FRCE_sb, all SB assets are set to zero...
-                    # ...to prevent overshoots
-                    if FRCE_sb <= P_max_sum:
-                        for i in self.array_sb_assets:
+                    for i in self.array_sb_assets:
+                        if i.sb_pot_pos > 0 and (i.sb_costs+55)<AEP:
+
+                            if fuzzy:
+                                # marge for SB is (negativ) AEP minus (plus) current "Marktprämie" and additional margin
+                                sb_marge = AEP - i.sb_costs - 55
+                                sb_percent = fuzzlogi_marketdesign.fuzz(sb_marge, FRCE_sb, time_in_ISP, p_average,
+                                                                        imbalance_clearing)
+                                sb_activation = i.sb_pot_pos * sb_percent
+                            else:
+                                sb_activation = i.sb_pot_pos
+
+                            SB_Asset_ID.append(i.name)
+                            SB_per_asset.append(sb_activation)
+                        else:
                             SB_Asset_ID.append(i.name)
                             SB_per_asset.append(0.0)
-                    # Otherwise, positive SB assets are triggered and negative assets are set to zero
-                    else:
-                        for i in self.array_sb_assets:
-                            if i.sb_pot_pos > 0:
-                                SB_Asset_ID.append(i.name)
-                                SB_per_asset.append(i.sb_pot_pos)
-                            else:
-                                SB_Asset_ID.append(i.name)
-                                SB_per_asset.append(0.0)
 
                 # In case of FRCE_sb equal to zero, all SB assets are set to zero
                 elif FRCE_sb == 0:
