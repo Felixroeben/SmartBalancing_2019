@@ -230,7 +230,7 @@ class BalancingGroup:
                                 'Power': array_power}
 
     # This method calculates the Smart Balancing power of the Smart Balancing Assets of the Balancing Group
-    def sb_calc(self, FRCE_sb, old_FRCE_sb, old_d_Imba, d_Imba, AEP, t_step, t_now, da_price, windon_mmw, windoff_mmw, pv_mmw, aFRR_E_pos_period, aFRR_E_neg_period, fuzzy, imbalance_clearing):
+    def sb_calc(self, FRCE_sb, old_FRCE_sb, d_Imba, old_d_Imba, AEP, t_step, t_now, da_price, windon_mmw, windoff_mmw, pv_mmw, aFRR_E_pos_period, aFRR_E_neg_period, fuzzy, imbalance_clearing):
 
         ## 13.09.2020 restructure sb_calc to better implement fuzzy logic (FR)
         # delete multiple condition "smart and fuzzy" - ask for fuzzy condition if smart
@@ -660,7 +660,9 @@ class BalancingGroup:
                 else:
                     pass
 
-            # Last step with smart = true condition:
+            #todo: this should be last step and not within smart = true condition. otherwise NL combined pricing sets
+            #sb_P back too fast if dual pricing applies and sb_B is set zero
+
             # Activation of SB Assets within physical boundaries of ramp
             # > see sb_activate() in generator.py / loadload.py
             array_sb_activate = {"SB_Asset_ID": SB_Asset_ID, "SB_per_asset": SB_per_asset}

@@ -79,9 +79,15 @@ rule5 = ctrl.Rule(netmargin['good'], smartbalancing['good'])
 # Time dependend risk rules for single price and Dutch approach (combi of single and dual price)
 # . . . in the beginning the risk of changing sign is high
 # . . . in the end situation is much more certain
-rulet1 = ctrl.Rule(time['early'], smartbalancing['poor'])
-rulet2 = ctrl.Rule(time['middle'], smartbalancing['poor'])
-rulet3 = ctrl.Rule(time['late'], smartbalancing['mediocre'])
+rulet1 = ctrl.Rule(time['early'], smartbalancing['mediocre'])
+rulet2 = ctrl.Rule(time['middle'], smartbalancing['mediocre'])
+# step 3,4 and 5 differ depending on clearing scheme (s single vs. NL combined approach)
+rulets3 = ctrl.Rule(time['late']&(p_average['neg_average']|p_average['pos_average']), smartbalancing['mediocre'])
+rulets4 = ctrl.Rule(time['late']&(p_average['neg_high']| p_average['pos_high']), smartbalancing['average'])
+rulets5 = ctrl.Rule(time['late']&p_average['close_to_zero'],smartbalancing['poor'])
+ruletNL3 = ctrl.Rule(time['late']&(imbalance['neg_average']|imbalance['pos_average']), smartbalancing['mediocre'])
+ruletNL4 = ctrl.Rule(time['late']&(imbalance['neg_high']| imbalance['pos_high']), smartbalancing['average'])
+ruletNL5 = ctrl.Rule(time['late']&imbalance['close_to_zero'],smartbalancing['poor'])
 
 # p_average based risk rules for single pricing
 rules1 = ctrl.Rule(p_average['neg_high'] | p_average['pos_high'], smartbalancing['good'])
@@ -94,7 +100,7 @@ ruleNL2 = ctrl.Rule(imbalance['neg_average'] | imbalance['pos_average'], smartba
 ruleNL3 = ctrl.Rule(imbalance['close_to_zero'], smartbalancing['poor'])
 
 # delta imba rules
-rulei1 = ctrl.Rule(d_Imba['neg_high'] & d_Imba['pos_high'], smartbalancing['good'])
+rulei1 = ctrl.Rule(d_Imba['neg_high'] | d_Imba['pos_high'], smartbalancing['good'])
 rulei2 = ctrl.Rule(d_Imba['neg_average'] | d_Imba['pos_average'], smartbalancing['decent'])
 rulei3 = ctrl.Rule(d_Imba['close_to_zero'], smartbalancing['poor'])
 
@@ -103,10 +109,12 @@ rulei3 = ctrl.Rule(d_Imba['close_to_zero'], smartbalancing['poor'])
 sb_ctrl_dual = ctrl.ControlSystem([rule1, rule2, rule3, rule4, rule5])
 
 # for single pricing
-sb_ctrl_single = ctrl.ControlSystem([rule1, rule2, rule3, rule4, rule5, rulet1, rulet2, rulet3, rules1, rules2, rules3])
+sb_ctrl_single = ctrl.ControlSystem([ rulet1, rulet2, rulets3, rulets4, rulets5, rules1, rules2, rules3])
+#rule1, rule2, rule3, rule4, rule5,
 
 # for Dutch approach
-sb_ctrl_NL = ctrl.ControlSystem([rule1, rule2, rule3, rule4, rule5, rulet1, rulet2, rulet3, ruleNL1, ruleNL2, ruleNL3,rulei1,rulei2,rulei3])
+sb_ctrl_NL = ctrl.ControlSystem([rulet1, rulet2, ruletNL3, ruletNL4, ruletNL5, ruleNL1, ruleNL2, ruleNL3,rulei1,rulei2,rulei3])
+#rule1, rule2, rule3, rule4, rule5,
 
 # In order to simulate this control system, create a ControlSystemSimulation.
 # Object represents controller applied to a specific set of cirucmstances.
@@ -123,12 +131,12 @@ def fuzz(Marge, FRCE_sb, old_FRCE_sb, old_d_Imba, d_Imba, Time, p_average, prici
     #d_Imba = FRCE_sb - old_FRCE_sb
 
 #Vorzeichen
-    if old_d_Imba > 0 and d_Imba > 0:
-        s_Imba = 0
-    elif old_d_Imba < 0 and d_Imba < 0:
-        s_Imba = 0
-    else:
-        s_Imba = 1
+#    if old_d_Imba > 0 and d_Imba > 0:
+#        s_Imba = 0
+#    elif old_d_Imba < 0 and d_Imba < 0:
+#        s_Imba = 0
+#    else:
+#        s_Imba = 1
 
 #calculate individual parameter
     Imba = FRCE_sb - sb_P
@@ -171,7 +179,7 @@ def fuzz(Marge, FRCE_sb, old_FRCE_sb, old_d_Imba, d_Imba, Time, p_average, prici
 
     if pricing == 0:
         #sb_single.input['imbalance_MW'] = Imba
-        sb_single.input['netmargin_Euro/MWh'] = Marge
+        #sb_single.input['netmargin_Euro/MWh'] = Marge
         sb_single.input['time_min'] = Time
         sb_single.input['p_average_MW'] = p_average
 
@@ -182,9 +190,10 @@ def fuzz(Marge, FRCE_sb, old_FRCE_sb, old_d_Imba, d_Imba, Time, p_average, prici
 
     if pricing == 1:
         #sb_NL.input['imbalance_MW'] = Imba
-        sb_NL.input['netmargin_Euro/MWh'] = Marge
+        #sb_NL.input['netmargin_Euro/MWh'] = Marge
         sb_NL.input['time_min'] = Time
         sb_NL.input['imbalance_MW'] = Imba
+        sb_NL.input['d_imba_MW'] = d_Imba
 
         # Crunch the numbers in FUZZY
         sb_NL.compute()
