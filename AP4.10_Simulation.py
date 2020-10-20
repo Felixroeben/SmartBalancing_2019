@@ -1,7 +1,7 @@
 # ....................................................................................
-# ...GRID SIMULATION SOFTWARE.........................................................
+# ...Smart Balancing SIMULATION SOFTWARE.........................................................
 # ....................................................................................
-# ...Project:        NEW4.0
+# ...Project:        Norddeutsche EnergieWende 4.0 (NEW 4.0)
 # ...Authors:        Julian Franz, Anna Meissner, Felix Roeben, Simon Rindelaub
 # ...Institution:    Fraunhofer Institute for Silicon Technologies (ISIT)
 # ...Department:     Power Electronics for Renewable Energy Systems
@@ -46,7 +46,7 @@ scenario = 'WC_data//WC_'
 smartbalancing = True      # True: Smart Balancing is globally switched on
 fuzzy = True               # True: Smart Balancing is globally activated via Fuzzy Logic
 FRR_pricing = 0             # Global variable to switch both aFRR & mFRR from pay-as-bid (0) to marginal pricing (1)
-imbalance_clearing = 0      # For fuzzy SB: Switch from single imbalance pricing (0) to "combined pricing" as in NL (1)
+imbalance_clearing = 1      # For fuzzy SB: Switch from single imbalance pricing (0) to "combined pricing" as in NL (1)
 save_data = True            # True: write the simulation data to .csv
 show_fig = False            # True: show all figures at the end of the simulation
 
@@ -177,7 +177,7 @@ fileexch.get_load_flex(scenario=scenario,
 CA1.array_aFRR_molpos, CA1.array_aFRR_molneg = fileexch.read_afrr_mol(scenario, 0, 0, 0)
 CA1.array_mFRR_molpos, CA1.array_mFRR_molneg = fileexch.read_mfrr_mol(scenario, 0, 0, 0)
 
-print('\nInitialization Done! It took %.5f seconds' % (time.time() - start))
+print('\nInitialization Done! It took %.1f seconds' % (time.time() - start))
 
 
 
@@ -281,15 +281,16 @@ while t_now < t_stop:
 # 3. calculate frequency deviation and FCR
     SZ.f_calc()
     SZ.fcr_calc()
-    # 3. calculate FRR and resulting cost / prices. Smart Balancing is calculated in afrr_calc
+# 4. calculate FRR and resulting cost / prices. Smart Balancing is calculated in afrr_calc
     SZ.afrr_calc(k_now=k_now, t_now=t_now, t_step=t_step, t_isp=t_isp, fuzzy=fuzzy,imbalance_clearing=imbalance_clearing)
+    #note: AEP for next iteration is calculated in mfrr_calc.
     SZ.mfrr_calc(t_now=t_now, t_step=t_step, t_isp=t_isp)
     SZ.energy_costs_calc(k_now=k_now, t_now=t_now, t_step=t_step, t_isp=t_isp)
-# 4. write results
+# 5. write results
     SZ.write_results()
 
 print('#-----------Simulation Done-----------#\n')
-print('Simulation time: %.5f seconds\n' % (time.time() - start))
+print('Simulation time: %.1f seconds\n' % (time.time() - start))
 
 
 

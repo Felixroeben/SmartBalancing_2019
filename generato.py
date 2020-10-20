@@ -83,9 +83,12 @@ class GeneratorFlex(Generator):
         #Calculate flex potential for Gas power plants in Germany
         #Assumption: All power plants run with 80% of inst. cap.
         # Flex up is to ramp up to 100%, Flex down is to ramp down to 40% inst. cap.
+        # ramp up or down with 4 % of installed capacity per minute
         elif self.bg_name == "Group_Gas":
             self.sb_pot_pos = 0.2*(self.gen_P/0.8)
             self.sb_pot_neg = -0.4*(self.gen_P/0.8)
+            self.sb_rate_pos = 0.04*(self.gen_P/0.8)  # Positive ramp rate for Smart Balancing in MW/s
+            self.sb_rate_neg = 0.04*(self.gen_P/0.8)  # Negative ramp rate for Smart Balancing in MW/s
 
         # Default calculation for flexible generators - if e.g. 1 plant is considered
         elif self.gen_P > self.sb_P_min and self.gen_P < self.sb_P_max:

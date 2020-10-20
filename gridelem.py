@@ -135,7 +135,7 @@ class GridElement:
         for i in self.array_subordinates:
             i.imba_calc()
         self.imba_P_ph = self.gen_P - self.load_P + self.aFRR_P + self.mFRR_P + self.sb_P
-        self.imba_P_sc = self.imba_P_sc = self.gen_P - self.gen_P_schedule - self.load_P + self.load_P_schedule + self.sb_P
+        self.imba_P_sc = self.gen_P - self.gen_P_schedule - self.load_P + self.load_P_schedule + self.sb_P
 
     # Method calculating the FCR parameter 'FCR_lambda' of the grid element.
     # The method sums up 'FCR_lambda' of all subordinated grid elements
@@ -331,6 +331,7 @@ class CalculatingGridElement(GridElement):
     # Method calculating the imbalance of the grid element.
     # The imbalance is defined as a deviation from the schedule.
     # The method further calculates the open loop FRCE signal.
+    #todo: Why does FRCE_ol not include sb_P ? FR, 07.10.20
     def imba_calc(self):
         self.imba_P_ph = self.gen_P - self.load_P + self.aFRR_P + self.sb_P
         self.imba_P_sc = self.gen_P - self.gen_P_schedule - self.load_P + self.load_P_schedule + self.aFRR_P + self.mFRR_P
@@ -736,6 +737,8 @@ class ControlArea(CalculatingGridElement):
 
         # Variable for the smart balancing control signal
         self.FRCE_sb = 0.0
+        #todo: hier weiter machen
+        #self.delta_FRCE_sb = 0.0
 
         self.array_FRCE_sb = []
 
@@ -910,8 +913,15 @@ class ControlArea(CalculatingGridElement):
                              t_step=t_step,
                              t_isp=t_isp)
 
-        # Calculation of Smart Balancing price signal
+        # Save Smart Balancing signal "self.FRCE_sb" from last t_step for sb_calc and calculation of new signal
+
+        if d_Imba is None:
+            d_Imba = 0
+
+        old_d_Imba = d_Imba
+        old_FRCE_sb = self.FRCE_sb
         self.sb_signal()
+        d_Imba = self.FRCE_sb - old_FRCE_sb
 
         # Activate Smart Balancing in subordinated Balancing Groups
         self.da_price = self.array_da_prices[k_now]
@@ -922,6 +932,9 @@ class ControlArea(CalculatingGridElement):
                         t_isp=t_isp,
                         AEP=self.AEP)
             i.sb_calc(FRCE_sb=self.FRCE_sb,
+                      old_FRCE_sb = old_FRCE_sb,
+                      old_d_Imba = old_d_Imba,
+                      d_Imba = d_Imba,
                       AEP=self.AEP,
                       t_step=t_step,
                       t_now=t_now,
@@ -1679,7 +1692,11 @@ class ControlArea(CalculatingGridElement):
     def sb_signal(self):
         # The currently activated SB power (self.sb_P) is added to the open loop FRCE (self.FRCE_ol) here...
         # ...to prevent a feedback loop for SB which can lead to oscillations
-        self.sb_queue.append(self.FRCE_ol + self.sb_P)
+        # the 2 comments above do not make sense for me.. we want to analyse feedback loops! FR, 07.10.20
+        # btw: "sb_delay" (see affr_init) can be used to analyse a delay for SB, without delay it is just passing FRCE
+        # + not use FRCE_ol because it does not reflect real imbalance (excludes mFRR)
+        #todo: clean comments
+        self.sb_queue.append(self.FRCE)# + self.sb_P)
         self.FRCE_sb = self.sb_queue.pop(0)
 
     # Method calculating the costs for consumed energy and the income of produced energy of the grid element.
