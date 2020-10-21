@@ -250,8 +250,7 @@ class BalancingGroup:
         # Activation of SB Assets
         # using Fuzzy Logic (if fuzzy = true)
         # in case fuzzy is true + NL clearing: check if dual pricing applies
-        if self.smart and not (fuzzy and (imbalance_clearing == 1) and ((aFRR_E_neg_period < -50) and (aFRR_E_pos_period > 50))):
-            self.sb_P = 0.0
+        if self.smart and not (fuzzy and (imbalance_clearing == 1) and ((aFRR_E_neg_period < -5) and (aFRR_E_pos_period > 5))):
 
             SB_Asset_ID = []
             SB_per_asset = []
@@ -660,9 +659,6 @@ class BalancingGroup:
                 else:
                     pass
 
-            #todo: this should be last step and not within smart = true condition. otherwise NL combined pricing sets
-            #sb_P back too fast if dual pricing applies and sb_B is set zero
-
             # Activation of SB Assets within physical boundaries of ramp
             # > see sb_activate() in generator.py / loadload.py
             array_sb_activate = {"SB_Asset_ID": SB_Asset_ID, "SB_per_asset": SB_per_asset}
@@ -676,11 +672,35 @@ class BalancingGroup:
 
 
             #todo: SB reduction factor here?
+            self.sb_P = 0.0
             for i in self.array_sb_assets:
                 self.sb_P += i.sb_P
         # smart not true:
-        else:
+        elif not self.smart:
             self.sb_P = 0.0
+        # else, NL combined pricing applies -> SB back to zero with ramps
+        else:
+            SB_Asset_ID = []
+            SB_per_asset = []
+            for i in self.array_sb_assets:
+                SB_Asset_ID.append(i.name)
+                SB_per_asset.append(0.0)
+
+            # Activation of SB Assets within physical boundaries of ramp
+            # > see sb_activate() in generator.py / loadload.py
+            array_sb_activate = {"SB_Asset_ID": SB_Asset_ID, "SB_per_asset": SB_per_asset}
+
+            j = 0
+            while j <= len(array_sb_activate['SB_Asset_ID']) - 1:
+                for i in self.array_sb_assets:
+                    if array_sb_activate.get('SB_Asset_ID')[j] == i.name:
+                        i.sb_activate(array_sb_activate.get('SB_per_asset')[j], t_step)
+                j += 1
+
+            self.sb_P = 0.0
+            for i in self.array_sb_assets:
+                self.sb_P += i.sb_P
+
 
     # Method calculating the costs for consumed energy and the income of produced energy of the grid element.
     # The method multiplies the consumed and produced amounts of energy per t_step with the current day-ahead price

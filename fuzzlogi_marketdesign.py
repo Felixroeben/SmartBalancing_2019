@@ -127,9 +127,6 @@ def fuzz(Marge, FRCE_sb, old_FRCE_sb, old_d_Imba, d_Imba, Time, p_average, prici
 #def fuzz(Marge, Imba, Time, p_average, pricing): #imba, price, GKL):
     # Pass inputs to the FUZZY ControlSystem using Antecedent labels with Pythonic API
 
-#calculate delta imbalance
-    #d_Imba = FRCE_sb - old_FRCE_sb
-
 #Vorzeichen
 #    if old_d_Imba > 0 and d_Imba > 0:
 #        s_Imba = 0
