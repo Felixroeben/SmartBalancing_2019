@@ -51,8 +51,8 @@ d_Imba['pos_high'] = fuzz.trimf(d_Imba.universe, [300, 1001, 1001])
 
 
 # define delta imbalance singe: wording and range
-s_Imba['change'] = fuzz.trimf(s_Imba.universe, [1, 1, 1])
-s_Imba['nochange'] = fuzz.trimf(s_Imba.universe, [0, 0, 0])
+s_Imba['change'] = fuzz.trimf(s_Imba.universe, [0, 1, 1])
+s_Imba['nochange'] = fuzz.trimf(s_Imba.universe, [0, 0, 1])
 
 
 # You can see how these look with .view()
