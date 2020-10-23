@@ -49,6 +49,7 @@ FRR_pricing = 0             # Global variable to switch both aFRR & mFRR from pa
 imbalance_clearing = 1      # For fuzzy SB: Switch from single imbalance pricing (0) to "combined pricing" as in NL (1)
 save_data = True            # True: write the simulation data to .csv
 show_fig = False            # True: show all figures at the end of the simulation
+sb_delay = 0.0              # definition of delay of SB signal in s
 
 # ...Simulation time settings
 t_step = 60                             # simulation time step in s
@@ -144,7 +145,7 @@ CA1 = gridelem.ControlArea(name='Deutschland',
                            mFRR_neg_target=0.375,
                            mFRR_time=300.0,
                            mFRR_pricing=FRR_pricing,
-                           sb_delay=0.0)
+                           sb_delay=sb_delay)
 SZ.array_subordinates.append(CA1)
 
 CA1.array_da_prices = array_da_prices
