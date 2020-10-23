@@ -150,7 +150,11 @@ def fuzz(Marge, FRCE_sb, old_FRCE_sb, old_d_Imba, d_Imba, Time, p_average, prici
     Imba = FRCE_sb - sb_P
 
 #calculate ratio to limit SB of assets with Flexpotential higher Imba
-    ratio = (Flexpotential)/Imba
+    if Imba == 0:
+        ratio = 1
+    else:
+        ratio = (Flexpotential)/Imba
+
     if ratio < 1:
         ratio = 1
 
