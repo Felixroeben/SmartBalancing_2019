@@ -160,7 +160,7 @@ class GridElement:
 
     # Method calculating the activated aFRR power of the grid element.
     # The method sums up the activated aFRR power of all subordinated grid elements
-    def afrr_calc(self, f_delta, k_now, t_now, t_step, t_isp, fuzzy, imbalance_clearing):
+    def afrr_calc(self, f_delta, k_now, t_now, t_step, t_isp, fuzzy, imbalance_clearing,BEPP):
         self.aFRR_P = 0.0
         self.sb_P = 0.0
         for i in self.array_subordinates:
@@ -170,7 +170,8 @@ class GridElement:
                         t_step=t_step,
                         t_isp=t_isp,
                         fuzzy=fuzzy,
-                        imbalance_clearing=imbalance_clearing)
+                        imbalance_clearing=imbalance_clearing,
+                        BEPP=BEPP)
             self.aFRR_P += i.aFRR_P
             self.sb_P += i.sb_P
 
@@ -331,7 +332,7 @@ class CalculatingGridElement(GridElement):
     # Method calculating the imbalance of the grid element.
     # The imbalance is defined as a deviation from the schedule.
     # The method further calculates the open loop FRCE signal.
-    #todo: Why does FRCE_ol not include sb_P ? FR, 07.10.20
+    # no sb_P in calculating grid element
     def imba_calc(self):
         self.imba_P_ph = self.gen_P - self.load_P + self.aFRR_P + self.sb_P
         self.imba_P_sc = self.gen_P - self.gen_P_schedule - self.load_P + self.load_P_schedule + self.aFRR_P + self.mFRR_P
@@ -371,7 +372,7 @@ class CalculatingGridElement(GridElement):
 
     # Method calculating the aFRR using a discrete PI controller.
     # All aFRR related variables except for the open loop FRCE signal are processed in this method.
-    def afrr_calc(self, f_delta, k_now, t_now, t_step, t_isp, fuzzy, imbalance_clearing):
+    def afrr_calc(self, f_delta, k_now, t_now, t_step, t_isp, fuzzy, imbalance_clearing,BEPP):
         self.FRCE_cl_pos_before = self.FRCE_cl_pos
         self.FRCE_cl_neg_before = self.FRCE_cl_neg
 
@@ -506,7 +507,7 @@ class SynchronousZone(GridElement):
 
     # Method calculating the activated aFRR power of the system
     # The method sums up the activated aFRR power of all subordinated grid elements
-    def afrr_calc(self, k_now, t_now, t_step, t_isp, fuzzy,imbalance_clearing):
+    def afrr_calc(self, k_now, t_now, t_step, t_isp, fuzzy,imbalance_clearing,BEPP):
         self.aFRR_P = 0.0
         self.sb_P = 0.0
         for i in self.array_subordinates:
@@ -516,7 +517,8 @@ class SynchronousZone(GridElement):
                         t_step=t_step,
                         t_isp=t_isp,
                         fuzzy=fuzzy,
-                        imbalance_clearing=imbalance_clearing)
+                        imbalance_clearing=imbalance_clearing,
+                        BEPP=BEPP)
             self.aFRR_P += i.aFRR_P
             self.sb_P += i.sb_P
 
@@ -859,7 +861,7 @@ class ControlArea(CalculatingGridElement):
     # Method calculating the activated aFRR power of the system.
     # Added call of method afrr_price_calc for this class.
     # Added activation of smart balancing in subordinated Balancing Groups
-    def afrr_calc(self, f_delta, k_now, t_now, t_step, t_isp, fuzzy,imbalance_clearing):
+    def afrr_calc(self, f_delta, k_now, t_now, t_step, t_isp, fuzzy,imbalance_clearing,BEPP):
         self.FRCE_cl_pos_before = self.FRCE_cl_pos
         self.FRCE_cl_neg_before = self.FRCE_cl_neg
 
@@ -907,7 +909,8 @@ class ControlArea(CalculatingGridElement):
                                      t_step=t_step)
         elif self.aFRR_pricing == 1:
             self.afrr_price_calc_mp(t_now=t_now,
-                                    t_step=t_step)
+                                    t_step=t_step,
+                                    BEPP=BEPP)
         else:
             exit('No valid aFRR pricing option selected for Control Area!')
 
@@ -1115,7 +1118,7 @@ class ControlArea(CalculatingGridElement):
             self.aFRR_price_neg_max = 0.0
 
     # Method calculating a price for aFRR using marginal pricing
-    def afrr_price_calc_mp(self, t_now, t_step):
+    def afrr_price_calc_mp(self, t_now, t_step,BEPP):
         # Combined aFRR price calculation
         self.aFRR_neg_insuf = False
         self.aFRR_pos_insuf = False
@@ -1135,8 +1138,8 @@ class ControlArea(CalculatingGridElement):
                     aFRR_demand = self.FRCE_ol
                 else:
                     self.aFRR_neg_insuf = False
-                    self.aFRR_price = self.array_aFRR_molneg['Price'][i]
                     aFRR_demand += self.array_aFRR_molneg['Power'][i]
+                    self.aFRR_price = self.array_aFRR_molneg['Price'][i]
                 i += 1
 
         # Positive aFRR MOL is used, if self.FRCE_ol > 0
@@ -1158,8 +1161,11 @@ class ControlArea(CalculatingGridElement):
                     aFRR_demand += self.array_aFRR_molpos['Power'][i]
                 i += 1
 
-        # for marginal pricing, the average price equals the highest price from the MOL
-        self.aFRR_price_avg = self.aFRR_price
+        # for marginal pricing, the average price equals the highest price from the MOL during BEPP
+        # BEPP is considered before reducing aFRR_price_avg
+        if (self.aFRR_price_avg < self.aFRR_price) or ((t_now % BEPP) == 0):
+            self.aFRR_price_avg = self.aFRR_price
+
 
         # Separate calculation of positive aFRR price and negative aFRR price
         # Both variables can be greater zero at a given point in time
@@ -1181,8 +1187,11 @@ class ControlArea(CalculatingGridElement):
                     aFRR_demand += self.array_aFRR_molneg['Power'][i]
                 i += 1
 
-            # for marginal pricing, the average and maximum price signals equal the highest price from the MOL
-            self.aFRR_price_neg_avg = self.aFRR_price_neg
+            # for marginal pricing, the average and maximum price signals equal the highest price from the MOL during BEPP
+            # BEPP is considered before reducing aFRR_price_avg
+            if (self.aFRR_price_neg_avg < self.aFRR_price_neg) or ((t_now % BEPP) == 0):
+                self.aFRR_price_neg_avg = self.aFRR_price_neg
+
             self.aFRR_price_neg_max = self.aFRR_price_neg
             self.aFRR_price_pos_max = 0.0
 
@@ -1204,8 +1213,11 @@ class ControlArea(CalculatingGridElement):
                     aFRR_demand += self.array_aFRR_molpos['Power'][i]
                 i += 1
 
-            # for marginal pricing, the average and maximum price signals equal the highest price from the MOL
-            self.aFRR_price_pos_avg = self.aFRR_price_pos
+            # for marginal pricing, the average and maximum price signals equal the highest price from the MOL during BEPP
+            # BEPP is considered before reducing aFRR_price_avg
+            if (self.aFRR_price_pos_avg < self.aFRR_price_pos) or ((t_now % BEPP) == 0):
+                self.aFRR_price_pos_avg = self.aFRR_price_pos
+
             self.aFRR_price_pos_max = self.aFRR_price_pos
             self.aFRR_price_neg_max = 0.0
 

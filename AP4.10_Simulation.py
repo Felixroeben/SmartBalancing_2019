@@ -46,6 +46,8 @@ scenario = 'WC_data//WC_'
 smartbalancing = True      # True: Smart Balancing is globally switched on
 fuzzy = True               # True: Smart Balancing is globally activated via Fuzzy Logic
 FRR_pricing = 0             # Global variable to switch both aFRR & mFRR from pay-as-bid (0) to marginal pricing (1)
+BEPP = 900                  # Balancing Energy Pricing Period (BEPP) in s - only applied for marginal pricing
+                            # e.g. 900 (State of the art) or 60 or 4 (=> t_step!)
 imbalance_clearing = 1      # For fuzzy SB: Switch from single imbalance pricing (0) to "combined pricing" as in NL (1)
 save_data = True            # True: write the simulation data to .csv
 show_fig = False            # True: show all figures at the end of the simulation
@@ -207,7 +209,7 @@ SZ.load_schedule_calc()
 SZ.imba_calc()
 SZ.f_calc()
 SZ.fcr_calc()
-SZ.afrr_calc(k_now=k_now, t_now=t_now, t_step=t_step, t_isp=t_isp, fuzzy=fuzzy,imbalance_clearing=imbalance_clearing)
+SZ.afrr_calc(k_now=k_now, t_now=t_now, t_step=t_step, t_isp=t_isp, fuzzy=fuzzy,imbalance_clearing=imbalance_clearing,BEPP=BEPP)
 SZ.mfrr_calc(t_now=t_now, t_step=t_step, t_isp=t_isp)
 SZ.energy_costs_calc(k_now=k_now, t_now=t_now, t_step=t_step, t_isp=t_isp)
 SZ.write_results()
@@ -283,7 +285,7 @@ while t_now < t_stop:
     SZ.f_calc()
     SZ.fcr_calc()
 # 4. calculate FRR and resulting cost / prices. Smart Balancing is calculated in afrr_calc
-    SZ.afrr_calc(k_now=k_now, t_now=t_now, t_step=t_step, t_isp=t_isp, fuzzy=fuzzy,imbalance_clearing=imbalance_clearing)
+    SZ.afrr_calc(k_now=k_now, t_now=t_now, t_step=t_step, t_isp=t_isp, fuzzy=fuzzy,imbalance_clearing=imbalance_clearing,BEPP=BEPP)
     #note: AEP for next iteration is calculated in mfrr_calc.
     SZ.mfrr_calc(t_now=t_now, t_step=t_step, t_isp=t_isp)
     SZ.energy_costs_calc(k_now=k_now, t_now=t_now, t_step=t_step, t_isp=t_isp)
