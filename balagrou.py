@@ -391,12 +391,13 @@ class BalancingGroup:
 
             # Decision making for Balancing Group "Aluminium" - decrease load in case of high AEP
             elif self.name == 'Aluminium':
-                if (AEP - da_price) > 100:
+                margin = 100
+                if (AEP - da_price) > margin:
                     for i in self.array_sb_assets:
                         if i.sb_pot_pos > 0:
                             if fuzzy:
                                 # marge for SB is (negativ) AEP minus (plus) current "Marktprämie" and additional margin
-                                sb_marge = AEP - da_price - 100
+                                sb_marge = AEP - da_price - margin
                                 sb_percent = fuzzlogi_marketdesign.fuzz(sb_marge, FRCE_sb, old_FRCE_sb, old_d_Imba, d_Imba,time_in_ISP,
                                                                         p_average, imbalance_clearing, self.sb_P,
                                                                         P_max_sum)
@@ -420,12 +421,13 @@ class BalancingGroup:
 
             # Decision making for Balancing Group "Steel" - decrease load in case of high AEP
             elif self.name == 'Steel':
-                if (AEP - da_price) > 250:
+                margin = 250
+                if (AEP - da_price) > margin:
                     for i in self.array_sb_assets:
                         if i.sb_pot_pos > 0:
                             if fuzzy:
                                 # marge for SB is (negativ) AEP minus (plus) current "Marktprämie" and additional margin
-                                sb_marge = AEP - da_price - 250
+                                sb_marge = AEP - da_price - margin
                                 sb_percent = fuzzlogi_marketdesign.fuzz(sb_marge, FRCE_sb, old_FRCE_sb, old_d_Imba, d_Imba,time_in_ISP,
                                                                         p_average, imbalance_clearing, self.sb_P,
                                                                         P_max_sum)
@@ -449,12 +451,14 @@ class BalancingGroup:
 
             # Decision making for Balancing Group "Cement" - increase (neg AEP) or decrease (high AEP) of load
             elif self.name == 'Cement':
-                if (AEP - da_price) > 250:
+                margin = 250
+                neg_margin = 10
+                if (AEP - da_price) > margin:
                     for i in self.array_sb_assets:
                         if i.sb_pot_pos > 0:
                             if fuzzy:
-                                # marge for SB is (negativ) AEP minus (plus) current "Marktprämie" and additional margin
-                                sb_marge = AEP - da_price - 250
+                                # additional marge for SB:
+                                sb_marge = AEP - da_price - margin
                                 sb_percent = fuzzlogi_marketdesign.fuzz(sb_marge, FRCE_sb, old_FRCE_sb,old_d_Imba, d_Imba, time_in_ISP,
                                                                         p_average, imbalance_clearing, self.sb_P,
                                                                         P_max_sum)
@@ -471,12 +475,12 @@ class BalancingGroup:
                         else:
                             SB_Asset_ID.append(i.name)
                             SB_per_asset.append(0.0)
-                elif AEP < 10:
+                elif AEP < neg_margin:
                     for i in self.array_sb_assets:
                         if i.sb_pot_neg < 0:
                             if fuzzy:
                                 # marge for SB is (negativ) AEP minus (plus) current "Marktprämie" and additional margin
-                                sb_marge = 10 - AEP
+                                sb_marge = neg_margin - AEP
                                 sb_percent = fuzzlogi_marketdesign.fuzz(sb_marge, FRCE_sb, old_FRCE_sb,old_d_Imba, d_Imba, time_in_ISP,
                                                                         p_average, imbalance_clearing, self.sb_P,
                                                                         P_min_sum)
@@ -500,12 +504,14 @@ class BalancingGroup:
 
             # Decision making for Balancing Group "Paper"
             elif self.name == 'Paper':
-                if (AEP - da_price) > 250:
+                margin = 250
+                neg_margin = 10
+                if (AEP - da_price) > margin:
                     for i in self.array_sb_assets:
                         if i.sb_pot_pos > 0:
                             if fuzzy:
                                 # marge for SB is (negativ) AEP minus (plus) current "Marktprämie" and additional margin
-                                sb_marge = AEP - da_price - 250
+                                sb_marge = AEP - da_price - margin
                                 sb_percent = fuzzlogi_marketdesign.fuzz(sb_marge, FRCE_sb, old_FRCE_sb, old_d_Imba, d_Imba,time_in_ISP,
                                                                         p_average, imbalance_clearing, self.sb_P,
                                                                         P_max_sum)
@@ -522,12 +528,12 @@ class BalancingGroup:
                         else:
                             SB_Asset_ID.append(i.name)
                             SB_per_asset.append(0.0)
-                elif AEP < 10:
+                elif AEP < neg_margin:
                     for i in self.array_sb_assets:
                         if i.sb_pot_neg < 0:
                             if fuzzy:
                                 # marge for SB is (negativ) AEP minus (plus) current "Marktprämie" and additional margin
-                                sb_marge = 10 - AEP
+                                sb_marge = neg_margin - AEP
                                 sb_percent = fuzzlogi_marketdesign.fuzz(sb_marge, FRCE_sb, old_FRCE_sb,old_d_Imba, d_Imba, time_in_ISP,
                                                                         p_average, imbalance_clearing, self.sb_P,
                                                                         P_min_sum)
@@ -551,12 +557,14 @@ class BalancingGroup:
 
             # Decision making for Balancing Group "Chlorine"
             elif self.name == 'Chlorine':
-                if (AEP - da_price) > 250:
+                margin = 250
+                neg_margin = 10
+                if (AEP - da_price) > margin:
                     for i in self.array_sb_assets:
                         if i.sb_pot_pos > 0:
                             if fuzzy:
                                 # marge for SB is (negativ) AEP minus (plus) current "Marktprämie" and additional margin
-                                sb_marge = AEP - da_price - 250
+                                sb_marge = AEP - da_price - margin
                                 sb_percent = fuzzlogi_marketdesign.fuzz(sb_marge, FRCE_sb, old_FRCE_sb, old_d_Imba, d_Imba,time_in_ISP,
                                                                         p_average, imbalance_clearing, self.sb_P,
                                                                         P_max_sum)
@@ -573,12 +581,12 @@ class BalancingGroup:
                         else:
                             SB_Asset_ID.append(i.name)
                             SB_per_asset.append(0.0)
-                elif AEP < 10:
+                elif AEP < neg_margin:
                     for i in self.array_sb_assets:
                         if i.sb_pot_neg < 0:
                             if fuzzy:
                                 # marge for SB is (negativ) AEP minus (plus) current "Marktprämie" and additional margin
-                                sb_marge = 10 - AEP
+                                sb_marge = neg_margin - AEP
                                 sb_percent = fuzzlogi_marketdesign.fuzz(sb_marge, FRCE_sb, old_FRCE_sb,old_d_Imba, d_Imba, time_in_ISP,
                                                                         p_average, imbalance_clearing, self.sb_P,
                                                                         P_min_sum)
