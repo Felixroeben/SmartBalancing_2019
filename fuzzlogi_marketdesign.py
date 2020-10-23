@@ -10,6 +10,7 @@ p_average =ctrl.Antecedent(np.arange(-1001,1001,1), "p_average_MW")
 netmargin = ctrl.Antecedent(np.arange(0, 101, 1), 'netmargin_Euro/MWh')
 time = ctrl.Antecedent(np.arange(0, 15, 1), 'time_min')
 d_Imba = ctrl.Antecedent(np.arange(-1001, 1001, 1), 'd_imba_MW')
+s_Imba = ctrl.Antecedent(np.arange(0, 1, 1), 's_imba')
 
 smartbalancing = ctrl.Consequent(np.arange(0, 101, 1), 'smartbalancing_percent')
 
@@ -47,6 +48,11 @@ d_Imba['neg_average'] = fuzz.trimf(d_Imba.universe, [-400, -50, 0])
 d_Imba['close_to_zero'] = fuzz.trimf(d_Imba.universe, [-50, 0, 50])
 d_Imba['pos_average'] = fuzz.trimf(d_Imba.universe, [0, 50, 400])
 d_Imba['pos_high'] = fuzz.trimf(d_Imba.universe, [300, 1001, 1001])
+
+
+# define delta imbalance singe: wording and range
+s_Imba['change'] = fuzz.trimf(s_Imba.universe, [1, 1, 1])
+s_Imba['nochange'] = fuzz.trimf(s_Imba.universe, [0, 0, 0])
 
 
 # You can see how these look with .view()
@@ -104,6 +110,11 @@ rulei1 = ctrl.Rule(d_Imba['neg_high'] | d_Imba['pos_high'], smartbalancing['poor
 rulei2 = ctrl.Rule(d_Imba['neg_average'] | d_Imba['pos_average'], smartbalancing['decent'])
 rulei3 = ctrl.Rule(d_Imba['close_to_zero'], smartbalancing['good'])
 
+# delta imba sign rules: if change is high, SB is poor (uncertanty)
+rulesg1 = ctrl.Rule(s_Imba['change'] , smartbalancing['poor'])
+#rulesg2 = ctrl.Rule(s_Imba['nochange'] , smartbalancing['good'])
+
+
 # Now that we have our rules defined, we can create a control system per pricing scheme (single vs. dual vs. NL) via:
 # for dual pricing
 sb_ctrl_dual = ctrl.ControlSystem([rule1, rule2, rule3, rule4, rule5])
@@ -113,7 +124,7 @@ sb_ctrl_single = ctrl.ControlSystem([ rulet1, rulet2, rulets3, rulets4, rulets5,
 #rule1, rule2, rule3, rule4, rule5,
 
 # for Dutch approach
-sb_ctrl_NL = ctrl.ControlSystem([rulet1, rulet2, ruletNL3, ruletNL4, ruletNL5, ruleNL1, ruleNL2, ruleNL3,rulei1,rulei2,rulei3])
+sb_ctrl_NL = ctrl.ControlSystem([rulet1, rulet2, ruletNL3, ruletNL4, ruletNL5, ruleNL1, ruleNL2, ruleNL3,rulei1,rulei2,rulei3, rulesg1])
 #rule1, rule2, rule3, rule4, rule5,
 
 # In order to simulate this control system, create a ControlSystemSimulation.
@@ -127,15 +138,15 @@ def fuzz(Marge, FRCE_sb, old_FRCE_sb, old_d_Imba, d_Imba, Time, p_average, prici
 #def fuzz(Marge, Imba, Time, p_average, pricing): #imba, price, GKL):
     # Pass inputs to the FUZZY ControlSystem using Antecedent labels with Pythonic API
 
-#Vorzeichen
-#    if old_d_Imba > 0 and d_Imba > 0:
-#        s_Imba = 0
-#    elif old_d_Imba < 0 and d_Imba < 0:
-#        s_Imba = 0
-#    else:
-#        s_Imba = 1
+    #Vorzeichen bestimmen
+    if old_d_Imba > 0 and d_Imba > 0:
+        s_Imba = 0
+    elif old_d_Imba < 0 and d_Imba < 0:
+        s_Imba = 0
+    else:
+        s_Imba = 1
 
-#calculate individual parameter
+    #calculate individual parameter
     Imba = FRCE_sb - sb_P
 
 #calculate ratio to limit SB of assets with Flexpotential higher Imba
@@ -191,7 +202,7 @@ def fuzz(Marge, FRCE_sb, old_FRCE_sb, old_d_Imba, d_Imba, Time, p_average, prici
         sb_NL.input['time_min'] = Time
         sb_NL.input['imbalance_MW'] = Imba
         sb_NL.input['d_imba_MW'] = d_Imba
-
+        sb_NL.input['s_imba'] = s_Imba
         # Crunch the numbers in FUZZY
         sb_NL.compute()
 

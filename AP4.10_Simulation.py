@@ -319,7 +319,8 @@ if save_data:
                  'Steel AEP costs [EUR]': CA1.array_balancinggroups[18].array_AEP_costs_period,
                  'Cement AEP costs [EUR]': CA1.array_balancinggroups[19].array_AEP_costs_period,
                  'Paper AEP costs [EUR]': CA1.array_balancinggroups[20].array_AEP_costs_period,
-                 'Chlorine AEP costs [EUR]': CA1.array_balancinggroups[21].array_AEP_costs_period
+                 'Chlorine AEP costs [EUR]': CA1.array_balancinggroups[21].array_AEP_costs_period,
+                 'Gas AEP costs [EUR]': CA1.array_balancinggroups[3].array_AEP_costs_period
                 }
     fileexch.save_period_data(scenario=scenario,
                               save_file_name=savefilename_period,
