@@ -29,16 +29,16 @@ time['late'] = fuzz.trimf(time.universe, [7,14,14])
 
 # define imbalance: wording and range
 imbalance['neg_high'] = fuzz.trimf(imbalance.universe, [-1001, -1001, -700])
-imbalance['neg_average'] = fuzz.trimf(imbalance.universe, [-1001, -500, -100])
+imbalance['neg_average'] = fuzz.trimf(imbalance.universe, [-1001, -500, -200])
 imbalance['close_to_zero'] = fuzz.trimf(imbalance.universe, [-300, 0, 300])
-imbalance['pos_average'] = fuzz.trimf(imbalance.universe, [100, 500, 1001])
+imbalance['pos_average'] = fuzz.trimf(imbalance.universe, [200, 500, 1001])
 imbalance['pos_high'] = fuzz.trimf(imbalance.universe, [700, 1001, 1001])
 
 # define p_average: wording and range
 p_average['neg_high'] = fuzz.trimf(p_average.universe, [-1001, -1001, -700])
-p_average['neg_average'] = fuzz.trimf(p_average.universe, [-1001, -500, -100])
+p_average['neg_average'] = fuzz.trimf(p_average.universe, [-1001, -500, -200])
 p_average['close_to_zero'] = fuzz.trimf(p_average.universe, [-300, 0, 300])
-p_average['pos_average'] = fuzz.trimf(p_average.universe, [100, 500, 1001])
+p_average['pos_average'] = fuzz.trimf(p_average.universe, [200, 500, 1001])
 p_average['pos_high'] = fuzz.trimf(p_average.universe, [700, 1001, 1001])
 
 # define delta imbalance: wording and range
@@ -64,7 +64,7 @@ plt.figure(4)
 # the rules are fuzzy. Mapping the imprecise rules into a defined, actionable sb contribution is a challenge.
 # This is the kind of task at which fuzzy logic excels.
 
-# Netmargin based rules, apply for all market designs
+# Netmargin based rules
 rule1 = ctrl.Rule(netmargin['poor'], smartbalancing['poor'])
 rule2 = ctrl.Rule(netmargin['mediocre'], smartbalancing['mediocre'])
 rule3 = ctrl.Rule(netmargin['average'], smartbalancing['average'])
@@ -99,10 +99,10 @@ ruleNL1 = ctrl.Rule(imbalance['neg_high'] | imbalance['pos_high'], smartbalancin
 ruleNL2 = ctrl.Rule(imbalance['neg_average'] | imbalance['pos_average'], smartbalancing['decent'])
 ruleNL3 = ctrl.Rule(imbalance['close_to_zero'], smartbalancing['poor'])
 
-# delta imba rules
-rulei1 = ctrl.Rule(d_Imba['neg_high'] | d_Imba['pos_high'], smartbalancing['good'])
+# delta imba rules: if change is high, SB is poor (uncertanty)
+rulei1 = ctrl.Rule(d_Imba['neg_high'] | d_Imba['pos_high'], smartbalancing['poor'])
 rulei2 = ctrl.Rule(d_Imba['neg_average'] | d_Imba['pos_average'], smartbalancing['decent'])
-rulei3 = ctrl.Rule(d_Imba['close_to_zero'], smartbalancing['poor'])
+rulei3 = ctrl.Rule(d_Imba['close_to_zero'], smartbalancing['good'])
 
 # Now that we have our rules defined, we can create a control system per pricing scheme (single vs. dual vs. NL) via:
 # for dual pricing
@@ -139,7 +139,7 @@ def fuzz(Marge, FRCE_sb, old_FRCE_sb, old_d_Imba, d_Imba, Time, p_average, prici
     Imba = FRCE_sb - sb_P
 
 #calculate ratio to limit SB of assets with Flexpotential higher Imba
-    ratio = Flexpotential/Imba
+    ratio = (Flexpotential)/Imba
     if ratio < 1:
         ratio = 1
 
