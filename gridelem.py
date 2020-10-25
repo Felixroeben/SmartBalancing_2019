@@ -739,7 +739,6 @@ class ControlArea(CalculatingGridElement):
 
         # Variable for the smart balancing control signal
         self.FRCE_sb = 0.0
-        #todo: hier weiter machen
         self.delta_FRCE_sb = 0.0
         self.old_FRCE_sb = 0.0
         self.old_delta_FRCE_sb = 0.0
@@ -1703,7 +1702,7 @@ class ControlArea(CalculatingGridElement):
 
         # "sb_delay" (see affr_init) can be used to analyse a delay for SB, without delay it is just passing FRCE
         # + not use FRCE_ol because it does not reflect real imbalance (excludes mFRR)
-        #todo: check signals (to they reach fuzzy correctly?)
+        #todo: check signals (do they reach fuzzy correctly?)
 
         self.sb_queue.append(self.FRCE)# + self.sb_P)
         self.FRCE_sb = self.sb_queue.pop(0)

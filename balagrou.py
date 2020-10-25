@@ -232,483 +232,138 @@ class BalancingGroup:
     # This method calculates the Smart Balancing power of the Smart Balancing Assets of the Balancing Group
     def sb_calc(self, FRCE_sb, old_FRCE_sb, d_Imba, old_d_Imba, AEP, t_step, t_now, da_price, windon_mmw, windoff_mmw, pv_mmw, aFRR_E_pos_period, aFRR_E_neg_period, fuzzy, imbalance_clearing):
 
-        ## 13.09.2020 restructure sb_calc to better implement fuzzy logic (FR)
-        # delete multiple condition "smart and fuzzy" - ask for fuzzy condition if smart
-        #  imbalance clearing ("0" for single and "1" for combined/NL)
+        ## 25.10.2020 restructure sb_calc (FR)
+        #  if smart -> imbalance clearing ("0" for single and "1" for combined/NL)
         # 1. sb_pot_calc() = individual SB potential in MW - see generato.py / loadload.py
-        # 2. if smart -> calculate sb_P, ask if fuzzy and call sb_activation() - see generato.py / loadload.py
+        # 2. calculate sb_P, ask if fuzzy and call sb_activation() - see generato.py / loadload.py
         # 3.    if fuzzy -> manipulate sb_P with fuzzilogi_marketdesign.py
         # 4.    activate sb_P according to sb_activate (ramp max)- - see generato.py / loadload.py
-
-        # The positive and negative SB potentials of all assets get updated.
-        for i in self.array_sb_assets:
-            i.sb_pot_calc()
-
         # SB remains if ACE between 200 MW and -200 MW
-        #if FRCE_sb > -200 and FRCE_sb < 200:
+        # if FRCE_sb > -200 and FRCE_sb < 200:
         #    pass
-        # Activation of SB Assets
+
+        # smart not true: nothing happens
+        if not self.smart:
+            self.sb_P = 0.0
+
+        else: # smart true: Activation of SB Assets
+            SB_Asset_ID = []
+            SB_per_asset = []
+
         # using Fuzzy Logic (if fuzzy = true)
         # in case fuzzy is true + NL clearing: check if dual pricing applies
-        if self.smart and not (fuzzy and (imbalance_clearing == 1) and ((aFRR_E_neg_period < -5) and (aFRR_E_pos_period > 5))):
-
-            SB_Asset_ID = []
-            SB_per_asset = []
-
-            # Summation of the total positive and negative Smart Balancing potential of the Balancing Group
-            # Variables can get used to prevent overshoots in case of FRCE_sb close to zero
-            P_max_sum = 0.0
-            P_min_sum = 0.0
-            for i in self.array_sb_assets:
-                P_max_sum += i.sb_pot_pos
-                P_min_sum += i.sb_pot_neg
-
-            if fuzzy:
-                # Calc time within 15 Min ISP in Minute (between 0 and 14) for fuzzy
-                time_in_ISP = (t_now / 60) % 15
-                # calc p_average in MW in ISP for fuzzy (from aFRR of ISP in MWh)
-                p_average = (aFRR_E_pos_period + aFRR_E_neg_period)/((time_in_ISP + 1)/60)
-
-
-            # Decision making for Balancing Group "Solar"
-            if self.name == 'Solar':
-                sb_sum = 0.0
+            if not (fuzzy and (imbalance_clearing == 1) and ((aFRR_E_neg_period < -5) and (aFRR_E_pos_period > 5))):
+                # 1. The positive and negative SB potentials of all assets get updated. - see generato.py / loadload.py
                 for i in self.array_sb_assets:
-                    sb_activation = 0.0
-                    sb_marge = 0.0
+                    i.sb_pot_calc()
 
-                    # Definition of additional margin in EUR/MWh
-                    margin = 60.0
+                # 2. Summation of the total positive and negative Smart Balancing potential of the Balancing Group
+                # Variables can get used to prevent overshoots in case of FRCE_sb close to zero
+                P_max_sum = 0.0
+                P_min_sum = 0.0
+                for i in self.array_sb_assets:
+                    P_max_sum += i.sb_pot_pos
+                    P_min_sum += i.sb_pot_neg
 
-                    # Calculation of the current "Marktprämie" for the asset, which is never smaller than zero
-                    #sb_costs = "anzulegender Wert" from SB_Asset.csv (value depending on year of construction)
-                    mp = i.sb_costs - pv_mmw
-                    if mp < 0:
-                        mp = 0.0
+                if fuzzy:
+                    # Calc time within 15 Min ISP in Minute (between 0 and 14) for fuzzy
+                    time_in_ISP = (t_now / 60) % 15
+                    #todo: fair to compare FRCE_sb (ol) with p_average
+                    # calc p_average in MW in ISP for fuzzy (from aFRR of ISP in MWh)
+                    p_average = (aFRR_E_pos_period + aFRR_E_neg_period)/((time_in_ISP + 1)/60)
+
+                sb_sum = 0.0
+                pos_margin = 0
+                neg_margin = 0
+
+                for i in self.array_sb_assets:
+                    if self.name == 'Solar' or self.name == 'Wind_Onshore' or self.name == 'Wind_Offshore':
+                        #min margin for reducing solar or wind generation, must be negative!
+                        neg_margin = -40
+                        #"Monatsmarktwert" (to calculate individual feed in tariff)
+                        if self.name == 'Solar':
+                            mmw = pv_mmw
+                        elif self.name == "Wind_Onshore":
+                            mmw = windon_mmw
+                        elif self.name == "Wind_Offshore":
+                            mmw = windoff_mmw
+                        else:
+                            pass
+
+                        # "Marktprämie" (EE losing money, if "anzulegender Wert" (i.sb_c.) is higher "Marktmonatswert"(mmw)
+                        if i.sb_costs - mmw > 0:
+                            neg_margin += -i.sb_costs + mmw
+
+                    elif self.name == "Aluminium":
+                        pos_margin = 100 + da_price
+
+                    elif self.name == 'Steel':
+                        pos_margin = 250 + da_price
+
+                    elif self.name == 'Cement' or self.name == 'Paper' or self.name == 'Chlorine':
+                        pos_margin = 100 + da_price
+                        neg_margin = 10
+
+                    elif self.name == 'Group_Gas':
+                        pos_margin = i.sb_costs + 15
+                        neg_margin = i.sb_costs - 35
+
                     else:
-                        pass
+                        pos_margin = i.sb_costs
+                        neg_margin = i.sb_costs
 
-                    if AEP < -(mp + margin) and i.sb_pot_neg < 0:
-                        #def fuzz(Marge, Imba, Time, p_average, pricing)
+                    # Decision making for Balancing Group, with individual neg_ and pos_margin
+                    if AEP < neg_margin and i.sb_pot_neg < 0:
                         if fuzzy:
-                            # marge for SB is (negativ) AEP minus (plus) current "Marktprämie" and additional margin
-                            sb_marge = -AEP - (mp + margin)
-                            sb_percent = fuzzlogi_marketdesign.fuzz(sb_marge, FRCE_sb, old_FRCE_sb, old_d_Imba, d_Imba, time_in_ISP,
+                            sb_marge = -AEP + neg_margin
+                            sb_percent = fuzzlogi_marketdesign.fuzz(sb_marge, FRCE_sb, old_FRCE_sb, old_d_Imba, d_Imba,
+                                                                    time_in_ISP,
                                                                     p_average, imbalance_clearing, self.sb_P,
                                                                     P_min_sum)
                             sb_activation = i.sb_pot_neg * sb_percent
                         else:
                             sb_activation = i.sb_pot_neg
 
-                        # Optional limitation of the targeted Smart Balancing power using the total FRCE
-                        if sb_sum + sb_activation < FRCE_sb:
-                            sb_activation = FRCE_sb - sb_sum
-
-                    else:
-                        sb_activation = 0.0
-
-                    SB_Asset_ID.append(i.name)
-                    SB_per_asset.append(sb_activation)
-                    sb_sum += sb_activation
-
-            # Decision making for Balancing Group "Wind_Onshore"
-            elif self.name == 'Wind_Onshore':
-                sb_sum = 0.0
-                for i in self.array_sb_assets:
-                    sb_activation = 0.0
-
-                    # Definition of additional margin in EUR/MWh
-                    margin = 40.0
-
-                    # Calculation of the current "Marktprämie" for the asset, which is never smaller than zero
-                    mp = i.sb_costs - windon_mmw
-                    if mp < 0:
-                        mp = 0.0
-                    else:
-                        pass
-
-                    if AEP < -(mp + margin) and i.sb_pot_neg < 0:
+                    elif AEP > pos_margin and i.sb_pot_pos > 0:
                         if fuzzy:
-                            # marge for SB is (negativ) AEP minus (plus) current "Marktprämie" and additional margin
-                            sb_marge = -AEP - (mp + margin)
-                            sb_percent = fuzzlogi_marketdesign.fuzz(sb_marge, FRCE_sb, old_FRCE_sb, old_d_Imba, d_Imba, time_in_ISP,
-                                                                    p_average,imbalance_clearing, self.sb_P,
-                                                                    P_min_sum)
-                            sb_activation = i.sb_pot_neg * sb_percent
-                        else:
-                            sb_activation = i.sb_pot_neg
-
-                        # Optional limitation of the targeted Smart Balancing power using the total FRCE
-                        if sb_sum + sb_activation < FRCE_sb:
-                            sb_activation = FRCE_sb - sb_sum
-
-
-                    else:
-                        sb_activation = 0.0
-
-                    SB_Asset_ID.append(i.name)
-                    SB_per_asset.append(sb_activation)
-                    sb_sum += sb_activation
-
-            # Decision making for Balancing Group "Wind_Offshore"
-            elif self.name == 'Wind_Offshore':
-                sb_sum = 0.0
-                for i in self.array_sb_assets:
-                    sb_activation = 0.0
-
-                    # Definition of additional margin in EUR/MWh
-                    margin = 40.0
-
-                    # Calculation of the current "Marktprämie" for the asset, which is never smaller than zero
-                    mp = i.sb_costs - windoff_mmw
-                    if mp < 0:
-                        mp = 0.0
-                    else:
-                        pass
-
-                    if AEP < -(mp + margin) and i.sb_pot_neg < 0:
-
-                        if fuzzy:
-                            #marge for SB is (negativ) AEP minus (plus) current "Marktprämie" and additional margin
-                            sb_marge = -AEP - (mp + margin)
-                            sb_percent = fuzzlogi_marketdesign.fuzz(sb_marge, FRCE_sb, old_FRCE_sb,old_d_Imba, d_Imba, time_in_ISP,
+                            sb_marge = AEP - pos_margin
+                            sb_percent =fuzzlogi_marketdesign.fuzz(sb_marge, FRCE_sb, old_FRCE_sb, old_d_Imba, d_Imba,
+                                                                    time_in_ISP,
                                                                     p_average, imbalance_clearing, self.sb_P,
-                                                                    P_min_sum)
-                            sb_activation = i.sb_pot_neg * sb_percent
+                                                                    P_max_sum)
+                            sb_activation = i.sb_pot_pos * sb_percent
                         else:
-                            sb_activation = i.sb_pot_neg
-
-                        # Optional limitation of the targeted Smart Balancing power using the total FRCE
-                        if sb_sum + sb_activation < FRCE_sb:
-                            sb_activation = FRCE_sb - sb_sum
-
+                            sb_activation = i.sb_pot_pos
                     else:
                         sb_activation = 0.0
+
+                    # Optional limitation of the targeted Smart Balancing power using the total FRCE
+                    if sb_sum + sb_activation < FRCE_sb:
+                        sb_activation = FRCE_sb - sb_sum
 
                     SB_Asset_ID.append(i.name)
                     SB_per_asset.append(sb_activation)
                     sb_sum += sb_activation
 
-            # Decision making for Balancing Group "Aluminium" - decrease load in case of high AEP
-            elif self.name == 'Aluminium':
-                margin = 100
-                if (AEP - da_price) > margin:
-                    for i in self.array_sb_assets:
-                        if i.sb_pot_pos > 0:
-                            if fuzzy:
-                                # marge for SB is (negativ) AEP minus (plus) current "Marktprämie" and additional margin
-                                sb_marge = AEP - da_price - margin
-                                sb_percent = fuzzlogi_marketdesign.fuzz(sb_marge, FRCE_sb, old_FRCE_sb, old_d_Imba, d_Imba,time_in_ISP,
-                                                                        p_average, imbalance_clearing, self.sb_P,
-                                                                        P_max_sum)
-                                sb_activation = i.sb_pot_pos * sb_percent
-                            else:
-                                sb_activation = i.sb_pot_pos
-
-                            # Optional limitation of the targeted Smart Balancing power using the total FRCE
-                            #if sb_activation > FRCE_sb:
-                            #    sb_activation = FRCE_sb
-
-                            SB_Asset_ID.append(i.name)
-                            SB_per_asset.append(sb_activation)
-                        else:
-                            SB_Asset_ID.append(i.name)
-                            SB_per_asset.append(0.0)
-                else:
-                    for i in self.array_sb_assets:
-                        SB_Asset_ID.append(i.name)
-                        SB_per_asset.append(0.0)
-
-            # Decision making for Balancing Group "Steel" - decrease load in case of high AEP
-            elif self.name == 'Steel':
-                margin = 250
-                if (AEP - da_price) > margin:
-                    for i in self.array_sb_assets:
-                        if i.sb_pot_pos > 0:
-                            if fuzzy:
-                                # marge for SB is (negativ) AEP minus (plus) current "Marktprämie" and additional margin
-                                sb_marge = AEP - da_price - margin
-                                sb_percent = fuzzlogi_marketdesign.fuzz(sb_marge, FRCE_sb, old_FRCE_sb, old_d_Imba, d_Imba,time_in_ISP,
-                                                                        p_average, imbalance_clearing, self.sb_P,
-                                                                        P_max_sum)
-                                sb_activation = i.sb_pot_pos * sb_percent
-                            else:
-                                sb_activation = i.sb_pot_pos
-
-                            # Optional limitation of the targeted Smart Balancing power using the total FRCE
-                            #if sb_activation > FRCE_sb:
-                            #    sb_activation = FRCE_sb
-
-                            SB_Asset_ID.append(i.name)
-                            SB_per_asset.append(sb_activation)
-                        else:
-                            SB_Asset_ID.append(i.name)
-                            SB_per_asset.append(0.0)
-                else:
-                    for i in self.array_sb_assets:
-                        SB_Asset_ID.append(i.name)
-                        SB_per_asset.append(0.0)
-
-            # Decision making for Balancing Group "Cement" - increase (neg AEP) or decrease (high AEP) of load
-            elif self.name == 'Cement':
-                margin = 250
-                neg_margin = 10
-                if (AEP - da_price) > margin:
-                    for i in self.array_sb_assets:
-                        if i.sb_pot_pos > 0:
-                            if fuzzy:
-                                # additional marge for SB:
-                                sb_marge = AEP - da_price - margin
-                                sb_percent = fuzzlogi_marketdesign.fuzz(sb_marge, FRCE_sb, old_FRCE_sb,old_d_Imba, d_Imba, time_in_ISP,
-                                                                        p_average, imbalance_clearing, self.sb_P,
-                                                                        P_max_sum)
-                                sb_activation = i.sb_pot_pos * sb_percent
-                            else:
-                                sb_activation = i.sb_pot_pos
-
-                            # Optional limitation of the targeted Smart Balancing power using the total FRCE
-                            #if sb_activation > FRCE_sb:
-                            #    sb_activation = FRCE_sb
-
-                            SB_Asset_ID.append(i.name)
-                            SB_per_asset.append(sb_activation)
-                        else:
-                            SB_Asset_ID.append(i.name)
-                            SB_per_asset.append(0.0)
-                elif AEP < neg_margin:
-                    for i in self.array_sb_assets:
-                        if i.sb_pot_neg < 0:
-                            if fuzzy:
-                                # marge for SB is (negativ) AEP minus (plus) current "Marktprämie" and additional margin
-                                sb_marge = neg_margin - AEP
-                                sb_percent = fuzzlogi_marketdesign.fuzz(sb_marge, FRCE_sb, old_FRCE_sb,old_d_Imba, d_Imba, time_in_ISP,
-                                                                        p_average, imbalance_clearing, self.sb_P,
-                                                                        P_min_sum)
-                                sb_activation = i.sb_pot_neg * sb_percent
-                            else:
-                                sb_activation = i.sb_pot_neg
-
-                            # Optional limitation of the targeted Smart Balancing power using the total FRCE
-                            #if sb_activation < FRCE_sb:
-                            #    sb_activation = FRCE_sb
-
-                            SB_Asset_ID.append(i.name)
-                            SB_per_asset.append(sb_activation)
-                        else:
-                            SB_Asset_ID.append(i.name)
-                            SB_per_asset.append(0.0)
-                else:
-                    for i in self.array_sb_assets:
-                        SB_Asset_ID.append(i.name)
-                        SB_per_asset.append(0.0)
-
-            # Decision making for Balancing Group "Paper"
-            elif self.name == 'Paper':
-                margin = 250
-                neg_margin = 10
-                if (AEP - da_price) > margin:
-                    for i in self.array_sb_assets:
-                        if i.sb_pot_pos > 0:
-                            if fuzzy:
-                                # marge for SB is (negativ) AEP minus (plus) current "Marktprämie" and additional margin
-                                sb_marge = AEP - da_price - margin
-                                sb_percent = fuzzlogi_marketdesign.fuzz(sb_marge, FRCE_sb, old_FRCE_sb, old_d_Imba, d_Imba,time_in_ISP,
-                                                                        p_average, imbalance_clearing, self.sb_P,
-                                                                        P_max_sum)
-                                sb_activation = i.sb_pot_pos * sb_percent
-                            else:
-                                sb_activation = i.sb_pot_pos
-
-                            # Optional limitation of the targeted Smart Balancing power using the total FRCE
-                            #if sb_activation > FRCE_sb:
-                            #    sb_activation = FRCE_sb
-
-                            SB_Asset_ID.append(i.name)
-                            SB_per_asset.append(sb_activation)
-                        else:
-                            SB_Asset_ID.append(i.name)
-                            SB_per_asset.append(0.0)
-                elif AEP < neg_margin:
-                    for i in self.array_sb_assets:
-                        if i.sb_pot_neg < 0:
-                            if fuzzy:
-                                # marge for SB is (negativ) AEP minus (plus) current "Marktprämie" and additional margin
-                                sb_marge = neg_margin - AEP
-                                sb_percent = fuzzlogi_marketdesign.fuzz(sb_marge, FRCE_sb, old_FRCE_sb,old_d_Imba, d_Imba, time_in_ISP,
-                                                                        p_average, imbalance_clearing, self.sb_P,
-                                                                        P_min_sum)
-                                sb_activation = i.sb_pot_neg * sb_percent
-                            else:
-                                sb_activation = i.sb_pot_neg
-
-                            # Optional limitation of the targeted Smart Balancing power using the total FRCE
-                            #if sb_activation < FRCE_sb:
-                            #    sb_activation = FRCE_sb
-
-                            SB_Asset_ID.append(i.name)
-                            SB_per_asset.append(sb_activation)
-                        else:
-                            SB_Asset_ID.append(i.name)
-                            SB_per_asset.append(0.0)
-                else:
-                    for i in self.array_sb_assets:
-                        SB_Asset_ID.append(i.name)
-                        SB_per_asset.append(0.0)
-
-            # Decision making for Balancing Group "Chlorine"
-            elif self.name == 'Chlorine':
-                margin = 250
-                neg_margin = 10
-                if (AEP - da_price) > margin:
-                    for i in self.array_sb_assets:
-                        if i.sb_pot_pos > 0:
-                            if fuzzy:
-                                # marge for SB is (negativ) AEP minus (plus) current "Marktprämie" and additional margin
-                                sb_marge = AEP - da_price - margin
-                                sb_percent = fuzzlogi_marketdesign.fuzz(sb_marge, FRCE_sb, old_FRCE_sb, old_d_Imba, d_Imba,time_in_ISP,
-                                                                        p_average, imbalance_clearing, self.sb_P,
-                                                                        P_max_sum)
-                                sb_activation = i.sb_pot_pos * sb_percent
-                            else:
-                                sb_activation = i.sb_pot_pos
-
-                            # Optional limitation of the targeted Smart Balancing power using the total FRCE
-                            #if sb_activation > FRCE_sb:
-                            #    sb_activation = FRCE_sb
-
-                            SB_Asset_ID.append(i.name)
-                            SB_per_asset.append(sb_activation)
-                        else:
-                            SB_Asset_ID.append(i.name)
-                            SB_per_asset.append(0.0)
-                elif AEP < neg_margin:
-                    for i in self.array_sb_assets:
-                        if i.sb_pot_neg < 0:
-                            if fuzzy:
-                                # marge for SB is (negativ) AEP minus (plus) current "Marktprämie" and additional margin
-                                sb_marge = neg_margin - AEP
-                                sb_percent = fuzzlogi_marketdesign.fuzz(sb_marge, FRCE_sb, old_FRCE_sb,old_d_Imba, d_Imba, time_in_ISP,
-                                                                        p_average, imbalance_clearing, self.sb_P,
-                                                                        P_min_sum)
-                                sb_activation = i.sb_pot_neg * sb_percent
-                            else:
-                                sb_activation = i.sb_pot_neg
-
-                            # Optional limitation of the targeted Smart Balancing power using the total FRCE
-                            #if sb_activation < FRCE_sb:
-                            #    sb_activation = FRCE_sb
-
-                            SB_Asset_ID.append(i.name)
-                            SB_per_asset.append(sb_activation)
-                        else:
-                            SB_Asset_ID.append(i.name)
-                            SB_per_asset.append(0.0)
-                else:
-                    for i in self.array_sb_assets:
-                        SB_Asset_ID.append(i.name)
-                        SB_per_asset.append(0.0)
-
-            # Other Balancing Groups get triggered by the arithmetic sign of the signal FRCE_sb and AEP
+            # else, NL combined pricing applies -> SB back to zero
             else:
-                if FRCE_sb < 0:
-                    for i in self.array_sb_assets:
-                        if (i.sb_pot_neg < 0 and (i.sb_costs - 36) > AEP):
+                for i in self.array_sb_assets:
+                    SB_Asset_ID.append(i.name)
+                    SB_per_asset.append(0.0)
 
-                            if fuzzy:
-                                # marge for SB is (negativ) AEP minus (plus) current "Marktprämie" and additional margin
-                                sb_marge = i.sb_costs - 35 - AEP
-                                sb_percent = fuzzlogi_marketdesign.fuzz(sb_marge, FRCE_sb, old_FRCE_sb,old_d_Imba, d_Imba, time_in_ISP,
-                                                                        p_average, imbalance_clearing, self.sb_P,
-                                                                        P_min_sum)
-                                sb_activation = i.sb_pot_neg * sb_percent
-                            else:
-                                sb_activation = i.sb_pot_neg
-
-                            #limit SB of each asset to target FRCE
-                            #if sb_activation < FRCE_sb:
-                            #    sb_activation = FRCE_sb
-
-                            SB_Asset_ID.append(i.name)
-                            SB_per_asset.append(sb_activation)
-                        else:
-                            SB_Asset_ID.append(i.name)
-                            SB_per_asset.append(0.0)
-
-                # In case of positive FRCE_sb, positive SB assets are triggered
-                elif FRCE_sb > 0:
-                    for i in self.array_sb_assets:
-                        if i.sb_pot_pos > 0 and (i.sb_costs+5)<AEP:
-
-                            if fuzzy:
-                                # marge for SB is (negativ) AEP minus (plus) current "Marktprämie" and additional margin
-                                sb_marge = AEP - i.sb_costs - 5
-                                sb_percent = fuzzlogi_marketdesign.fuzz(sb_marge, FRCE_sb, old_FRCE_sb, old_d_Imba, d_Imba,time_in_ISP,
-                                                                        p_average, imbalance_clearing, self.sb_P,
-                                                                        P_max_sum)
-                                sb_activation = i.sb_pot_pos * sb_percent
-                            else:
-                                sb_activation = i.sb_pot_pos
-
-                                # limit SB of each asset to target FRCE
-                                #if sb_activation > FRCE_sb:
-                                #    sb_activation = FRCE_sb
-
-                            SB_Asset_ID.append(i.name)
-                            SB_per_asset.append(sb_activation)
-                        else:
-                            SB_Asset_ID.append(i.name)
-                            SB_per_asset.append(0.0)
-
-                # In case of FRCE_sb equal to zero, all SB assets are set to zero
-                elif FRCE_sb == 0:
-                    for i in self.array_sb_assets:
-                        SB_Asset_ID.append(i.name)
-                        SB_per_asset.append(0.0)
-                else:
-                    pass
-
-            # Activation of SB Assets within physical boundaries of ramp
+            # 4.    activate sb_P according to sb_activate (ramp max)- - see generato.py / loadload.py
             # > see sb_activate() in generator.py / loadload.py
             array_sb_activate = {"SB_Asset_ID": SB_Asset_ID, "SB_per_asset": SB_per_asset}
-
             j = 0
             while j <= len(array_sb_activate['SB_Asset_ID']) - 1:
                 for i in self.array_sb_assets:
                     if array_sb_activate.get('SB_Asset_ID')[j] == i.name:
                         i.sb_activate(array_sb_activate.get('SB_per_asset')[j], t_step)
                 j += 1
-
-
-            #todo: SB reduction factor here?
+            #calculate total sb_P of Balagroup (all SB assets)
             self.sb_P = 0.0
             for i in self.array_sb_assets:
                 self.sb_P += i.sb_P
-        # smart not true:
-        elif not self.smart:
-            self.sb_P = 0.0
-        # else, NL combined pricing applies -> SB back to zero with ramps
-        else:
-            SB_Asset_ID = []
-            SB_per_asset = []
-            for i in self.array_sb_assets:
-                SB_Asset_ID.append(i.name)
-                SB_per_asset.append(0.0)
-
-            # Activation of SB Assets within physical boundaries of ramp
-            # > see sb_activate() in generator.py / loadload.py
-            array_sb_activate = {"SB_Asset_ID": SB_Asset_ID, "SB_per_asset": SB_per_asset}
-
-            j = 0
-            while j <= len(array_sb_activate['SB_Asset_ID']) - 1:
-                for i in self.array_sb_assets:
-                    if array_sb_activate.get('SB_Asset_ID')[j] == i.name:
-                        i.sb_activate(array_sb_activate.get('SB_per_asset')[j], t_step)
-                j += 1
-
-            self.sb_P = 0.0
-            for i in self.array_sb_assets:
-                self.sb_P += i.sb_P
-
 
     # Method calculating the costs for consumed energy and the income of produced energy of the grid element.
     # The method multiplies the consumed and produced amounts of energy per t_step with the current day-ahead price
