@@ -43,7 +43,7 @@ savefilename_all = 'Sim_output_all.csv'             # name of save file, locatio
 scenario = 'WC_data//WC_'
 
 # ...Activation of simulation functions
-smartbalancing = True      # True: Smart Balancing is globally switched on
+smartbalancing = False      # True: Smart Balancing is globally switched on
 fuzzy = True               # True: Smart Balancing is globally activated via Fuzzy Logic
 FRR_pricing = 0             # Global variable to switch both aFRR & mFRR from pay-as-bid (0) to marginal pricing (1)
 BEPP = 900                  # Balancing Energy Pricing Period (BEPP) in s - only applied for marginal pricing
@@ -265,7 +265,7 @@ while t_now < t_stop:
 
     if t_day >= 86400:
         day_count += 1
-        print('#Date: ',day_in_month,'.',month_count,' ---------Day:',day_count,'-----------#')
+        print('#Date: ',day_in_month,'.',month_count,'.2019 ---------Day:',day_count,'-----------#')
         t_day = 0.0
 
     if (t_now % t_mol) == 0:
