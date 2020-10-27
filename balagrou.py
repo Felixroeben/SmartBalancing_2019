@@ -338,12 +338,8 @@ class BalancingGroup:
                         sb_activation = 0.0
 
                     # Optional limitation of the targeted Smart Balancing power using the total FRCE
-                    if FRCE_sb > 0 and sb_sum + sb_activation > FRCE_sb:
+                    if sb_sum + sb_activation < FRCE_sb:
                         sb_activation = FRCE_sb - sb_sum
-                    elif FRCE_sb < 0 and sb_sum + sb_activation < FRCE_sb:
-                        sb_activation = FRCE_sb - sb_sum
-                    else:
-                        pass
 
                     SB_Asset_ID.append(i.name)
                     SB_per_asset.append(sb_activation)
