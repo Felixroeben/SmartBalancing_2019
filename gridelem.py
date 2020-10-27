@@ -737,6 +737,10 @@ class ControlArea(CalculatingGridElement):
         self.array_mFRR_pos_insuf = []
         self.array_mFRR_neg_insuf = []
 
+        # Variables for the traffic light approach - contracted Reserves at a time being
+        self.con_FRR_pos = 0.0
+        self.con_FRR_neg = 0.0
+
         # Variable for the smart balancing control signal
         self.FRCE_sb = 0.0
         self.delta_FRCE_sb = 0.0
@@ -942,7 +946,9 @@ class ControlArea(CalculatingGridElement):
                       aFRR_E_pos_period=self.aFRR_E_pos_period,
                       aFRR_E_neg_period=self.aFRR_E_neg_period,
                       fuzzy=fuzzy,
-                      imbalance_clearing=imbalance_clearing)
+                      imbalance_clearing=imbalance_clearing,
+                      con_FRR_pos = self.con_FRR_pos,
+                      con_FRR_neg = self.con_FRR_neg)
             self.sb_P += i.sb_P
 
     # Method calculating a price for aFRR using the pay-as-bid priciple
@@ -1737,6 +1743,7 @@ class ControlArea(CalculatingGridElement):
             i.readarray(k_now=k_now)
 
     # Method called after an MOL update to trigger further calculations
+    # aFRR_cap for decision when to activate mFRR
     def mol_update(self):
         self.aFRR_cap_pos = 0.0
         l = len(self.array_aFRR_molpos['Power'])
@@ -1751,6 +1758,22 @@ class ControlArea(CalculatingGridElement):
         while i < l:
             self.aFRR_cap_neg += self.array_aFRR_molneg['Power'][i]
             i += 1
+
+        # con_FRR for traffic light approach
+        self.con_FRR_pos = self.aFRR_cap_pos
+        l = len(self.array_mFRR_molpos['Power'])
+        i = 0
+        while i < l:
+            self.con_FRR_pos += self.array_mFRR_molpos['Power'][i]
+            i += 1
+
+        self.con_FRR_neg = self.aFRR_cap_neg
+        l = len(self.array_mFRR_molneg['Power'])
+        i = 0
+        while i < l:
+            self.con_FRR_neg += self.array_mFRR_molneg['Power'][i]
+            i += 1
+
 
     # Method writing all current variables for frequency, load flow, FCR, aFRR, and Smart Balancing
     # by appending them to the respective arrays.

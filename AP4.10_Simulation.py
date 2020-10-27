@@ -49,7 +49,7 @@ FRR_pricing = 0             # Global variable to switch both aFRR & mFRR from pa
 BEPP = 900                  # Balancing Energy Pricing Period (BEPP) in s - only applied for marginal pricing
                             # e.g. 900 (State of the art) or 60 or 4 (=> t_step!)
 imbalance_clearing = 1      # For fuzzy SB: Switch from single imbalance pricing (0) to "combined pricing" as in NL (1)
-                            # (2) for traffic light
+                            # (2) for traffic light with 3 increments and (3) for traffic light approach with 5 increments
 save_data = True            # True: write the simulation data to .csv
 show_fig = False            # True: show all figures at the end of the simulation
 sb_delay = 0.0              # definition of delay of SB signal in s

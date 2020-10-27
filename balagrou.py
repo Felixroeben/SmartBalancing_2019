@@ -230,7 +230,8 @@ class BalancingGroup:
                                 'Power': array_power}
 
     # This method calculates the Smart Balancing power of the Smart Balancing Assets of the Balancing Group
-    def sb_calc(self, FRCE_sb, old_FRCE_sb, d_Imba, old_d_Imba, AEP, t_step, t_now, da_price, windon_mmw, windoff_mmw, pv_mmw, aFRR_E_pos_period, aFRR_E_neg_period, fuzzy, imbalance_clearing):
+    def sb_calc(self, FRCE_sb, old_FRCE_sb, d_Imba, old_d_Imba, AEP, t_step, t_now, da_price, windon_mmw, windoff_mmw, pv_mmw,
+                aFRR_E_pos_period, aFRR_E_neg_period, fuzzy, imbalance_clearing,con_FRR_pos,con_FRR_neg):
 
         ## 25.10.2020 restructure sb_calc (FR)
         #  if smart -> imbalance clearing ("0" for single and "1" for combined/NL)
@@ -246,13 +247,21 @@ class BalancingGroup:
         if not self.smart:
             self.sb_P = 0.0
 
-        else: # smart true: Activation of SB Assets
+        else: # smart true: Activation of SB Assets using Fuzzy Logic (if fuzzy = true)
             SB_Asset_ID = []
             SB_per_asset = []
 
-        # using Fuzzy Logic (if fuzzy = true)
+            # traffic light approach: SB is activated once and reset at the end of an ISP
+            if (imbalance_clearing == 2 or imbalance_clearing == 3) and not self.sb_P == 0:
+                #check if ISP end is reached -> SB back to zero
+                if (t_now + 60) % 900 == 0:
+                    for i in self.array_sb_assets:
+                        SB_Asset_ID.append(i.name)
+                        SB_per_asset.append(0.0)
+                else:
+                    pass
         # in case fuzzy is true + NL clearing: check if dual pricing applies
-            if not (fuzzy and (imbalance_clearing == 1) and ((aFRR_E_neg_period < -5) and (aFRR_E_pos_period > 5))):
+            elif not (fuzzy and (imbalance_clearing == 1) and ((aFRR_E_neg_period < -5) and (aFRR_E_pos_period > 5))):
                 # 1. The positive and negative SB potentials of all assets get updated. - see generato.py / loadload.py
                 for i in self.array_sb_assets:
                     i.sb_pot_calc()
@@ -319,7 +328,7 @@ class BalancingGroup:
                             sb_percent = fuzzlogi_marketdesign.fuzz(sb_marge, FRCE_sb, old_FRCE_sb, old_d_Imba, d_Imba,
                                                                     time_in_ISP,
                                                                     p_average, imbalance_clearing, self.sb_P,
-                                                                    P_min_sum)
+                                                                    P_min_sum,con_FRR_neg)
                             sb_activation = i.sb_pot_neg * sb_percent
                         else:
                             sb_activation = i.sb_pot_neg
@@ -330,7 +339,7 @@ class BalancingGroup:
                             sb_percent =fuzzlogi_marketdesign.fuzz(sb_marge, FRCE_sb, old_FRCE_sb, old_d_Imba, d_Imba,
                                                                     time_in_ISP,
                                                                     p_average, imbalance_clearing, self.sb_P,
-                                                                    P_max_sum)
+                                                                    P_max_sum,con_FRR_pos)
                             sb_activation = i.sb_pot_pos * sb_percent
                         else:
                             sb_activation = i.sb_pot_pos
@@ -338,14 +347,18 @@ class BalancingGroup:
                         sb_activation = 0.0
 
                     # Optional limitation of the targeted Smart Balancing power using the total FRCE
-                    if sb_sum + sb_activation < FRCE_sb:
+                    if FRCE_sb > 0 and sb_sum + sb_activation > FRCE_sb:
                         sb_activation = FRCE_sb - sb_sum
+                    elif FRCE_sb < 0 and sb_sum + sb_activation < FRCE_sb:
+                        sb_activation = FRCE_sb - sb_sum
+                    else:
+                        pass
 
                     SB_Asset_ID.append(i.name)
                     SB_per_asset.append(sb_activation)
                     sb_sum += sb_activation
 
-            # else, NL combined pricing applies -> SB back to zero
+        # else, NL combined pricing applies -> SB back to zero
             else:
                 for i in self.array_sb_assets:
                     SB_Asset_ID.append(i.name)

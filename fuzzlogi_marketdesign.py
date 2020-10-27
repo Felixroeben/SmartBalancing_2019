@@ -11,13 +11,14 @@ netmargin = ctrl.Antecedent(np.arange(0, 101, 1), 'netmargin_Euro/MWh')
 time = ctrl.Antecedent(np.arange(0, 15, 1), 'time_min')
 d_Imba = ctrl.Antecedent(np.arange(-1001, 1001, 1), 'd_imba_MW')
 s_Imba = ctrl.Antecedent(np.arange(0, 1, 1), 's_imba')
+FRR_ratio = ctrl.Antecedent(np.arange(0, 181, 1), 'FRR_ratio_percent')
 
 smartbalancing = ctrl.Consequent(np.arange(0, 101, 1), 'smartbalancing_percent')
 
 # Auto-membership function population is possible with .automf(3, 5, or 7)
 netmargin.automf(5)
 smartbalancing.automf(5)
-d_Imba.automf(5)
+#d_Imba.automf(5)
 
 
 # Custom membership functions can be built interactively with a familiar,
@@ -54,6 +55,14 @@ d_Imba['pos_high'] = fuzz.trimf(d_Imba.universe, [300, 1001, 1001])
 s_Imba['change'] = fuzz.trimf(s_Imba.universe, [0, 1, 1])
 s_Imba['nochange'] = fuzz.trimf(s_Imba.universe, [0, 0, 1])
 
+
+#define activated vs contracted FRR ratio
+FRR_ratio['low'] = fuzz.trimf(FRR_ratio.universe, [0,50, 70])
+FRR_ratio['over60'] = fuzz.trimf(FRR_ratio.universe, [50,70, 90])
+FRR_ratio['over80'] = fuzz.trimf(FRR_ratio.universe, [70,90,110])
+FRR_ratio['over100'] = fuzz.trimf(FRR_ratio.universe, [90,110, 130])
+FRR_ratio['over120'] = fuzz.trimf(FRR_ratio.universe, [110,130, 170])
+FRR_ratio['over150'] = fuzz.trimf(FRR_ratio.universe, [130,170, 181])
 
 # You can see how these look with .view()
 time.view()
@@ -95,7 +104,7 @@ ruletNL3 = ctrl.Rule(time['late']&(imbalance['neg_average']|imbalance['pos_avera
 ruletNL4 = ctrl.Rule(time['late']&(imbalance['neg_high']| imbalance['pos_high']), smartbalancing['average'])
 ruletNL5 = ctrl.Rule(time['late']&imbalance['close_to_zero'],smartbalancing['poor'])
 
-# p_average based risk rules for single pricing
+# p_average based risk rules for single imbalance clearing
 rules1 = ctrl.Rule(s_Imba['nochange']& (p_average['neg_high'] | p_average['pos_high']), smartbalancing['good'])
 rules2 = ctrl.Rule(s_Imba['nochange']& (p_average['neg_average'] | p_average['pos_average']), smartbalancing['decent'])
 rules3 = ctrl.Rule(p_average['close_to_zero'], smartbalancing['poor'])
@@ -114,12 +123,19 @@ ruleNL3 = ctrl.Rule(imbalance['close_to_zero'], smartbalancing['poor'])
 rulesg1 = ctrl.Rule(s_Imba['change'] , smartbalancing['poor'])
 rulesg2 = ctrl.Rule(s_Imba['nochange'] , smartbalancing['average'])
 
+#traffic light rules
+ruleTL0 = ctrl.Rule(FRR_ratio['low'], smartbalancing['poor'])
+ruleTL1 = ctrl.Rule(FRR_ratio['over80'], smartbalancing['mediocre'])
+ruleTL2 = ctrl.Rule(FRR_ratio['over100'], smartbalancing['average'])
+ruleTL3 = ctrl.Rule(FRR_ratio['over120'], smartbalancing['decent'])
+ruleTL4 = ctrl.Rule(FRR_ratio['over150'], smartbalancing['good'])
 
-# Now that we have our rules defined, we can create a control system per pricing scheme (single vs. dual vs. NL) via:
-# for dual pricing
+
+# Now that we have our rules defined, we can create a control system per imbalance clearing scheme (single vs. dual vs. NL) via:
+# for dual imbalance clearing
 sb_ctrl_dual = ctrl.ControlSystem([rule1, rule2, rule3, rule4, rule5])
 
-# for single pricing
+# for single imbalance clearing
 sb_ctrl_single = ctrl.ControlSystem([ rulet1, rulet2, rulets3, rulets4, rulets5, rules1, rules2, rules3])
 #rule1, rule2, rule3, rule4, rule5,
 
@@ -128,28 +144,28 @@ sb_ctrl_NL = ctrl.ControlSystem([rulet1, rulet2, ruletNL3, ruletNL4, ruletNL5, r
 #rule1, rule2, rule3, rule4, rule5,
 #rulei1,rulei2,rulei3,
 
+sb_ctrl_TL = ctrl.ControlSystem([ruleTL0,ruleTL1,ruleTL2,ruleTL3,ruleTL4])
+
 # In order to simulate this control system, create a ControlSystemSimulation.
 # Object represents controller applied to a specific set of cirucmstances.
 sb_dual = ctrl.ControlSystemSimulation(sb_ctrl_dual)
 sb_single = ctrl.ControlSystemSimulation(sb_ctrl_single)
 sb_NL = ctrl.ControlSystemSimulation(sb_ctrl_NL)
+sb_TL = ctrl.ControlSystemSimulation(sb_ctrl_TL)
 
 # Function to call fuzzy
-def fuzz(Marge, FRCE_sb, old_FRCE_sb, old_d_Imba, d_Imba, Time, p_average, pricing, sb_P, Flexpotential):
-#def fuzz(Marge, Imba, Time, p_average, pricing): #imba, price, GKL):
+def fuzz(Marge, FRCE_sb, old_FRCE_sb, old_d_Imba, d_Imba, Time, p_average, clearing, sb_P, Flexpotential, con_FRR):
+#def fuzz(Marge, Imba, Time, p_average, clearing): #imba, price, GKL):
     # Pass inputs to the FUZZY ControlSystem using Antecedent labels with Pythonic API
-
-    #Vorzeichen bestimmen - so nicht sinnvoll, weil keine Unterscheidung ob FRCE_sb pos oder neg
-    #neuer Ansatz: hat Imbal selbes Vorzeichen wie Flexpotential - siehe ratio
-    #if old_d_Imba > 0 and d_Imba > 0:
-    #    s_Imba = 0
-    #elif old_d_Imba < 0 and d_Imba < 0:
-    #    s_Imba = 0
-    #else:
-    #    s_Imba = 1
 
     #calculate individual parameter
     Imba = FRCE_sb - sb_P
+
+# calculate activated vs contracted FRR ratio in percent for traffic light approach
+    if con_FRR == 0:
+        FRR_ratio = 0
+    else:
+        FRR_ratio = 100 * FRCE_sb / con_FRR
 
 #calculate ratio to limit SB of assets with Flexpotential higher Imba
     if Imba == 0:
@@ -157,7 +173,7 @@ def fuzz(Marge, FRCE_sb, old_FRCE_sb, old_d_Imba, d_Imba, Time, p_average, prici
     else:
         ratio = (Flexpotential)/Imba
 
-# ratio smaller 0 means over-reaction. limit SB with ratio 4 and according to rules with s_Imba = 1
+# ratio smaller 0 means over-reaction. limit SB with ratio 10 and according to rules with s_Imba = 1
     if ratio < 0:
         ratio = 10
         s_Imba = 1
@@ -186,9 +202,12 @@ def fuzz(Marge, FRCE_sb, old_FRCE_sb, old_d_Imba, d_Imba, Time, p_average, prici
     if p_average < -1000:
         p_average = -1000
 
-#classical dual pricing does not include the risk of decreasing imbalance price or changing sign of imbalance price
+    if FRR_ratio > 180:
+        FRR_ratio = 180
+
+#classical dual clearing does not include the risk of decreasing imbalance price or changing sign of imbalance price
 #therefore, only the netmergin is considered as profit. no risk evalution via imbalance or time
-    if pricing == "dual":
+    if clearing == "dual":
         #sb_dual.input['imbalance_MW'] = Imba
         sb_dual.input['netmargin_Euro/MWh'] = Marge
         #sb_dual.input['time_min'] = Time
@@ -198,7 +217,8 @@ def fuzz(Marge, FRCE_sb, old_FRCE_sb, old_d_Imba, d_Imba, Time, p_average, prici
 
         return(sb_dual.output['smartbalancing_percent'] / 100)
 
-    if pricing == 0:
+# rules for single imbalance clearing apply
+    if clearing == 0:
         #sb_single.input['imbalance_MW'] = Imba
         #sb_single.input['netmargin_Euro/MWh'] = Marge
         sb_single.input['time_min'] = Time
@@ -210,7 +230,8 @@ def fuzz(Marge, FRCE_sb, old_FRCE_sb, old_d_Imba, d_Imba, Time, p_average, prici
 
         return (sb_single.output['smartbalancing_percent'] / (100*ratio))
 
-    if pricing == 1:
+# rules for combined imbalance clearing apply (NL)
+    if clearing == 1:
         #sb_NL.input['imbalance_MW'] = Imba
         #sb_NL.input['netmargin_Euro/MWh'] = Marge
         sb_NL.input['time_min'] = Time
@@ -222,5 +243,22 @@ def fuzz(Marge, FRCE_sb, old_FRCE_sb, old_d_Imba, d_Imba, Time, p_average, prici
         sb_NL.compute()
 
         return (sb_NL.output['smartbalancing_percent'] / (100*ratio))
+
+# rules for traffic light with 3 or 5 increments
+    if clearing == 2 or clearing == 3:
+        if (clearing == 2 and FRR_ratio < 80) or (clearing == 3 and FRR_ratio < 60):
+            return (0)
+        else:
+
+            if clearing == 2 and FRR_ratio > 110:
+                FRR_ratio = 110
+
+            sb_TL.input['FRR_ratio_percent'] = FRR_ratio
+
+            # Crunch the numbers in FUZZY
+            sb_TL.compute()
+
+            return (sb_TL.output['smartbalancing_percent'] / (100))
+
 
 #plt.show()
