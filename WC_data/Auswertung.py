@@ -40,10 +40,11 @@ scenario_data_all.index = pd.date_range(start='00:00 01.01.2019', end = '23:59 1
 # Show scenario
 # ===============================================================================
 
-start = "2019-01-01 0:00"
-end = "2019-01-01 1:30"
+start = ["2019-01-01 0:00", "2019-02-01 0:00"]
+end = ["2019-01-01 1:30", "2019-02-01 1:30"]
 
-scenario_data_all[start:end].drop(['time [s]','f [Hz]','aFRR FRCE (open loop) [MW]','mFRR P [MW]','Unnamed: 11'],axis=1).plot(secondary_y='AEP [EUR/MWh]')
+for i in range(len(start)):
+        scenario_data_all[start[i]:end[i]].drop(['time [s]','f [Hz]','aFRR FRCE (open loop) [MW]','mFRR P [MW]','Unnamed: 11'],axis=1).plot(secondary_y='AEP [EUR/MWh]')
 
 # ===============================================================================
 # Calculate Balancers Profit
