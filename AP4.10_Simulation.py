@@ -27,7 +27,7 @@ import balagrou
 import generato
 import loadload
 import smarbala
-import fuzzlogi
+import fuzzlogi_marketdesign
 import fileexch
 import grapfunc
 import math
@@ -49,6 +49,7 @@ FRR_pricing = 0             # Global variable to switch both aFRR & mFRR from pa
 BEPP = 900                  # Balancing Energy Pricing Period (BEPP) in s - only applied for marginal pricing
                             # e.g. 900 (State of the art) or 60 or 4 (=> t_step!)
 imbalance_clearing = 1      # For fuzzy SB: Switch from single imbalance pricing (0) to "combined pricing" as in NL (1)
+                            # (2) for traffic light
 save_data = True            # True: write the simulation data to .csv
 show_fig = False            # True: show all figures at the end of the simulation
 sb_delay = 0.0              # definition of delay of SB signal in s
@@ -63,6 +64,7 @@ t_isp = 15 * 60                         # duration of an Imbalance Settlement Pe
 t_mol = 4 * 60 * 60                     # time in s, after which the MOLs gets updated
 day_count = 0                           # number of the day of the year
 month_count = 0                         # number of the month of the year
+day_in_month = 0                        # day of the month
 
 # ...Vectors for the simulation time variables
 t_vector = []
@@ -221,9 +223,49 @@ print('#-----------Day %d-----------#' % day_count)
 # ...Simulation of every time step
 while t_now < t_stop:
 
+    # Update of month count and day_in_month - implement datetime index in the future (with pandas) would avoid this:
+    if day_count > 0 and day_count <= 31:
+        month_count = 1
+        day_in_month = day_count
+    elif day_count > 31 and day_count <= 59:
+        month_count = 2
+        day_in_month = day_count -31
+    elif day_count > 59 and day_count <= 90:
+        month_count = 3
+        day_in_month = day_count - 59
+    elif day_count > 90 and day_count <= 120:
+        month_count = 4
+        day_in_month = day_count - 90
+    elif day_count > 120 and day_count <= 151:
+        month_count = 5
+        day_in_month = day_count - 120
+    elif day_count > 151 and day_count <= 181:
+        month_count = 6
+        day_in_month = day_count - 151
+    elif day_count > 181 and day_count <= 212:
+        month_count = 7
+        day_in_month = day_count - 181
+    elif day_count > 212 and day_count <= 243:
+        month_count = 8
+        day_in_month = day_count - 212
+    elif day_count > 243 and day_count <= 273:
+        month_count = 9
+        day_in_month = day_count - 243
+    elif day_count > 273 and day_count <= 304:
+        month_count = 10
+        day_in_month = day_count - 273
+    elif day_count > 304 and day_count <= 334:
+        month_count = 11
+        day_in_month = day_count - 304
+    elif day_count > 334 and day_count <= 365:
+        month_count = 12
+        day_in_month = day_count - 334
+    else:
+        pass
+
     if t_day >= 86400:
         day_count += 1
-        print('#-----------Day %d-----------#' % day_count)
+        print('#Date: ',day_in_month,'.',month_count,' ---------Day:',day_count,'-----------#')
         t_day = 0.0
 
     if (t_now % t_mol) == 0:
@@ -231,34 +273,6 @@ while t_now < t_stop:
         (CA1.array_aFRR_molpos, CA1.array_aFRR_molneg) = fileexch.read_afrr_mol(scenario, t_day, t_mol, day_count)
         (CA1.array_mFRR_molpos, CA1.array_mFRR_molneg) = fileexch.read_mfrr_mol(scenario, t_day, t_mol, day_count)
         SZ.mol_update()
-
-    # Update of month count
-    if day_count > 0 and day_count <= 31:
-        month_count = 1
-    elif day_count > 31 and day_count <= 59:
-        month_count = 2
-    elif day_count > 59 and day_count <= 90:
-        month_count = 3
-    elif day_count > 90 and day_count <= 120:
-        month_count = 4
-    elif day_count > 120 and day_count <= 151:
-        month_count = 5
-    elif day_count > 151 and day_count <= 181:
-        month_count = 6
-    elif day_count > 181 and day_count <= 212:
-        month_count = 7
-    elif day_count > 212 and day_count <= 243:
-        month_count = 8
-    elif day_count > 243 and day_count <= 273:
-        month_count = 9
-    elif day_count > 273 and day_count <= 304:
-        month_count = 10
-    elif day_count > 304 and day_count <= 334:
-        month_count = 11
-    elif day_count > 334 and day_count <= 365:
-        month_count = 12
-    else:
-        pass
 
     # Update of "Monatsmarktwert" variables
     CA1.windon_mmw = array_windon_mmw[month_count - 1]
