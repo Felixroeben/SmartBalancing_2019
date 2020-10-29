@@ -31,16 +31,16 @@ time['late'] = fuzz.trimf(time.universe, [7,14,14])
 
 # define imbalance: wording and range
 imbalance['neg_high'] = fuzz.trimf(imbalance.universe, [-1001, -1001, -700])
-imbalance['neg_average'] = fuzz.trimf(imbalance.universe, [-1001, -500, -200])
-imbalance['close_to_zero'] = fuzz.trimf(imbalance.universe, [-300, 0, 300])
-imbalance['pos_average'] = fuzz.trimf(imbalance.universe, [200, 500, 1001])
+imbalance['neg_average'] = fuzz.trimf(imbalance.universe, [-1001, -500, -100])
+imbalance['close_to_zero'] = fuzz.trimf(imbalance.universe, [-200, 0, 200])
+imbalance['pos_average'] = fuzz.trimf(imbalance.universe, [100, 500, 1001])
 imbalance['pos_high'] = fuzz.trimf(imbalance.universe, [700, 1001, 1001])
 
 # define p_average: wording and range
 p_average['neg_high'] = fuzz.trimf(p_average.universe, [-1001, -1001, -700])
-p_average['neg_average'] = fuzz.trimf(p_average.universe, [-1001, -500, -200])
-p_average['close_to_zero'] = fuzz.trimf(p_average.universe, [-300, 0, 300])
-p_average['pos_average'] = fuzz.trimf(p_average.universe, [200, 500, 1001])
+p_average['neg_average'] = fuzz.trimf(p_average.universe, [-1001, -500, -100])
+p_average['close_to_zero'] = fuzz.trimf(p_average.universe, [-200, 0, 200])
+p_average['pos_average'] = fuzz.trimf(p_average.universe, [100, 500, 1001])
 p_average['pos_high'] = fuzz.trimf(p_average.universe, [700, 1001, 1001])
 
 # define delta imbalance: wording and range
@@ -97,21 +97,21 @@ rule5 = ctrl.Rule(netmargin['good'], smartbalancing['good'])
 rulet1 = ctrl.Rule(time['early'], smartbalancing['mediocre'])
 rulet2 = ctrl.Rule(time['middle'], smartbalancing['mediocre'])
 # step 3,4 and 5 differ depending on clearing scheme (s single vs. NL combined approach)
-rulets3 = ctrl.Rule(time['late']&(p_average['neg_average']|p_average['pos_average']), smartbalancing['mediocre'])
-rulets4 = ctrl.Rule(time['late']&(p_average['neg_high']| p_average['pos_high']), smartbalancing['average'])
+rulets3 = ctrl.Rule(time['late']&p_average['neg_average']|time['late']&p_average['pos_average'], smartbalancing['mediocre'])
+rulets4 = ctrl.Rule(time['late']&p_average['neg_high']|time['late']& p_average['pos_high'], smartbalancing['average'])
 rulets5 = ctrl.Rule(time['late']&p_average['close_to_zero'],smartbalancing['poor'])
-ruletNL3 = ctrl.Rule(time['late']&(imbalance['neg_average']|imbalance['pos_average']), smartbalancing['mediocre'])
-ruletNL4 = ctrl.Rule(time['late']&(imbalance['neg_high']| imbalance['pos_high']), smartbalancing['average'])
+ruletNL3 = ctrl.Rule(time['late']&imbalance['neg_average']|time['late']&imbalance['pos_average'], smartbalancing['mediocre'])
+ruletNL4 = ctrl.Rule(time['late']&imbalance['neg_high']| time['late']&imbalance['pos_high'], smartbalancing['average'])
 ruletNL5 = ctrl.Rule(time['late']&imbalance['close_to_zero'],smartbalancing['poor'])
 
 # p_average based risk rules for single imbalance clearing
-rules1 = ctrl.Rule(s_Imba['nochange']& (p_average['neg_high'] | p_average['pos_high']), smartbalancing['good'])
-rules2 = ctrl.Rule(s_Imba['nochange']& (p_average['neg_average'] | p_average['pos_average']), smartbalancing['decent'])
+rules1 = ctrl.Rule(s_Imba['nochange']& p_average['neg_high'] | s_Imba['nochange']&p_average['pos_high'], smartbalancing['good'])
+rules2 = ctrl.Rule(s_Imba['nochange']& p_average['neg_average'] | s_Imba['nochange']&p_average['pos_average'], smartbalancing['decent'])
 rules3 = ctrl.Rule(p_average['close_to_zero'], smartbalancing['poor'])
 
 # Imbalance based risk rules for Dutch approach
-ruleNL1 = ctrl.Rule(s_Imba['nochange']& (imbalance['neg_high'] | imbalance['pos_high']), smartbalancing['good'])
-ruleNL2 = ctrl.Rule(s_Imba['nochange'] & (imbalance['neg_average'] | imbalance['pos_average']), smartbalancing['decent'])
+ruleNL1 = ctrl.Rule(s_Imba['nochange']& imbalance['neg_high'] | imbalance['pos_high'], smartbalancing['good'])
+ruleNL2 = ctrl.Rule(s_Imba['nochange'] & imbalance['neg_average'] | imbalance['pos_average'], smartbalancing['decent'])
 ruleNL3 = ctrl.Rule(imbalance['close_to_zero'], smartbalancing['poor'])
 
 # delta imba rules: if change is high, SB is poor (uncertanty)
@@ -121,7 +121,7 @@ ruleNL3 = ctrl.Rule(imbalance['close_to_zero'], smartbalancing['poor'])
 
 # delta imba sign rules: if change is high, SB is poor (uncertanty)
 rulesg1 = ctrl.Rule(s_Imba['change'] , smartbalancing['poor'])
-rulesg2 = ctrl.Rule(s_Imba['nochange'] , smartbalancing['average'])
+rulesg2 = ctrl.Rule(s_Imba['nochange'] , smartbalancing['decent'])
 
 #traffic light rules
 ruleTL0 = ctrl.Rule(FRR_ratio['low'], smartbalancing['poor'])
@@ -158,7 +158,7 @@ def fuzz(Marge, FRCE_sb, old_FRCE_sb, old_d_Imba, d_Imba, Time, p_average, clear
 #def fuzz(Marge, Imba, Time, p_average, clearing): #imba, price, GKL):
     # Pass inputs to the FUZZY ControlSystem using Antecedent labels with Pythonic API
 
-    #calculate individual parameter
+    #calculate individual parameter of balagroup, representing its knowledge
     Imba = FRCE_sb - sb_P
 
 # calculate activated vs contracted FRR ratio in percent for traffic light approach
@@ -173,9 +173,9 @@ def fuzz(Marge, FRCE_sb, old_FRCE_sb, old_d_Imba, d_Imba, Time, p_average, clear
     else:
         ratio = (Flexpotential)/Imba
 
-# ratio smaller 0 means over-reaction. limit SB with ratio 10 and according to rules with s_Imba = 1
+# ratio smaller 0 means over-reaction. limit SB with ratio 4 and according to rules with s_Imba = 1
     if ratio < 0:
-        ratio = 10
+        ratio = 4
         s_Imba = 1
     elif ratio < 1:
         ratio = 1
@@ -228,10 +228,10 @@ def fuzz(Marge, FRCE_sb, old_FRCE_sb, old_d_Imba, d_Imba, Time, p_average, clear
         # Crunch the numbers in FUZZY
         sb_single.compute()
 
-        return (sb_single.output['smartbalancing_percent'] / (100*ratio))
+        return (sb_single.output['smartbalancing_percent'] / (100))
 
 # rules for combined imbalance clearing apply (NL)
-    if clearing == 1:
+    elif clearing == 1:
         #sb_NL.input['imbalance_MW'] = Imba
         #sb_NL.input['netmargin_Euro/MWh'] = Marge
         sb_NL.input['time_min'] = Time
@@ -242,15 +242,15 @@ def fuzz(Marge, FRCE_sb, old_FRCE_sb, old_d_Imba, d_Imba, Time, p_average, clear
         # Crunch the numbers in FUZZY
         sb_NL.compute()
 
-        return (sb_NL.output['smartbalancing_percent'] / (100*ratio))
+        return (sb_NL.output['smartbalancing_percent'] / (100))
 
 # rules for traffic light with 3 or 5 increments
-    if clearing == 2 or clearing == 3:
-        if (clearing == 2 and FRR_ratio < 80) or (clearing == 3 and FRR_ratio < 60):
+    elif clearing == 2 or clearing == 3:
+        if ((clearing == 2) and (FRR_ratio < 80)) or ((clearing == 3) and (FRR_ratio < 60)):
             return (0)
         else:
 
-            if clearing == 2 and FRR_ratio > 110:
+            if (clearing == 2) and (FRR_ratio > 110):
                 FRR_ratio = 110
 
             sb_TL.input['FRR_ratio_percent'] = FRR_ratio

@@ -247,21 +247,29 @@ class BalancingGroup:
         if not self.smart:
             self.sb_P = 0.0
 
-        else: # smart true: Activation of SB Assets using Fuzzy Logic (if fuzzy = true)
+        #SB set back to zero at the end of each ISP
+        #elif (t_now + t_step) % 900 == 0 and not self.sb_P == 0:
+        #    SB_Asset_ID = []
+        #    SB_per_asset = []
+        #    for i in self.array_sb_assets:
+        #        SB_Asset_ID.append(i.name)
+        #        SB_per_asset.append(0.0)
+
+        else:  # smart true: Activation of SB Assets using Fuzzy Logic (if fuzzy = true)
             SB_Asset_ID = []
             SB_per_asset = []
 
             # traffic light approach: SB is activated once and reset at the end of an ISP
-            if (imbalance_clearing == 2 or imbalance_clearing == 3) and not self.sb_P == 0:
+            # todo: make t_isp available and replace 900
+            if (((t_now + t_step) % 900) == 0):  # and not (self.sb_P == 0):
                 #check if ISP end is reached -> SB back to zero
-                if (t_now + 60) % 900 == 0:
-                    for i in self.array_sb_assets:
-                        SB_Asset_ID.append(i.name)
-                        SB_per_asset.append(0.0)
-                else:
-                    pass
-        # in case fuzzy is true + NL clearing: check if dual pricing applies
-            elif not (fuzzy and (imbalance_clearing == 1) and ((aFRR_E_neg_period < -5) and (aFRR_E_pos_period > 5))):
+                #print("self.name: ",self.name,' und self.sb_P: ',self.sb_P,' und t_now: ',t_now)
+                for i in self.array_sb_assets:
+                    SB_Asset_ID.append(i.name)
+                    SB_per_asset.append(0.0)
+
+        # in case of NL clearing: check if dual pricing applies
+            elif not (imbalance_clearing == 1 and (aFRR_E_neg_period < -5) and (aFRR_E_pos_period > 5)):
                 # 1. The positive and negative SB potentials of all assets get updated. - see generato.py / loadload.py
                 for i in self.array_sb_assets:
                     i.sb_pot_calc()
@@ -322,6 +330,7 @@ class BalancingGroup:
                         neg_margin = i.sb_costs
 
                     # Decision making for Balancing Group, with individual neg_ and pos_margin
+                    #todo: double check decision making with traffic light approach (no AEP known)
                     if AEP < neg_margin and i.sb_pot_neg < 0:
                         if fuzzy:
                             sb_marge = -AEP + neg_margin
