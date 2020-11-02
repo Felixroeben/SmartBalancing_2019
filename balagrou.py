@@ -259,7 +259,7 @@ class BalancingGroup:
             SB_Asset_ID = []
             SB_per_asset = []
 
-            # traffic light approach: SB is activated once and reset at the end of an ISP
+            # SB is reset at the end of an ISP
             # todo: make t_isp available and replace 900
             if (((t_now + t_step) % 900) == 0):  # and not (self.sb_P == 0):
                 #check if ISP end is reached -> SB back to zero
@@ -267,6 +267,9 @@ class BalancingGroup:
                 for i in self.array_sb_assets:
                     SB_Asset_ID.append(i.name)
                     SB_per_asset.append(0.0)
+            #traffic light approach: SB is activated once until the end of an ISP
+            elif (imbalance_clearing == 2 or imbalance_clearing == 3) and (self.sb_P < -10.0 or self.sb_P > 10.0):
+                pass
 
         # in case of NL clearing: check if dual pricing applies
             elif not (imbalance_clearing == 1 and (aFRR_E_neg_period < -5) and (aFRR_E_pos_period > 5)):
@@ -285,13 +288,15 @@ class BalancingGroup:
                 if fuzzy:
                     # Calc time within 15 Min ISP in Minute (between 0 and 14) for fuzzy
                     time_in_ISP = (t_now / 60) % 15
-                    #todo: fair to compare FRCE_sb (ol) with p_average
+                    #todo: fair to compare FRCE_sb (ol) with p_average ?
                     # calc p_average in MW in ISP for fuzzy (from aFRR of ISP in MWh)
                     p_average = (aFRR_E_pos_period + aFRR_E_neg_period)/((time_in_ISP + 1)/60)
 
                 sb_sum = 0.0
                 pos_margin = 0
                 neg_margin = 0
+                FRR_ratio = 1
+                sb_marge = 1
 
                 for i in self.array_sb_assets:
                     if self.name == 'Solar' or self.name == 'Wind_Onshore' or self.name == 'Wind_Offshore':
@@ -329,15 +334,48 @@ class BalancingGroup:
                         pos_margin = i.sb_costs
                         neg_margin = i.sb_costs
 
-                    # Decision making for Balancing Group, with individual neg_ and pos_margin
-                    #todo: double check decision making with traffic light approach (no AEP known)
-                    if AEP < neg_margin and i.sb_pot_neg < 0:
+                    # Decision making for Balancing Group, with individual neg_ and pos_potential
+                    #decision making with traffic light approach (no AEP known)
+                    if (imbalance_clearing == 2 or imbalance_clearing == 3):
+                        if FRCE_sb < 0 and con_FRR_neg < 0:
+                            FRR_ratio = FRCE_sb/con_FRR_neg * 100
+                            if (imbalance_clearing == 2 and FRR_ratio > 0.8) or (imbalance_clearing == 3 and FRR_ratio > 0.6):
+                                if fuzzy:
+                                    sb_percent = fuzzlogi_marketdesign.fuzz(sb_marge, FRCE_sb, old_FRCE_sb, old_d_Imba,
+                                                                            d_Imba,
+                                                                            time_in_ISP,
+                                                                            p_average, imbalance_clearing, self.sb_P,
+                                                                            P_min_sum, FRR_ratio)
+                                    sb_activation = i.sb_pot_neg * sb_percent
+                                else:
+                                    sb_activation = i.sb_pot_neg
+                            else:
+                                sb_activation = 0.0
+                        elif FRCE_sb > 0 and con_FRR_pos > 0:
+                            FRR_ratio = FRCE_sb/con_FRR_pos * 100
+                            if (imbalance_clearing == 2 and FRR_ratio > 0.8) or (imbalance_clearing == 3 and FRR_ratio > 0.6):
+                                if fuzzy:
+                                    sb_percent = fuzzlogi_marketdesign.fuzz(sb_marge, FRCE_sb, old_FRCE_sb, old_d_Imba,
+                                                                            d_Imba,
+                                                                            time_in_ISP,
+                                                                            p_average, imbalance_clearing, self.sb_P,
+                                                                            P_min_sum, FRR_ratio)
+                                    sb_activation = i.sb_pot_pos * sb_percent
+                                else:
+                                    sb_activation = i.sb_pot_pos
+                            else:
+                                sb_activation = 0.0
+                        else:
+                            sb_activation = 0.0
+
+                    # decision making with transparent approach (AEP und FRCE known)
+                    elif AEP < neg_margin and i.sb_pot_neg < 0:
                         if fuzzy:
                             sb_marge = -AEP + neg_margin
                             sb_percent = fuzzlogi_marketdesign.fuzz(sb_marge, FRCE_sb, old_FRCE_sb, old_d_Imba, d_Imba,
                                                                     time_in_ISP,
                                                                     p_average, imbalance_clearing, self.sb_P,
-                                                                    P_min_sum,con_FRR_neg)
+                                                                    P_min_sum,FRR_ratio)
                             sb_activation = i.sb_pot_neg * sb_percent
                         else:
                             sb_activation = i.sb_pot_neg
