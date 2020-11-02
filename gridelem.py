@@ -1271,6 +1271,7 @@ class ControlArea(CalculatingGridElement):
                     self.FRCE_avg = self.FRCE_sum / i
                     i += 1
 
+        # todo: why do mFRR calculations differ for pos. and neg. mFRR_P_.._setp? FRCE_avg vs. aFRR_E_period ?
         if ((t_now - self.mFRR_time) % t_isp) == 0:
             if self.FRCE_avg > 0 and self.FRCE_avg > self.mFRR_pos_trigger * self.aFRR_cap_pos:
                 self.mFRR_P_pos_setp = self.FRCE_avg - self.aFRR_cap_pos * self.mFRR_pos_target
@@ -1320,7 +1321,9 @@ class ControlArea(CalculatingGridElement):
         # Calculation of the AEP
         self.aep_calc(t_now=t_now,
                       t_step=t_step,
-                      t_isp=t_isp)
+                      t_isp=t_isp,
+                      da_price=self.da_price,
+                      FRCE = self.FRCE)
 
     # Method calculating the mFRR prices using the pay-as-bid priciple
     # Only called at the beginning of an ISP, since mFRR is static for each ISP
@@ -1651,7 +1654,7 @@ class ControlArea(CalculatingGridElement):
         self.mFRR_costs_neg_period += -abs(self.mFRR_P_neg) * self.mFRR_price_neg_avg * t_step / 3600
 
     # Method calculating the "Ausgleichsenergiepreis" (AEP)
-    def aep_calc(self, t_now, t_step, t_isp):
+    def aep_calc(self, t_now, t_step, t_isp, da_price, FRCE):
         # Calculation of AEP1
         if self.aFRR_E_pos == 0 and self.aFRR_E_neg == 0 and self.mFRR_E_pos == 0 and self.mFRR_E_neg == 0:
             self.AEP = 0.0
@@ -1695,10 +1698,40 @@ class ControlArea(CalculatingGridElement):
 
         if self.AEP >= 0 and abs(self.AEP) > abs(self.AEP_max_period):
             self.AEP = self.AEP_max_period
-        elif self.AEP <= 0 and abs(self.AEP) > abs(self.AEP_max_period):
+        elif self.AEP < 0 and abs(self.AEP) > abs(self.AEP_max_period):
             self.AEP = -self.AEP_max_period
         else:
             pass
+
+        # Calculation of AEP20 "Branchenlösung" to avoid high AEP (with da_price instead of id_price)
+        if self.AEP < 0 and (-125 < FRR_energy or FRR_energy < 125):
+            AEP_max = abs(da_price - 100 - 150 * (FRR_energy/125))
+            if abs(AEP_max) < abs(self.AEP):
+                self.AEP = -AEP_max
+
+        elif self.AEP >= 0 and (-125 < FRR_energy or FRR_energy < 125):
+            AEP_max = abs(da_price + 100 + 150 * (FRR_energy / 125))
+            if abs(AEP_max) < abs(self.AEP):
+                self.AEP = AEP_max
+        else:
+            pass
+
+        # Calculation of AEP3 "Börsenpreiskopplung" is not considered, but
+        # Calculation of AEP4 "bonus" is taken into account
+        if (0.8 * self.con_FRR_pos) < (FRR_energy*4):
+            if self.AEP < 100:
+                self.AEP += 100
+            else:
+                self.AEP = 1.5 * self.AEP
+
+        elif (0.8 * self.con_FRR_neg) > (FRR_energy*4):
+            if abs(self.AEP) < 100:
+                self.AEP = self.AEP - 100
+            else:
+                self.AEP = self.AEP-(0.5*abs(self.AEP))
+        else:
+            pass
+
 
     # Method processing the FRCE_cl of the Control Area to create a control signal (FRCE_sb) for Smart Balancing
     def sb_signal(self):
