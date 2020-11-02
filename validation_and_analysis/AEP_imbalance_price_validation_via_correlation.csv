@@ -1,5 +1,0 @@
-;imbalance_price_Euro_per_MWh_hist;imbalance_price_Euro_per_MWh_sim_no_mFRR;imbalance_price_Euro_per_MWh_sim_with_mFRR;imbalance_price_Euro_per_MWh_sim_FR
-imbalance_price_Euro_per_MWh_hist;1.0;0.4758308923298744;0.3741899035766476;0.37003209816015536
-imbalance_price_Euro_per_MWh_sim_no_mFRR;0.4758308923298744;1.0;0.7508095706371803;0.7333733345441784
-imbalance_price_Euro_per_MWh_sim_with_mFRR;0.3741899035766476;0.7508095706371803;1.0;0.8570107314034618
-imbalance_price_Euro_per_MWh_sim_FR;0.37003209816015536;0.7333733345441784;0.8570107314034618;1.0
