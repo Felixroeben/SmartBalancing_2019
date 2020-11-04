@@ -403,10 +403,25 @@ class BalancingGroup:
                         sb_activation = 0.0
 
                     # Optional limitation of the targeted Smart Balancing power using the total FRCE
-                    if FRCE_sb > 0 and sb_sum + sb_activation > FRCE_sb:
-                        sb_activation = FRCE_sb - sb_sum
-                    elif FRCE_sb < 0 and sb_sum + sb_activation < FRCE_sb:
-                        sb_activation = FRCE_sb - sb_sum
+                    # sb_sum could be used here, it represents already activated SB within Balagroup
+                    # cost optimized activation, if assetts are in correct order (MOL)
+                    # limitation of positive SB
+                    limit = 3
+                    if sb_activation > 0:
+                        if imbalance_clearing == 0:
+                            if sb_activation > (p_average / limit):
+                                sb_activation = (p_average / limit)
+                        if imbalance_clearing == 1:
+                            if sb_activation > (FRCE_sb / limit):
+                                sb_activation = (FRCE_sb / limit)
+                    # limitation of negative SB
+                    elif sb_activation < 0:
+                        if imbalance_clearing == 0:
+                            if sb_activation < (p_average / limit):
+                                sb_activation = (p_average / limit)
+                        if imbalance_clearing == 1:
+                            if sb_activation < (FRCE_sb / limit):
+                                sb_activation = (FRCE_sb / limit)
                     else:
                         pass
 

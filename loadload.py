@@ -97,23 +97,6 @@ class LoadFlex(Load):
             self.sb_pot_pos = 0.0
 
     def sb_activate(self, sb_P_activate, t_step, FRCE_sb,p_average,imbalance_clearing):
-        #limitation of positive SB
-        if sb_P_activate > 0:
-            if imbalance_clearing == 0:
-                if sb_P_activate > (p_average/ 3):
-                    sb_P_activate = (p_average / 3)
-            if imbalance_clearing == 1:
-                if sb_P_activate > (FRCE_sb/ 3):
-                    sb_P_activate = (FRCE_sb / 3)
-        #limitation of negative SB
-        if sb_P_activate < 0:
-            if imbalance_clearing == 0:
-                if sb_P_activate < (p_average/ 3):
-                    sb_P_activate = (p_average / 3 )
-            if imbalance_clearing == 1:
-                if sb_P_activate < (FRCE_sb/ 3 ):
-                    sb_P_activate = (FRCE_sb / 3 )
-
         if sb_P_activate > self.sb_P:
             sb_P_test = self.sb_P + self.sb_rate_pos * t_step
             if sb_P_test > sb_P_activate:
