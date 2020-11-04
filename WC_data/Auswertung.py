@@ -12,26 +12,47 @@ import matplotlib.pyplot as plt
 # define location and name of files to set path
 # ===============================================================================
 
-location = "results/"
-#location = "restults_sin/"
-#location = "results_5m/"
+#location = "results/"
+#location = "results_sin/"
+#location = "results_5d/"
+location = "results_1d/"
 
-scenario_files = ['1 no SB','2 TL3','3 TL6','4 DE', '5 NL']
-scenario_path = ['1 no SB','2 TL3','3 TL6','4 DE', '5 NL']
+if location == "results/":
+        scenario_files = ['1 no SB','2 TL3','3 TL6','4 DE', '5 NL']
+        scenario_path = ['1 no SB','2 TL3','3 TL6','4 DE', '5 NL']
+
+if location == "results_sin/" or location == "results_1d/":
+        scenario_files = ['1 no SB','4 DE', '5 NL']
+        scenario_path = ['1 no SB','4 DE', '5 NL']
 
 # ===============================================================================
 #define start and end of example plots
 # ===============================================================================
 example_plot = True
-start = ["2019-01-01 2:00"]  #,"2019-01-01 6:00","2019-01-01 9:00"]
-end = ["2019-01-01 2:45"]  #,"2019-01-01 6:45","2019-01-01 9:45"]
+if location == "results_sin/":
+        start = ["2019-01-01 6:00","2019-01-01 9:00"]
+        end = ["2019-01-01 6:45","2019-01-01 9:45"]
 
+if location == "results/":
+        start = ["2019-06-12 10:00"]
+        end = ["2019-06-12 14:45"]
+
+if location == "results_1d/":
+        start = ["2019-01-01 14:25"]
+        end = ["2019-01-01 14:45"]
 # ===============================================================================
 #define start and end of simulation for time stamp index of /WC_sim_output_all.csv'
 # ===============================================================================
 
 sim_start = '00:00 01.01.2019'
-sim_end_all = '23:59 01.05.2019'
+
+if location == "results_5d/":
+        sim_end_all = '23:59 01.05.2019'
+elif location == "results_1d/":
+        sim_end_all = '23:59 01.01.2019'
+else:
+        sim_end_all = '23:59 12.31.2019'
+
 
 # ===============================================================================
 #no further definitions needed
@@ -60,7 +81,7 @@ for j in range(len(scenario_files)):
                 scenario_data.append(scenario)
 
 # ===============================================================================
-# Show scenario Plot with 1 min resolution
+# Show Example Plot with 1 min resolution
 # ===============================================================================
                 for i in range(len(start)):
                         scenario_data[j][start[i]:end[i]].drop(

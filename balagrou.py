@@ -275,12 +275,12 @@ class BalancingGroup:
                     SB_Asset_ID.append(i.name)
                     SB_per_asset.append(0.0)
 
-            # SB with single pricng: sb_P remains the same, if p_average close to zero
+            # SB with single pricing: sb_P remains the same, if p_average close to zero
             elif imbalance_clearing == 0 and (300 > p_average and p_average > -300):
                 pass
 
             # Smart Balancing with combined pricing: remains the same, if no over-reaction and FRCE "close to zero"
-            elif imbalance_clearing == 1 and (self.sb_P/FRCE_sb)>0 and (300 > FRCE_sb and FRCE_sb > -300):
+            elif imbalance_clearing == 1 and (self.sb_P/FRCE_sb) > 0 and (300 > FRCE_sb and FRCE_sb > -300):
                 pass
 
             # traffic light approaches (TL3 and TL6): SB is activated only once until the end of an ISP
@@ -423,7 +423,7 @@ class BalancingGroup:
             while j <= len(array_sb_activate['SB_Asset_ID']) - 1:
                 for i in self.array_sb_assets:
                     if array_sb_activate.get('SB_Asset_ID')[j] == i.name:
-                        i.sb_activate(array_sb_activate.get('SB_per_asset')[j], t_step)
+                        i.sb_activate(array_sb_activate.get('SB_per_asset')[j], t_step,FRCE_sb,p_average,imbalance_clearing)
                 j += 1
             #calculate total sb_P of Balagroup (all SB assets)
             self.sb_P = 0.0

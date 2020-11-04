@@ -73,14 +73,14 @@ FRR_ratio['over120'] = fuzz.trimf(FRR_ratio.universe, [110,130, 170])
 FRR_ratio['over150'] = fuzz.trimf(FRR_ratio.universe, [130,170, 181])
 
 # You can see how these look with .view()
-time.view()
-plt.figure(1)
-imbalance.view()
-plt.figure(2)
-netmargin.view()
-plt.figure(3)
-smartbalancing.view()
-plt.figure(4)
+#time.view()
+#plt.figure(1)
+#imbalance.view()
+#plt.figure(2)
+#netmargin.view()
+#plt.figure(3)
+#smartbalancing.view()
+#plt.figure(4)
 
 
 # to make these triangles useful, we define the fuzzy relationship between input and output variables.
@@ -188,13 +188,13 @@ def fuzz(Marge, FRCE_sb, old_FRCE_sb, old_d_Imba, d_Imba, Time, p_average, clear
         ratio = 100
     else:
         if clearing == 0:
-            ratio = (p_average/FRCE_sb)*100
+            ratio = (Flexpotential/p_average)*100
         else:
             ratio = (Flexpotential/FRCE_sb)*100
 
-# ratio smaller 0 means over-reaction. limit SB according to rules with s_Imba = 1 and ratio = 600
+# ratio smaller 0 means over-reaction. limit SB according to rules with s_Imba = 1 and ratio = 200
     if ratio < 0:
-        ratio = 600
+        ratio = 200
         s_Imba = 1
     else:
         s_Imba = 0
