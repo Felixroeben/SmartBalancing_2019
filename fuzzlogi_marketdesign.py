@@ -64,7 +64,7 @@ ratio['too_high_small'] = fuzz.trimf(ratio.universe, [100,200,400])
 ratio['too_high_high'] = fuzz.trimf(ratio.universe, [200,400,600])
 
 
-#define activated vs contracted FRR ratio
+#define activated vs contracted FRR ratio for traffic light
 FRR_ratio['low'] = fuzz.trimf(FRR_ratio.universe, [0,50, 70])
 FRR_ratio['over60'] = fuzz.trimf(FRR_ratio.universe, [50,70, 90])
 FRR_ratio['over80'] = fuzz.trimf(FRR_ratio.universe, [70,90,110])
@@ -187,7 +187,10 @@ def fuzz(Marge, FRCE_sb, old_FRCE_sb, old_d_Imba, d_Imba, Time, p_average, clear
     if FRCE_sb == 0:
         ratio = 100
     else:
-        ratio = (Flexpotential*100)/FRCE_sb
+        if clearing == 0:
+            ratio = (p_average/FRCE_sb)*100
+        else:
+            ratio = (Flexpotential/FRCE_sb)*100
 
 # ratio smaller 0 means over-reaction. limit SB according to rules with s_Imba = 1 and ratio = 600
     if ratio < 0:

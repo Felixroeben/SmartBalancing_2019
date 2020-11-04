@@ -259,20 +259,36 @@ class BalancingGroup:
             SB_Asset_ID = []
             SB_per_asset = []
 
-            # SB is reset at the end of an ISP
+            # Calc time within 15 Min ISP in Minute (between 0 and 14) for fuzzy and p_average
+            time_in_ISP = (t_now / 60) % 15
+            # todo: fair to compare FRCE_sb (ol) with p_average ?
+            # calc p_average in MW in ISP for fuzzy (from aFRR of ISP in MWh)
+            p_average = (aFRR_E_pos_period + aFRR_E_neg_period) / ((time_in_ISP + 1) / 60)
+
+            # SB is reset at the end of an ISP or if dual price applies with combined pricing
             # todo: make t_isp available and replace 900
-            if (((t_now + t_step) % 900) == 0):  # and not (self.sb_P == 0):
+            # todo: make change to dual price (conter-activation of 5 MWh) a global variable
+            if (((t_now + t_step) % 900) == 0) or (imbalance_clearing == 1 and (aFRR_E_neg_period < -5) and (aFRR_E_pos_period > 5)):  # and not (self.sb_P == 0):
                 #check if ISP end is reached -> SB back to zero
                 #print("self.name: ",self.name,' und self.sb_P: ',self.sb_P,' und t_now: ',t_now)
                 for i in self.array_sb_assets:
                     SB_Asset_ID.append(i.name)
                     SB_per_asset.append(0.0)
-            #traffic light approach: SB is activated once until the end of an ISP
+
+            # SB with single pricng: sb_P remains the same, if p_average close to zero
+            elif imbalance_clearing == 0 and (300 > p_average and p_average > -300):
+                pass
+
+            # Smart Balancing with combined pricing: remains the same, if no over-reaction and FRCE "close to zero"
+            elif imbalance_clearing == 1 and (self.sb_P/FRCE_sb)>0 and (300 > FRCE_sb and FRCE_sb > -300):
+                pass
+
+            # traffic light approaches (TL3 and TL6): SB is activated only once until the end of an ISP
             elif (imbalance_clearing == 2 or imbalance_clearing == 3) and (self.sb_P < -10.0 or self.sb_P > 10.0):
                 pass
 
-        # in case of NL clearing: check if dual pricing applies
-            elif not (imbalance_clearing == 1 and (aFRR_E_neg_period < -5) and (aFRR_E_pos_period > 5)):
+        # in all other cases: individual SB calculation
+            else:
                 # 1. The positive and negative SB potentials of all assets get updated. - see generato.py / loadload.py
                 for i in self.array_sb_assets:
                     i.sb_pot_calc()
@@ -284,13 +300,6 @@ class BalancingGroup:
                 for i in self.array_sb_assets:
                     P_max_sum += i.sb_pot_pos
                     P_min_sum += i.sb_pot_neg
-
-                if fuzzy:
-                    # Calc time within 15 Min ISP in Minute (between 0 and 14) for fuzzy
-                    time_in_ISP = (t_now / 60) % 15
-                    #todo: fair to compare FRCE_sb (ol) with p_average ?
-                    # calc p_average in MW in ISP for fuzzy (from aFRR of ISP in MWh)
-                    p_average = (aFRR_E_pos_period + aFRR_E_neg_period)/((time_in_ISP + 1)/60)
 
                 sb_sum = 0.0
                 pos_margin = 0
@@ -405,11 +414,7 @@ class BalancingGroup:
                     SB_per_asset.append(sb_activation)
                     sb_sum += sb_activation
 
-        # else, NL combined pricing applies -> SB back to zero
-            else:
-                for i in self.array_sb_assets:
-                    SB_Asset_ID.append(i.name)
-                    SB_per_asset.append(0.0)
+
 
             # 4.    activate sb_P according to sb_activate (ramp max)- - see generato.py / loadload.py
             # > see sb_activate() in generator.py / loadload.py
