@@ -43,7 +43,7 @@ savefilename_all = 'Sim_output_all.csv'             # name of save file, locatio
 scenario = 'WC_data//WC_'
 
 # ...Activation of simulation functions
-smartbalancing = False      # True: Smart Balancing is globally switched on
+smartbalancing = True      # True: Smart Balancing is globally switched on
 fuzzy = True               # True: Smart Balancing is globally activated via Fuzzy Logic
 FRR_pricing = 0             # Global variable to switch both aFRR & mFRR from pay-as-bid (0) to marginal pricing (1)
 BEPP = 900                  # Balancing Energy Pricing Period (BEPP) in s - only applied for marginal pricing
@@ -57,7 +57,7 @@ sb_delay = 0.0              # definition of delay of SB signal in s
 # ...Simulation time settings
 t_step = 60                             # simulation time step in s
 t_now = 0                               # start of simulation in s
-t_stop = (365 * 24 * 60 * 60) - t_step  # time, at which the simulation ends in s
+t_stop = (1 * 24 * 60 * 60) - t_step  # time, at which the simulation ends in s
 k_now = 0                               # discrete time variable
 t_day = t_now                           # time of current day in s
 t_isp = 15 * 60                         # duration of an Imbalance Settlement Period in s
@@ -357,7 +357,18 @@ if save_data:
                  'insufficient neg. aFRR': CA1.array_aFRR_neg_insuf,
                  'insufficient pos. mFRR': CA1.array_mFRR_pos_insuf,
                  'insufficient neg. mFRR': CA1.array_mFRR_neg_insuf,
-                 'AEP [EUR/MWh]': CA1.array_AEP
+                 'AEP [EUR/MWh]': CA1.array_AEP,
+
+                 'Solar Power [MW]': CA1.array_balancinggroups[14].array_sb_P,
+                 'Wind offshore Power [MW]': CA1.array_balancinggroups[15].array_sb_P,
+                 'Wind offshore AEP costs': CA1.array_balancinggroups[15].array_AEP_costs,
+                 'Wind onshore Power [MW]': CA1.array_balancinggroups[16].array_sb_P,
+                 'Aluminium Power [MW]': CA1.array_balancinggroups[17].array_sb_P,
+                 'Steel Power [MW]': CA1.array_balancinggroups[18].array_sb_P,
+                 'Cement Power [MW]': CA1.array_balancinggroups[19].array_sb_P,
+                 'Paper Power [MW]': CA1.array_balancinggroups[20].array_sb_P,
+                 'Chlorine Power [MW]': CA1.array_balancinggroups[21].array_sb_P,
+                 'Gas Power [MW]': CA1.array_balancinggroups[3].array_sb_P
                 }
     fileexch.save_t_step_data(scenario=scenario,
                               save_file_name=savefilename_all,

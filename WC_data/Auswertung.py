@@ -12,18 +12,18 @@ import matplotlib.pyplot as plt
 # define location and name of files to set path
 # ===============================================================================
 
-location = "results/"
+#location = "results/"
 #location = "results_sin/"
 #location = "results_5d/"
-#location = "results_1d/"
+location = "results_1d/"
 
 if location == "results/":
-        scenario_files = ['1 no SB','2 TL3','3 TL6','4 DE', '5 NL','6 BEPP15','7 BEPP1']
-        scenario_path = ['1 no SB','2 TL3','3 TL6','4 DE', '5 NL','6 BEPP15','7 BEPP1']
+        scenario_files = ['1 no SB','4 DE'] #['1 no SB','2 TL3','3 TL6','4 DE', '5 NL','6 BEPP15','7 BEPP1']
+        scenario_path = ['1 no SB','4 DE'] #['1 no SB','2 TL3','3 TL6','4 DE', '5 NL','6 BEPP15','7 BEPP1']
 
 if location == "results_sin/" or location == "results_1d/":
-        scenario_files = ['1 no SB','4 DE', '5 NL']
-        scenario_path = ['1 no SB','4 DE', '5 NL']
+        scenario_files = ['1 no SB','4 DE'] #['1 no SB','4 DE', '5 NL']
+        scenario_path = ['1 no SB','4 DE'] #['1 no SB','4 DE', '5 NL']
 
 # ===============================================================================
 #define start and end of example plots
@@ -62,24 +62,32 @@ else:
 scenario_data = list()
 #scenario_data_period = list()
 scenario_sum = list()
+minute_sum = list()
+
 scenario_sum_df = pd.DataFrame()
 
 for j in range(len(scenario_files)):
 
         #read "period" csv files with ISP resolution (15min)
         scenario_path[j]= location+scenario_files[j]+'/WC_sim_output_period.csv'
+
+
         #print('Scenario: ',scenario_path[j])
         scenario_period = pd.read_csv(scenario_path[j], sep=';', encoding='latin-1').round(1)
 
-        #data = dict()
-        #data = len(scenario_period['Solar AEP costs [EUR]']) * [None]
+        scenario_path[j] = location + scenario_files[j] + '/WC_sim_output_all.csv'
+        minute_data = pd.read_csv(scenario_path[j], sep=';', encoding='latin-1')
+        print('Data load completed: ', scenario_path[j])
+
         names = ['Solar', 'Wind onshore', 'Wind offshore', 'Aluminium', 'Steel', 'Cement', 'Paper', 'Chlorine','Gas']
 
+        minute_sum.append(minute_data.sum())
 
         for name in names:
                 Dict_scenario_period = dict()
                 Dict_scenario_period['costs'] = scenario_period[name + ' AEP costs [EUR]'].copy()
                 Dict_scenario_period['AEP'] = scenario_period['GER AEP [EUR/MWh]'].copy()
+                # Kosten / AEP = Energy
                 Dict_scenario_period[name] = Dict_scenario_period['costs'] / Dict_scenario_period['AEP']
                 scenario_period[name] = Dict_scenario_period[name]
 
@@ -93,13 +101,13 @@ for j in range(len(scenario_files)):
                 scenario.index = pd.date_range(start=sim_start, end=sim_end_all, freq='1 min')
                 scenario_data.append(scenario)
 
-# ===============================================================================
-# Show Example Plot with 1 min resolution
-# ===============================================================================
-                for i in range(len(start)):
-                        scenario_data[j][start[i]:end[i]].drop(
-                                ['time [s]', 'f [Hz]', 'aFRR FRCE (open loop) [MW]', 'mFRR P [MW]', 'Unnamed: 11'],
-                                axis=1).plot(secondary_y='AEP [EUR/MWh]', title='Scenario ' + scenario_files[j])
+# # ===============================================================================
+# # Show Example Plot with 1 min resolution
+# # ===============================================================================
+#                 for i in range(len(start)):
+#                         scenario_data[j][start[i]:end[i]].drop(
+#                                 ['time [s]', 'f [Hz]', 'aFRR FRCE (open loop) [MW]', 'mFRR P [MW]', 'Unnamed: 11'],
+#                                 axis=1).plot(secondary_y='AEP [EUR/MWh]', title='Scenario ' + scenario_files[j])
 
 
 # ===============================================================================
@@ -129,8 +137,12 @@ for j in range(len(scenario_files)):
         header_energy = []
         header_price = []
         for name in names:
-                income_all[name+' Energy'] = [scenario_sum[j][name]]
-                income_all[name+ ' spc. costs [EUR/MWh]'] = [scenario_sum[j][name+ ' AEP costs [EUR]']/ scenario_sum[j][name]]
+                energy = minute_sum[j][name + ' Power [MW]']
+                costs = scenario_sum[j][name+ ' AEP costs [EUR]']
+                print('costs: ', costs)
+                print('energy: ', energy)
+                income_all[name+' Energy'] = energy
+                income_all[name+ ' spc. costs [EUR/MWh]'] = costs / (energy/60)
                 header_price.append(name+ ' spc. costs [EUR/MWh]')
                 header_energy.append(name+' Energy')
 
