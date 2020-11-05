@@ -70,6 +70,13 @@ for j in range(len(scenario_files)):
         scenario_path[j]= location+scenario_files[j]+'/WC_sim_output_period.csv'
         #print('Scenario: ',scenario_path[j])
         scenario_period = pd.read_csv(scenario_path[j], sep=';', encoding='latin-1').round(1)
+
+        data = len(scenario_period['Solar AEP costs [EUR]']) * [None]
+        names = ['Solar', 'Wind onshore', 'Wind offshore', 'Aluminium', 'Steel', 'Cement', 'Paper', 'Chlorine','Gas']
+        for name in names:
+                scenario_period[name] = data
+                scenario_period[name] = scenario_period[[name + ' AEP costs [EUR]']] / scenario_period['GER AEP [EUR/MWh]']
+
         #scenario_period.index = pd.date_range(start='00:00 01.01.2019', end='23:30 01.05.2019', freq='15 min')
         #scenario_data_period.append(scenario_period)
 
@@ -113,13 +120,26 @@ for j in range(len(scenario_files)):
         income_all['Chlorine'] = [scenario_sum[j]['Chlorine AEP costs [EUR]']]
         income_all['Gas'] = [scenario_sum[j]['Gas AEP costs [EUR]']]
 
+        header_energy = []
+        header_price = []
+        for name in names:
+                income_all[name+' Energy'] = [scenario_sum[j][name]]
+                income_all[name+ ' spc. costs [EUR/MWh]'] = [scenario_sum[j][name+ ' AEP costs [EUR]']/ scenario_sum[j][name]]
+                header_price.append(name+ ' spc. costs [EUR/MWh]')
+                header_energy.append(name+' Energy')
         #header = ['Solar', 'Wind onshore', 'Wind offshore', 'Alu, Steel', 'Cement', 'Paper', 'Chlorine', 'Gas']
-        data = pd.DataFrame.from_dict(income_all, orient='index')
+        data = pd.DataFrame.from_dict(income_all) #, orient='index')
+
+        show_data_energy = data[header_energy].T
+        show_data_price = data[header_price].T
         print('------------------------------------------------------------------')
         print('Scenario ',scenario_files[j],': PROFITS BY TECHNOLOGY')
         print('------------------------------------------------------------------')
-        print('The balancers profit in kEUR')
-        print((data/1000).round(1))
+        print('The balancers specific energy purchase costs in EUR/MWh')
+        print((show_data_price).round(1))
+        print('------------------------------------------------------------------')
+        print('The balancers energy purchase in MWh')
+        print((show_data_energy).round(1))
         print('------------------------------------------------------------------')
 
 
