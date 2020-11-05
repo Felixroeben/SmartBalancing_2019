@@ -71,11 +71,17 @@ for j in range(len(scenario_files)):
         #print('Scenario: ',scenario_path[j])
         scenario_period = pd.read_csv(scenario_path[j], sep=';', encoding='latin-1').round(1)
 
-        data = len(scenario_period['Solar AEP costs [EUR]']) * [None]
+        #data = dict()
+        #data = len(scenario_period['Solar AEP costs [EUR]']) * [None]
         names = ['Solar', 'Wind onshore', 'Wind offshore', 'Aluminium', 'Steel', 'Cement', 'Paper', 'Chlorine','Gas']
+
+
         for name in names:
-                scenario_period[name] = data
-                scenario_period[name] = scenario_period[[name + ' AEP costs [EUR]']] / scenario_period['GER AEP [EUR/MWh]']
+                Dict_scenario_period = dict()
+                Dict_scenario_period['costs'] = scenario_period[name + ' AEP costs [EUR]'].copy()
+                Dict_scenario_period['AEP'] = scenario_period['GER AEP [EUR/MWh]'].copy()
+                Dict_scenario_period[name] = Dict_scenario_period['costs'] / Dict_scenario_period['AEP']
+                scenario_period[name] = Dict_scenario_period[name]
 
         #scenario_period.index = pd.date_range(start='00:00 01.01.2019', end='23:30 01.05.2019', freq='15 min')
         #scenario_data_period.append(scenario_period)
@@ -127,6 +133,7 @@ for j in range(len(scenario_files)):
                 income_all[name+ ' spc. costs [EUR/MWh]'] = [scenario_sum[j][name+ ' AEP costs [EUR]']/ scenario_sum[j][name]]
                 header_price.append(name+ ' spc. costs [EUR/MWh]')
                 header_energy.append(name+' Energy')
+
         #header = ['Solar', 'Wind onshore', 'Wind offshore', 'Alu, Steel', 'Cement', 'Paper', 'Chlorine', 'Gas']
         data = pd.DataFrame.from_dict(income_all) #, orient='index')
 
