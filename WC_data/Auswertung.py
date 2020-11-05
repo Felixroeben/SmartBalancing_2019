@@ -12,14 +12,14 @@ import matplotlib.pyplot as plt
 # define location and name of files to set path
 # ===============================================================================
 
-#location = "results/"
+location = "results/"
 #location = "results_sin/"
 #location = "results_5d/"
-location = "results_1d/"
+#location = "results_1d/"
 
 if location == "results/":
-        scenario_files = ['1 no SB','2 TL3','3 TL6','4 DE', '5 NL']
-        scenario_path = ['1 no SB','2 TL3','3 TL6','4 DE', '5 NL']
+        scenario_files = ['1 no SB','2 TL3','3 TL6','4 DE', '5 NL','6 BEPP15','7 BEPP1']
+        scenario_path = ['1 no SB','2 TL3','3 TL6','4 DE', '5 NL','6 BEPP15','7 BEPP1']
 
 if location == "results_sin/" or location == "results_1d/":
         scenario_files = ['1 no SB','4 DE', '5 NL']
@@ -29,15 +29,15 @@ if location == "results_sin/" or location == "results_1d/":
 #define start and end of example plots
 # ===============================================================================
 example_plot = True
-if location == "results_sin/":
-        start = ["2019-01-01 6:00","2019-01-01 9:00"]
-        end = ["2019-01-01 6:45","2019-01-01 9:45"]
+if location == "results_sin/" or location == "results_1d/" or location == "results/":
+        start = ["2019-01-01 5:00","2019-01-01 9:00","2019-01-01 14:25"]
+        end = ["2019-01-01 7:45","2019-01-01 9:45","2019-01-01 15:45"]
 
-if location == "results/":
+if location == "results/x":
         start = ["2019-06-12 10:00"]
         end = ["2019-06-12 14:45"]
 
-if location == "results_1d/":
+if location == "XXresults_1d/":
         start = ["2019-01-01 14:25"]
         end = ["2019-01-01 14:45"]
 # ===============================================================================
