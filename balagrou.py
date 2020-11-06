@@ -265,9 +265,17 @@ class BalancingGroup:
             # calc p_average in MW in ISP for fuzzy (from aFRR of ISP in MWh)
             p_average = (aFRR_E_pos_period + aFRR_E_neg_period) / ((time_in_ISP + 1) / 60)
 
+            if not FRCE_sb == 0:
+                    if (self.sb_P/FRCE_sb) > 0:
+                        over_reaction = True
+                    else:
+                        over_reaction = False
+            else:
+                over_reaction = False
+
             # SB is reset at the end of an ISP or if dual price applies with combined pricing
             # todo: make t_isp available and replace 900
-            # todo: make change to dual price (conter-activation of 5 MWh) a global variable
+            # todo: make condition for dual price (conter-activation of 5 MWh) a global variable
             if (((t_now + t_step) % 900) == 0) or (imbalance_clearing == 1 and (aFRR_E_neg_period < -5) and (aFRR_E_pos_period > 5)):  # and not (self.sb_P == 0):
                 #check if ISP end is reached -> SB back to zero
                 #print("self.name: ",self.name,' und self.sb_P: ',self.sb_P,' und t_now: ',t_now)
@@ -280,7 +288,7 @@ class BalancingGroup:
                 pass
 
             # Smart Balancing with combined pricing: remains the same, if no over-reaction and FRCE "close to zero"
-            elif imbalance_clearing == 1 and (self.sb_P/FRCE_sb) > 0 and (300 > FRCE_sb and FRCE_sb > -300):
+            elif imbalance_clearing == 1 and not over_reaction and (300 > FRCE_sb and FRCE_sb > -300):
                 pass
 
             # traffic light approaches (TL3 and TL6): SB is activated only once until the end of an ISP

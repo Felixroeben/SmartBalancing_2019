@@ -40,7 +40,8 @@ import math
 
 savefilename_period = 'Sim_output_period.csv'       # name of save file, location defined by "scenario"
 savefilename_all = 'Sim_output_all.csv'             # name of save file, location defined by "scenario"
-scenario = 'WC_data//WC_'
+scenario = '01_hist_data//hist_'
+#scenario = '02_synth_data//synth_'
 
 # ...Activation of simulation functions
 smartbalancing = True      # True: Smart Balancing is globally switched on
@@ -48,7 +49,7 @@ fuzzy = True               # True: Smart Balancing is globally activated via Fuz
 FRR_pricing = 0             # Global variable to switch both aFRR & mFRR from pay-as-bid (0) to marginal pricing (1)
 BEPP = 900                  # Balancing Energy Pricing Period (BEPP) in s - only applied for marginal pricing
                             # e.g. 900 (State of the art) or 60 or 4 (=> t_step!)
-imbalance_clearing = 1      # For fuzzy SB: Switch from single imbalance pricing (0) to "combined pricing" as in NL (1)
+imbalance_clearing = 0      # For fuzzy SB: Switch from single imbalance pricing (0) to "combined pricing" as in NL (1)
                             # (2) for traffic light with 3 increments and (3) for traffic light approach with 5 increments
 save_data = True            # True: write the simulation data to .csv
 show_fig = False            # True: show all figures at the end of the simulation
@@ -57,7 +58,7 @@ sb_delay = 0.0              # definition of delay of SB signal in s
 # ...Simulation time settings
 t_step = 60                             # simulation time step in s
 t_now = 0                               # start of simulation in s
-t_stop = (1 * 24 * 60 * 60) - t_step  # time, at which the simulation ends in s
+t_stop = (365 * 24 * 60 * 60) - t_step  # time, at which the simulation ends in s
 k_now = 0                               # discrete time variable
 t_day = t_now                           # time of current day in s
 t_isp = 15 * 60                         # duration of an Imbalance Settlement Period in s
@@ -178,9 +179,65 @@ fileexch.get_gen_flex(scenario=scenario,
 # 'LoadFlex'-objects need to be created first
 fileexch.get_load_flex(scenario=scenario,
                        control_area=CA1)
+# MOL: read csv, if historic ACE
+if scenario == '01_hist_data//hist_':
+    CA1.array_aFRR_molpos, CA1.array_aFRR_molneg = fileexch.read_afrr_mol(scenario, 0, 0, 0)
+    CA1.array_mFRR_molpos, CA1.array_mFRR_molneg = fileexch.read_mfrr_mol(scenario, 0, 0, 0)
 
-CA1.array_aFRR_molpos, CA1.array_aFRR_molneg = fileexch.read_afrr_mol(scenario, 0, 0, 0)
-CA1.array_mFRR_molpos, CA1.array_mFRR_molneg = fileexch.read_mfrr_mol(scenario, 0, 0, 0)
+elif FRR_pricing == 0:  #synthetic MOL for pay-as-bid
+    # dicts for pos and neg MOL
+    aFRR_molpos = {'Power': [100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100,100,100],
+                   'Price': [30, 50, 70, 90, 110, 130, 150, 170, 190, 210, 230, 250, 270, 290, 310,330,350]}
+    aFRR_molneg = {'Power': [-100, -100, -100, -100, -100, -100, -100, -100, -100, -100, -100, -100, -100, -100, -100,100,-100,-100],
+                   'Price': [-10, 10, 30, 50, 70, 90, 110, 130, 150, 170, 190, 210, 230, 250, 270,290,310,330]}
+
+    mFRR_molpos = {'Power': [100, 100, 100, 100, 100, 100, 100,100],
+                   'Price': [210, 230, 250, 270, 290, 310, 330,350]}
+    mFRR_molneg = {'Power': [-100, -100, -100, -100, -100, -100],
+                   'Price': [80, 100, 120, 140, 160, 180]}
+
+    CA1.array_aFRR_molpos = aFRR_molpos
+    CA1.array_aFRR_molneg = aFRR_molneg
+    CA1.array_mFRR_molpos = mFRR_molpos
+    CA1.array_mFRR_molneg = mFRR_molneg
+
+elif FRR_pricing == 1:  #synthetic MOL for marginal pricing
+
+    # dicts for pos and neg MOL
+    aFRR_molpos = {'Power': [100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100,100,100],
+                   'Price': [30,40,50,60,70,80,90,100,110,120,130,140,150,160,170,180,190]}
+    aFRR_molneg = {'Power': [-100, -100, -100, -100, -100, -100, -100, -100, -100, -100, -100, -100, -100, -100, -100,100,-100,-100],
+                   'Price': [-10,0,10,20,30,40,50,60,70,80,90,100,110,120,130,140,150,160]}
+
+    mFRR_molpos = {'Power': [100, 100, 100, 100, 100, 100, 100,100],
+                   'Price': [110, 120, 130, 140, 150, 160, 170,180]}
+    mFRR_molneg = {'Power': [-100, -100, -100, -100, -100, -100],
+                   'Price': [80, 90, 100, 110, 120, 130]}
+
+    CA1.array_aFRR_molpos = aFRR_molpos
+    CA1.array_aFRR_molneg = aFRR_molneg
+    CA1.array_mFRR_molpos = mFRR_molpos
+    CA1.array_mFRR_molneg = mFRR_molneg
+
+elif FRR_pricing == 2:  #synthetic MOL for
+
+    # dicts for pos and neg MOL
+    aFRR_molpos = {'Power': [],
+                     'Price': []}
+    aFRR_molneg = {'Power': [],
+                     'Price': []}
+    mFRR_molpos = {'Power': [],
+                     'Price': []}
+    mFRR_molneg = {'Power': [],
+                     'Price': []}
+
+    CA1.array_aFRR_molpos = aFRR_molpos
+    CA1.array_aFRR_molneg = aFRR_molneg
+    CA1.array_mFRR_molpos = mFRR_molpos
+    CA1.array_mFRR_molneg = mFRR_molneg
+else:
+    print('MOL settings not valid - ERROR: no MOL for simulation')
+
 
 print('\nInitialization Done! It took %.1f seconds' % (time.time() - start))
 
@@ -268,7 +325,8 @@ while t_now < t_stop:
         print('#Date: ',day_in_month,'.',month_count,'.2019 ---------Day:',day_count,'-----------#')
         t_day = 0.0
 
-    if (t_now % t_mol) == 0:
+    #update MOL after t_mol in case of historic values, otherwise the synthetic MOL remains
+    if (t_now % t_mol) == 0 and scenario == '01_hist_data//hist_':
         print('Reached MOL update on day', day_count,'at', int((t_day / 3600)) ,'o´clock')
         (CA1.array_aFRR_molpos, CA1.array_aFRR_molneg) = fileexch.read_afrr_mol(scenario, t_day, t_mol, day_count)
         (CA1.array_mFRR_molpos, CA1.array_mFRR_molneg) = fileexch.read_mfrr_mol(scenario, t_day, t_mol, day_count)
@@ -361,7 +419,6 @@ if save_data:
 
                  'Solar Power [MW]': CA1.array_balancinggroups[14].array_sb_P,
                  'Wind offshore Power [MW]': CA1.array_balancinggroups[15].array_sb_P,
-                 'Wind offshore AEP costs': CA1.array_balancinggroups[15].array_AEP_costs,
                  'Wind onshore Power [MW]': CA1.array_balancinggroups[16].array_sb_P,
                  'Aluminium Power [MW]': CA1.array_balancinggroups[17].array_sb_P,
                  'Steel Power [MW]': CA1.array_balancinggroups[18].array_sb_P,
@@ -388,7 +445,7 @@ else:
 
 if show_fig:
 
-    if scenario == 'WC_data//WC_':
+    if scenario == '02_synth_data//synth_':
 
         plt.figure(1)
         plt.plot(t_vector, CA1.array_imba_P_sc,
