@@ -62,3 +62,5 @@ docs/_build/
 target/
 
 ~$Correlation.xlsx
+hist_Generation.csv
+synth_Generation.csv

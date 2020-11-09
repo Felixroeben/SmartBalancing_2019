@@ -18,8 +18,8 @@ location = "results/"
 #location = "results_1d/"
 
 if location == "results/":
-        scenario_files = ['1 no SB PAB','1 no SB MP'] #['1 no SB','2 TL3','3 TL6','4 DE', '5 NL','6 BEPP15','7 BEPP1']
-        scenario_path = ['1 no SB PAB','1 no SB MP'] #['1 no SB','2 TL3','3 TL6','4 DE', '5 NL','6 BEPP15','7 BEPP1']
+        scenario_files = ['1 no SB PAB','1 no SB MP','4 DE', '5 NL'] #,'6 BEPP15','7 BEPP1']
+        scenario_path = ['1 no SB PAB','1 no SB MP','4 DE', '5 NL'] #,'6 BEPP15','7 BEPP1']
 
 if location == "results_sin/" or location == "results_1d/":
         scenario_files = ['1 no SB','4 DE'] #['1 no SB','4 DE', '5 NL']
@@ -65,23 +65,27 @@ scenario_sum = list()
 minute_sum = list()
 
 scenario_sum_df = pd.DataFrame()
+frequency_df = pd.DataFrame()
 
 for j in range(len(scenario_files)):
 
         #read "period" csv files with ISP resolution (15min)
         scenario_path[j]= location+scenario_files[j]+'/synth_sim_output_period.csv'
 
-
         #print('Scenario: ',scenario_path[j])
         scenario_period = pd.read_csv(scenario_path[j], sep=';', encoding='latin-1').round(1)
 
+        #read "all" csv file with all timesteps in 1 min resolution
         scenario_path[j] = location + scenario_files[j] + '/synth_sim_output_all.csv'
         minute_data = pd.read_csv(scenario_path[j], sep=';', encoding='latin-1')
+
         print('Data load completed: ', scenario_path[j])
 
         names = ['Solar', 'Wind onshore', 'Wind offshore', 'Aluminium', 'Steel', 'Cement', 'Paper', 'Chlorine','Gas']
 
         minute_sum.append(minute_data.sum())
+        minute_data.index = pd.date_range(start=sim_start, end=sim_end_all, freq='1 min')
+        scenario_data.append(minute_data)
 
         for name in names:
                 Dict_scenario_period = dict()
@@ -94,19 +98,14 @@ for j in range(len(scenario_files)):
         #scenario_period.index = pd.date_range(start='00:00 01.01.2019', end='23:30 01.05.2019', freq='15 min')
         #scenario_data_period.append(scenario_period)
 
-        if example_plot:
-                #read "all" csv files with max resolution (1min)
-                scenario_path[j]= location+scenario_files[j]+'/synth_sim_output_all.csv'
-                scenario = pd.read_csv(scenario_path[j],sep=';',encoding='latin-1').round(1)
-                scenario.index = pd.date_range(start=sim_start, end=sim_end_all, freq='1 min')
-                scenario_data.append(scenario)
-
 # # ===============================================================================
 # # Show Example Plot with 1 min resolution
 # # ===============================================================================
+        if example_plot:
                 for i in range(len(start)):
-                        scenario_data[j][start[i]:end[i]].drop(['time [s]', 'f [Hz]', 'aFRR FRCE (open loop) [MW]', 'mFRR P [MW]'],axis=1).plot(secondary_y='AEP [EUR/MWh]', title='Scenario ' + scenario_files[j])
-
+                        scenario_data[j][start[i]:end[i]].drop(
+                                ['time [s]', 'f [Hz]', 'aFRR FRCE (open loop) [MW]','Unnamed: 20'],
+                                axis=1).plot(secondary_y='AEP [EUR/MWh]', title='Scenario ' + scenario_files[j])
 
 # ===============================================================================
 # Calculate Balancers Profit
@@ -137,8 +136,8 @@ for j in range(len(scenario_files)):
         for name in names:
                 energy = minute_sum[j][name + ' Power [MW]']
                 costs = scenario_sum[j][name+ ' AEP costs [EUR]']
-                print('costs: ', costs)
-                print('energy: ', energy)
+                print(name, ' Profit: ', (-costs/1000).round(1), ' kEUR')
+                print(name, ' energy: ', (energy/60).round(1), ' MWh')
                 income_all[name+' Energy'] = energy
                 income_all[name+ ' spc. costs [EUR/MWh]'] = costs / (energy/60)
                 header_price.append(name+ ' spc. costs [EUR/MWh]')
@@ -192,10 +191,32 @@ for j in range(len(scenario_files)):
         print('------------------------------------------------------------------')
 
 # ===============================================================================
-# Calculate Balancers System Impact
+# Calculate Balancers Impact on System Frequency (Rest of Europe = 300 GW and balanced)
 # ===============================================================================
-# compare signe of imba and contribution
+# compare contribution to frequency deviation
+        # dataframe for bar plot after loop
+        frequency_df[scenario_files[j]] = scenario_data[j].std()
+        # save values from reference scenario "1 no SB"
+        if j == 0:
+                frequency_ref = scenario_data[j]['f [Hz]'].std()
+
+        frequency_all = {}
+        frequency_all[scenario_files[j], ' f Mean in Hz'] = scenario_data[j]['f [Hz]'].mean()
+        frequency_all[scenario_files[j],' f std in Hz']= scenario_data[j]['f [Hz]'].std()
+        frequency_all[scenario_files[j], ' f min in Hz'] = scenario_data[j]['f [Hz]'].min()
+        frequency_all[scenario_files[j], ' f max in Hz'] = scenario_data[j]['f [Hz]'].max()
+
+        print('Scenario ', scenario_files[j], ': FREQUENCY')
+        print('------------------------------------------------------------------')
+        print('f Mean: ', frequency_all[scenario_files[j], ' f Mean in Hz'], ' Hz')
+        print('f Std: ', frequency_all[scenario_files[j], ' f std in Hz'].round(6), ' Hz')
+        print('f min: ', frequency_all[scenario_files[j], ' f min in Hz'].round(3), ' Hz')
+        print('f max: ', frequency_all[scenario_files[j], ' f max in Hz'].round(3), ' Hz')
+        print('------------------------------------------------------------------')
+        print('------------------------------------------------------------------')
+# ===============================================================================
 #todo: Inputs zur Analyse, welche Technologie wann richtig stand?
+#todo: sign of imba vs. sign of SB per technology
 #print('The impact of the single technologies on system stability is as follows: ')
 #print('Income.sum()')
 
