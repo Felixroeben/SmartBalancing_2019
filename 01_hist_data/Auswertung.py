@@ -68,6 +68,9 @@ minute_sum = list()
 scenario_sum_df = pd.DataFrame()
 frequency_df = pd.DataFrame()
 
+techno_results = {}
+techno_results['Technologie'] = {'Scenario': [ 'Energie', 'Gewinn', 'spz. Kosten', 'Aufrufe', 'Dauer']}
+
 for j in range(len(scenario_files)):
 
         #read "period" csv files with ISP resolution (15min)
@@ -144,6 +147,11 @@ for j in range(len(scenario_files)):
                 income_all[name+ ' spc. costs [EUR/MWh]'] = costs / (energy/60)
                 header_price.append(name+ ' spc. costs [EUR/MWh]')
                 header_energy.append(name+' Energy')
+                #['Scenario', 'Energie', 'Gewinn', 'spz. Kosten', 'Aufrufe', 'Dauer']
+                print(name in techno_results)
+                if (name in techno_results) == False:
+                        techno_results[name] = {}
+                techno_results[name][scenario_files[j]] = [(-costs / 1000).round(1), (energy / 60).round(1), costs / (energy / 60), 0, 0]
 
         #header = ['Solar', 'Wind onshore', 'Wind offshore', 'Alu, Steel', 'Cement', 'Paper', 'Chlorine', 'Gas']
         data = pd.DataFrame.from_dict(income_all) #, orient='index')
@@ -237,4 +245,14 @@ plt.ylabel('costs in mio. €')
 
 #print(frequency_df['f [Hz]'])
 
-plt.show()
+#plt.show()
+results = {}
+for name in names:
+        results[name] = pd.DataFrame()
+        results[name] = (pd.DataFrame.from_dict(techno_results[name])).T
+        results[name].columns = ['Energie', 'Gewinn', 'spz. Kosten', 'Aufrufe', 'Dauer']
+
+        print(name)
+        print("-------------------------------------------------------------------------")
+        print(results[name])
+        print("-------------------------------------------------------------------------")
