@@ -138,8 +138,8 @@ for j in range(len(scenario_files)):
         for name in names:
                 energy = minute_sum[j][name + ' Power [MW]']
                 costs = scenario_sum[j][name+ ' AEP costs [EUR]']
-                print(name, ' costs: ', costs)
-                print(name, ' energy: ', energy)
+                print(name, ' Profit: ', (-costs/1000).round(1), ' kEUR')
+                print(name, ' energy: ', (energy/60).round(1), ' MWh')
                 income_all[name+' Energy'] = energy
                 income_all[name+ ' spc. costs [EUR/MWh]'] = costs / (energy/60)
                 header_price.append(name+ ' spc. costs [EUR/MWh]')
