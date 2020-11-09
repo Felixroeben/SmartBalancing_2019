@@ -943,8 +943,8 @@ class ControlArea(CalculatingGridElement):
                       windon_mmw=self.windon_mmw,
                       windoff_mmw=self.windoff_mmw,
                       pv_mmw=self.pv_mmw,
-                      aFRR_E_pos_period=self.aFRR_E_pos_period,
-                      aFRR_E_neg_period=self.aFRR_E_neg_period,
+                      FRR_E_pos_period=self.aFRR_E_pos_period+self.mFRR_E_pos_period,
+                      FRR_E_neg_period=self.aFRR_E_neg_period+self.mFRR_E_neg_period,
                       fuzzy=fuzzy,
                       imbalance_clearing=imbalance_clearing,
                       con_FRR_pos = self.con_FRR_pos,
@@ -1779,28 +1779,32 @@ class ControlArea(CalculatingGridElement):
     # aFRR_cap for decision when to activate mFRR
     def mol_update(self):
         self.aFRR_cap_pos = 0.0
+        # con_FRR for traffic light approach
+        self.con_FRR_pos = 0.0
         l = len(self.array_aFRR_molpos['Power'])
         i = 0
         while i < l:
             self.aFRR_cap_pos += self.array_aFRR_molpos['Power'][i]
+            self.con_FRR_pos += self.array_aFRR_molpos['Power'][i]
             i += 1
 
         self.aFRR_cap_neg = 0.0
+        # con_FRR for traffic light approach
+        self.con_FRR_neg = 0.0
         l = len(self.array_aFRR_molneg['Power'])
         i = 0
         while i < l:
             self.aFRR_cap_neg += self.array_aFRR_molneg['Power'][i]
+            self.con_FRR_neg += self.array_aFRR_molneg['Power'][i]
             i += 1
 
         # con_FRR for traffic light approach
-        self.con_FRR_pos = self.aFRR_cap_pos
         l = len(self.array_mFRR_molpos['Power'])
         i = 0
         while i < l:
             self.con_FRR_pos += self.array_mFRR_molpos['Power'][i]
             i += 1
 
-        self.con_FRR_neg = self.aFRR_cap_neg
         l = len(self.array_mFRR_molneg['Power'])
         i = 0
         while i < l:

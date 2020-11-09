@@ -231,7 +231,7 @@ class BalancingGroup:
 
     # This method calculates the Smart Balancing power of the Smart Balancing Assets of the Balancing Group
     def sb_calc(self, FRCE_sb, old_FRCE_sb, d_Imba, old_d_Imba, AEP, t_step, t_now, da_price, windon_mmw, windoff_mmw, pv_mmw,
-                aFRR_E_pos_period, aFRR_E_neg_period, fuzzy, imbalance_clearing,con_FRR_pos,con_FRR_neg):
+                FRR_E_pos_period, FRR_E_neg_period, fuzzy, imbalance_clearing,con_FRR_pos,con_FRR_neg):
 
         ## 25.10.2020 restructure sb_calc (FR)
         #  if smart -> imbalance clearing ("0" for single and "1" for combined/NL)
@@ -262,8 +262,8 @@ class BalancingGroup:
             # Calc time within 15 Min ISP in Minute (between 0 and 14) for fuzzy and p_average
             time_in_ISP = (t_now / 60) % 15
             # todo: fair to compare FRCE_sb (ol) with p_average ?
-            # calc p_average in MW in ISP for fuzzy (from aFRR of ISP in MWh)
-            p_average = (aFRR_E_pos_period + aFRR_E_neg_period) / ((time_in_ISP + 1) / 60)
+            # calc p_average in MW in ISP for fuzzy (from FRR of ISP in MWh)
+            p_average = (FRR_E_pos_period + FRR_E_neg_period) / ((time_in_ISP + 1) / 60)
 
             if not FRCE_sb == 0:
                     if (self.sb_P/FRCE_sb) > 0:
@@ -276,7 +276,7 @@ class BalancingGroup:
             # SB is reset at the end of an ISP or if dual price applies with combined pricing
             # todo: make t_isp available and replace 900
             # todo: make condition for dual price (conter-activation of 5 MWh) a global variable
-            if (((t_now + t_step) % 900) == 0) or (imbalance_clearing == 1 and (aFRR_E_neg_period < -5) and (aFRR_E_pos_period > 5)):  # and not (self.sb_P == 0):
+            if (((t_now + t_step) % 900) == 0) or (imbalance_clearing == 1 and (FRR_E_neg_period < -5) and (FRR_E_pos_period > 5)):  # and not (self.sb_P == 0):
                 #check if ISP end is reached -> SB back to zero
                 #print("self.name: ",self.name,' und self.sb_P: ',self.sb_P,' und t_now: ',t_now)
                 for i in self.array_sb_assets:
