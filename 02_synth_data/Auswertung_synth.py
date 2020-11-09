@@ -18,8 +18,8 @@ location = "results/"
 #location = "results_1d/"
 
 if location == "results/":
-        scenario_files = ['1 no SB PAB','1 no SB MP','4 DE', '5 NL'] #,'6 BEPP15','7 BEPP1']
-        scenario_path = ['1 no SB PAB','1 no SB MP','4 DE', '5 NL'] #,'6 BEPP15','7 BEPP1']
+        scenario_files = ['6 no SB PAB','7 DEs', '8 NLs','9 no SB MP','10 BEPP15','11 BEPP1']
+        scenario_path = ['6 no SB PAB','7 DEs', '8 NLs','9 no SB MP','10 BEPP15','11 BEPP1']
 
 if location == "results_sin/" or location == "results_1d/":
         scenario_files = ['1 no SB','4 DE'] #['1 no SB','4 DE', '5 NL']
@@ -116,7 +116,7 @@ for j in range(len(scenario_files)):
         scenario_sum_df[scenario_files[j]] = scenario_period.sum()
 
         #save values from reference scenario "1 no SB"
-        if j == 0:
+        if j == 0 or j == 3:
                 reference_sum = scenario_sum[j]
 
         income_all = {}
@@ -223,10 +223,12 @@ for j in range(len(scenario_files)):
 # ===============================================================================
 # Bar-Plot with Comparison of all Scenarios (balancing energy and costs)
 # ===============================================================================
-Energie_Summen = scenario_sum_df.filter(['GER pos. energy aFRR [MWh]', 'GER neg. energy aFRR [MWh]', 'GER pos. energy mFRR [MWh]', 'GER neg. energy mFRR [MWh]'], axis=0)
+Energie_Summen = scenario_sum_df.filter(['GER pos. energy aFRR [MWh]', 'GER neg. energy aFRR [MWh]', 'GER pos. energy mFRR [MWh]', 'GER neg. energy mFRR [MWh]'], axis=0)/1000
 Energie_Summen.plot.bar(title='Comparison of Balancing Energy')
+plt.ylabel('balancing energy in GWh')
 
-Kosten_Summen = scenario_sum_df.filter(['GER pos. aFRR costs [EUR]','GER neg. aFRR costs [EUR]', 'GER pos. mFRR costs [EUR]','GER neg. mFRR costs [EUR]'], axis=0)
+Kosten_Summen = scenario_sum_df.filter(['GER pos. aFRR costs [EUR]','GER neg. aFRR costs [EUR]', 'GER pos. mFRR costs [EUR]','GER neg. mFRR costs [EUR]'], axis=0)/1000000
 Kosten_Summen.plot.bar(title='Comparison of Costs')
+plt.ylabel('costs in mio. €')
 
 plt.show()
