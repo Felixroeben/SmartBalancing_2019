@@ -40,8 +40,8 @@ import math
 
 savefilename_period = 'Sim_output_period.csv'       # name of save file, location defined by "scenario"
 savefilename_all = 'Sim_output_all.csv'             # name of save file, location defined by "scenario"
-scenario = '01_hist_data//hist_'
-#scenario = '02_synth_data//synth_'
+#scenario = '01_hist_data//hist_'
+scenario = '02_synth_data//synth_'
 
 # ...Activation of simulation functions
 smartbalancing = True      # True: Smart Balancing is globally switched on
@@ -58,7 +58,7 @@ sb_delay = 0.0              # definition of delay of SB signal in s
 # ...Simulation time settings
 t_step = 60                             # simulation time step in s
 t_now = 0                               # start of simulation in s
-t_stop = (365 * 24 * 60 * 60) - t_step  # time, at which the simulation ends in s
+t_stop = (31 * 24 * 60 * 60) - t_step  # time, at which the simulation ends in s
 k_now = 0                               # discrete time variable
 t_day = t_now                           # time of current day in s
 t_isp = 15 * 60                         # duration of an Imbalance Settlement Period in s
@@ -185,16 +185,52 @@ if scenario == '01_hist_data//hist_':
     CA1.array_mFRR_molpos, CA1.array_mFRR_molneg = fileexch.read_mfrr_mol(scenario, 0, 0, 0)
 
 elif FRR_pricing == 0:  #synthetic MOL for pay-as-bid
-    # dicts for pos and neg MOL
-    aFRR_molpos = {'Power': [100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100,100,100],
-                   'Price': [30, 50, 70, 90, 110, 130, 150, 170, 190, 210, 230, 250, 270, 290, 310,330,350]}
-    aFRR_molneg = {'Power': [-100, -100, -100, -100, -100, -100, -100, -100, -100, -100, -100, -100, -100, -100, -100,100,-100,-100],
-                   'Price': [-10, 10, 30, 50, 70, 90, 110, 130, 150, 170, 190, 210, 230, 250, 270,290,310,330]}
 
-    mFRR_molpos = {'Power': [100, 100, 100, 100, 100, 100, 100,100],
-                   'Price': [210, 230, 250, 270, 290, 310, 330,350]}
-    mFRR_molneg = {'Power': [-100, -100, -100, -100, -100, -100],
-                   'Price': [80, 100, 120, 140, 160, 180]}
+    # dicts for pos and neg MOL
+    aFRR_molpos = {'Power': [],
+                   'Price': []}
+    aFRR_molneg = {'Power': [],
+                   'Price': []}
+    mFRR_molpos = {'Power': [],
+                   'Price': []}
+    mFRR_molneg = {'Power': [],
+                   'Price': []}
+
+    aFRR_pos = 1700
+    price = 30
+    reserve = 0
+    while reserve < aFRR_pos:
+        aFRR_molpos['Power'].append(float(100))
+        aFRR_molpos['Price'].append(price)
+        price = price + 20
+        reserve = reserve + 100
+
+    aFRR_neg = -1800
+    price = -10
+    reserve = 0
+    while reserve > aFRR_neg:
+        aFRR_molneg['Power'].append(float(-100))
+        aFRR_molneg['Price'].append(price)
+        price = price + 20
+        reserve = reserve - 100
+
+    mFRR_pos = 800
+    price = 110
+    reserve = 0
+    while reserve < mFRR_pos:
+        mFRR_molpos['Power'].append(float(100))
+        mFRR_molpos['Price'].append(price)
+        price = price + 20
+        reserve = reserve + 100
+
+    mFRR_neg = -600
+    price = 80
+    reserve = 0
+    while reserve > mFRR_neg:
+        mFRR_molneg['Power'].append(float(-100))
+        mFRR_molneg['Price'].append(price)
+        price = price + 20
+        reserve = reserve - 100
 
     CA1.array_aFRR_molpos = aFRR_molpos
     CA1.array_aFRR_molneg = aFRR_molneg
@@ -202,24 +238,6 @@ elif FRR_pricing == 0:  #synthetic MOL for pay-as-bid
     CA1.array_mFRR_molneg = mFRR_molneg
 
 elif FRR_pricing == 1:  #synthetic MOL for marginal pricing
-
-    # dicts for pos and neg MOL
-    aFRR_molpos = {'Power': [100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100,100,100],
-                   'Price': [30,40,50,60,70,80,90,100,110,120,130,140,150,160,170,180,190]}
-    aFRR_molneg = {'Power': [-100, -100, -100, -100, -100, -100, -100, -100, -100, -100, -100, -100, -100, -100, -100,100,-100,-100],
-                   'Price': [-10,0,10,20,30,40,50,60,70,80,90,100,110,120,130,140,150,160]}
-
-    mFRR_molpos = {'Power': [100, 100, 100, 100, 100, 100, 100,100],
-                   'Price': [110, 120, 130, 140, 150, 160, 170,180]}
-    mFRR_molneg = {'Power': [-100, -100, -100, -100, -100, -100],
-                   'Price': [80, 90, 100, 110, 120, 130]}
-
-    CA1.array_aFRR_molpos = aFRR_molpos
-    CA1.array_aFRR_molneg = aFRR_molneg
-    CA1.array_mFRR_molpos = mFRR_molpos
-    CA1.array_mFRR_molneg = mFRR_molneg
-
-elif FRR_pricing == 2:  #synthetic MOL for
 
     # dicts for pos and neg MOL
     aFRR_molpos = {'Power': [],
@@ -231,10 +249,47 @@ elif FRR_pricing == 2:  #synthetic MOL for
     mFRR_molneg = {'Power': [],
                      'Price': []}
 
+    aFRR_pos = 1700
+    price = 30
+    reserve = 0
+    while reserve < aFRR_pos:
+        aFRR_molpos['Power'].append(float(100))
+        aFRR_molpos['Price'].append(price)
+        price = price +10
+        reserve = reserve + 100
+
+    aFRR_neg = -1800
+    price = -10
+    reserve = 0
+    while reserve > aFRR_neg:
+        aFRR_molneg['Power'].append(float(-100))
+        aFRR_molneg['Price'].append(price)
+        price = price +10
+        reserve = reserve - 100
+
+    mFRR_pos = 800
+    price = 110
+    reserve = 0
+    while reserve < mFRR_pos:
+        mFRR_molpos['Power'].append(float(100))
+        mFRR_molpos['Price'].append(price)
+        price = price +10
+        reserve = reserve + 100
+
+    mFRR_neg = -600
+    price = 80
+    reserve = 0
+    while reserve > mFRR_neg:
+        mFRR_molneg['Power'].append(float(-100))
+        mFRR_molneg['Price'].append(price)
+        price = price +10
+        reserve = reserve - 100
+
     CA1.array_aFRR_molpos = aFRR_molpos
     CA1.array_aFRR_molneg = aFRR_molneg
     CA1.array_mFRR_molpos = mFRR_molpos
     CA1.array_mFRR_molneg = mFRR_molneg
+
 else:
     print('MOL settings not valid - ERROR: no MOL for simulation')
 
@@ -272,6 +327,7 @@ SZ.afrr_calc(k_now=k_now, t_now=t_now, t_step=t_step, t_isp=t_isp, fuzzy=fuzzy,i
 SZ.mfrr_calc(t_now=t_now, t_step=t_step, t_isp=t_isp)
 SZ.energy_costs_calc(k_now=k_now, t_now=t_now, t_step=t_step, t_isp=t_isp)
 SZ.write_results()
+SZ.mol_update()
 
 day_count += 1
 

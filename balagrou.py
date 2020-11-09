@@ -266,7 +266,7 @@ class BalancingGroup:
             p_average = (FRR_E_pos_period + FRR_E_neg_period) / ((time_in_ISP + 1) / 60)
 
             if not FRCE_sb == 0:
-                    if (self.sb_P/FRCE_sb) > 0:
+                    if (self.sb_P/FRCE_sb) < 0:
                         over_reaction = True
                     else:
                         over_reaction = False
@@ -415,21 +415,25 @@ class BalancingGroup:
                     # cost optimized activation, if assetts are in correct order (MOL)
                     # limitation of positive SB
                     limit = 3
-                    if sb_activation > 0:
-                        if imbalance_clearing == 0:
-                            if sb_activation > (p_average / limit):
-                                sb_activation = (p_average / limit)
-                        if imbalance_clearing == 1:
-                            if sb_activation > (FRCE_sb / limit):
-                                sb_activation = (FRCE_sb / limit)
+                    if (sb_activation +sb_sum) > 0:
+                        if imbalance_clearing == 0 and p_average > 0:
+                            if (sb_activation +sb_sum) > (p_average / limit):
+                                sb_activation = (p_average / limit) - sb_sum
+                        elif imbalance_clearing == 1 and FRCE_sb > 0:
+                            if (sb_activation +sb_sum) > (FRCE_sb / limit):
+                                sb_activation = (FRCE_sb / limit) - sb_sum
+                        else:
+                            sb_activation = sb_activation / 4  # over-reaction already in place. reduction of SB
                     # limitation of negative SB
-                    elif sb_activation < 0:
-                        if imbalance_clearing == 0:
-                            if sb_activation < (p_average / limit):
-                                sb_activation = (p_average / limit)
-                        if imbalance_clearing == 1:
-                            if sb_activation < (FRCE_sb / limit):
-                                sb_activation = (FRCE_sb / limit)
+                    elif (sb_activation +sb_sum) < 0:
+                        if imbalance_clearing == 0 and p_average < 0:
+                            if (sb_activation +sb_sum) < (p_average / limit):
+                                sb_activation = (p_average / limit) - sb_sum
+                        elif imbalance_clearing == 1 and FRCE_sb < 0:
+                            if (sb_activation +sb_sum) < (FRCE_sb / limit):
+                                sb_activation = (FRCE_sb / limit) - sb_sum
+                        else:
+                            sb_activation = sb_activation / 4  #over-reaction already in place. reduction of SB
                     else:
                         pass
 
