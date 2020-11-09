@@ -63,6 +63,7 @@ else:
 scenario_data = list()
 #scenario_data_period = list()
 scenario_sum = list()
+data_sum = list()
 minute_sum = list()
 
 scenario_sum_df = pd.DataFrame()
@@ -93,11 +94,35 @@ for j in range(len(scenario_files)):
 
         for name in names:
                 Dict_scenario_period = dict()
+                Dict_scenario_data = dict()
                 Dict_scenario_period['costs'] = scenario_period[name + ' AEP costs [EUR]'].copy()
                 Dict_scenario_period['AEP'] = scenario_period['GER AEP [EUR/MWh]'].copy()
                 # Kosten / AEP = Energy
                 Dict_scenario_period[name] = Dict_scenario_period['costs'] / Dict_scenario_period['AEP']
+
+                # Count balancing processes
+                Dict_scenario_data[name + '_ON'] = [None] * len(scenario_data[j]['time [s]'])
+                Dict_scenario_data[name + '_runtime'] = [None] * len(scenario_data[j]['time [s]'])
+                Dict_scenario_data[name + 'Power'] = list(scenario_data[j][name + ' Power [MW]'])
+
+                duration = 0
+                for t in range(1,len(scenario_data[j]['time [s]'])):
+                        # start balancing
+                        if Dict_scenario_data[name + 'Power'][t] != 0 and Dict_scenario_data[name + 'Power'][t-1] == 0:
+                                duration = 1
+                                Dict_scenario_data[name + '_ON'][t] = 1
+                        # continue balancing
+                        elif Dict_scenario_data[name + 'Power'][t] != 0:
+                                duration += 1
+                        # stop balancing
+                        if Dict_scenario_data[name + 'Power'][t] == 0 and Dict_scenario_data[name + 'Power'][t-1] != 0:
+                                Dict_scenario_data[name + '_runtime'][t] = duration
+
+                scenario_data[j][name + '_ON'] = Dict_scenario_data[name + '_ON']
+                scenario_data[j][name + '_runtime'] = Dict_scenario_data[name + '_runtime']
+
                 scenario_period[name] = Dict_scenario_period[name]
+
 
         #scenario_period.index = pd.date_range(start='00:00 01.01.2019', end='23:30 01.05.2019', freq='15 min')
         #scenario_data_period.append(scenario_period)
@@ -117,6 +142,7 @@ for j in range(len(scenario_files)):
 # ===============================================================================
         # list for calculations in loop
         scenario_sum.append(scenario_period.sum())
+        data_sum.append(scenario_data[j].sum())
         # dataframe for bar plot after loop
         scenario_sum_df[scenario_files[j]] = scenario_period.sum()
 
@@ -151,7 +177,7 @@ for j in range(len(scenario_files)):
                 print(name in techno_results)
                 if (name in techno_results) == False:
                         techno_results[name] = {}
-                techno_results[name][scenario_files[j]] = [(-costs / 1000).round(1), (energy / 60).round(1), costs / (energy / 60), 0, 0]
+                techno_results[name][scenario_files[j]] = [(-costs / 1000).round(1), (energy / 60).round(1), costs / (energy / 60), data_sum[j][name+ '_ON'], data_sum[j][name+ '_runtime']]
 
         #header = ['Solar', 'Wind onshore', 'Wind offshore', 'Alu, Steel', 'Cement', 'Paper', 'Chlorine', 'Gas']
         data = pd.DataFrame.from_dict(income_all) #, orient='index')
