@@ -21,8 +21,8 @@ location = "results/"
 #location = "results_1d/"
 
 if location == "results/":
-        scenario_files = ['1 no SB','2 TL3','3 TL6','4 DE', '5 NL'] #,'6 BEPP15','7 BEPP1']
-        scenario_path = ['1 no SB','2 TL3','3 TL6','4 DE', '5 NL'] #,'6 BEPP15','7 BEPP1']
+        scenario_files = ['6 no SB PAB','7 DEs', '8 NLs','9 no SB MP','10 BEPP15','11 BEPP1']
+        scenario_path = ['6 no SB PAB','7 DEs', '8 NLs','9 no SB MP','10 BEPP15','11 BEPP1']
 
 if location == "results_sin/" or location == "results_1d/":
         scenario_files = ['1 no SB','4 DE','5 NL'] #['1 no SB','4 DE', '5 NL']
@@ -32,13 +32,13 @@ if location == "results_sin/" or location == "results_1d/":
 #define start and end of example plots
 # ===============================================================================
 example_plot = True
-if location == "results_sin/" or location == "results_1d/":
+if location == "results_sin/" or location == "results_1d/" or location == "results/":
         start = ["2019-01-01 5:00","2019-01-01 9:00","2019-01-01 14:25"]
         end = ["2019-01-01 7:45","2019-01-01 9:45","2019-01-01 15:45"]
 
-if location == "results/":
-        start = ["2019-06-12 10:45"]
-        end = ["2019-06-12 12:15"]
+if location == "results/x":
+        start = ["2019-06-12 10:00"]
+        end = ["2019-06-12 14:45"]
 
 if location == "XXresults_1d/":
         start = ["2019-01-01 14:25"]
@@ -54,7 +54,7 @@ if location == "results_5d/":
 elif location == "results_1d/":
         sim_end_all = '23:59 01.01.2019'
 else:
-        sim_end_all = '23:59 12.31.2019'
+        sim_end_all = '23:59 01.31.2019'
 
 
 # ===============================================================================
@@ -77,13 +77,13 @@ techno_results['Technologie'] = {'Scenario': [ 'Energie', 'Gewinn', 'spz. Kosten
 for j in range(len(scenario_files)):
 
         #read "period" csv files with ISP resolution (15min)
-        scenario_path[j]= location+scenario_files[j]+'/hist_sim_output_period.csv'
+        scenario_path[j]= location+scenario_files[j]+'/synth_Sim_output_period.csv'
 
         #print('Scenario: ',scenario_path[j])
         scenario_period = pd.read_csv(scenario_path[j], sep=';', encoding='latin-1').round(1)
 
         #read "all" csv file with all timesteps in 1 min resolution
-        scenario_path[j] = location + scenario_files[j] + '/hist_sim_output_all.csv'
+        scenario_path[j] = location + scenario_files[j] + '/synth_Sim_output_all.csv'
         minute_data = pd.read_csv(scenario_path[j], sep=';', encoding='latin-1')
 
         print('Data load completed: ', scenario_path[j])
@@ -274,8 +274,9 @@ plt.ylabel('costs in mio. €')
 #print(frequency_df['f [Hz]'])
 
 #plt.show()
+cols = ['Gewinn', 'Energie', 'spz. Kosten', 'Aufrufe', 'Dauer']
+
 results = {}
-cols = ['Gewinn', 'Energie','spz. Kosten', 'Aufrufe', 'Dauer']
 for name in names:
         results[name] = pd.DataFrame()
         results[name] = (pd.DataFrame.from_dict(techno_results[name])).T
