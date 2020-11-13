@@ -193,25 +193,22 @@ for j in range(len(scenario_files)):
                         costs = scenario_sum[j][name+ ' AEP costs [EUR]']
                         # Marktprämie calculation
                         if name in EES:
-                                dMP = scenario_sum[0][name + ' Marktprämie [EUR]'] - scenario_sum[j][
-                                        name + ' Marktprämie [EUR]']
+                                dMP = scenario_sum[0][name + ' Marktprämie [EUR]'] - scenario_sum[j][name + ' Marktprämie [EUR]']
                                 print(name, 'dMP: ', dMP)
-                                profit = (-(costs + dMP))
+                                profit = (-(costs+dMP))
                         else:
                                 profit = -costs
                         print(name, ' Profit: ', (profit).round(1), ' kEUR')
                         print(name, ' energy: ', (energy/60).round(1), ' MWh')
                         income_all[name+' Energy'] = energy
-                        income_all[name + ' spc. costs [EUR/MWh]'] = profit / (energy / 60)
+                        income_all[name+ ' spc. costs [EUR/MWh]'] = profit / (energy/60)
                         header_price.append(name+ ' spc. costs [EUR/MWh]')
                         header_energy.append(name+' Energy')
                         #['Scenario', 'Energie', 'Gewinn', 'spz. Kosten', 'Aufrufe', 'Dauer']
                         print(name in techno_results)
                         if (name in techno_results) == False:
                                 techno_results[name] = {}
-                        techno_results[name][scenario_files[j]] = [(profit / 1000).round(1), (energy / 60).round(1),
-                                                                   profit / (energy / 60), data_sum[j][name + '_ON'],
-                                                                   data_sum[j][name + '_runtime']]
+                        techno_results[name][scenario_files[j]] = [(profit/1000).round(1), (energy / 60).round(1), profit / (energy / 60), data_sum[j][name+ '_ON'], data_sum[j][name+ '_runtime']]
 
                 #header = ['Solar', 'Wind onshore', 'Wind offshore', 'Alu, Steel', 'Cement', 'Paper', 'Chlorine', 'Gas']
                 data = pd.DataFrame.from_dict(income_all) #, orient='index')
@@ -227,57 +224,6 @@ for j in range(len(scenario_files)):
                 print('The balancers energy purchase in MWh')
                 print((show_data_energy).round(1))
                 print('------------------------------------------------------------------')
-
-        income_all = {}
-        income_all['Solar'] = [scenario_sum[j]['Solar AEP costs [EUR]'] ]#- scenario_sum['Solar Marktprämie [EUR]']]
-        income_all['Wind onshore'] = [scenario_sum[j]['Wind onshore AEP costs [EUR]']]# - scenario_sum['Wind onshore Marktprämie [EUR]']]
-        income_all['Wind offshore'] = [scenario_sum[j]['Wind offshore AEP costs [EUR]']]# - scenario_sum['Wind offshore Marktprämie [EUR]']]
-        income_all['Alu'] = [scenario_sum[j]['Aluminium AEP costs [EUR]']]
-        income_all['Alu'] = [scenario_sum[j]['Aluminium AEP costs [EUR]']]
-        income_all['Steel'] = [scenario_sum[j]['Steel AEP costs [EUR]']]
-        income_all['Cement'] = [scenario_sum[j]['Cement AEP costs [EUR]']]
-        income_all['Paper'] = [scenario_sum[j]['Paper AEP costs [EUR]']]
-        income_all['Chlorine'] = [scenario_sum[j]['Chlorine AEP costs [EUR]']]
-        income_all['Gas'] = [scenario_sum[j]['Gas AEP costs [EUR]']]
-
-        header_energy = []
-        header_price = []
-        for name in names:
-                energy = minute_sum[j][name + ' Power [MW]']
-                costs = scenario_sum[j][name+ ' AEP costs [EUR]']
-                # Marktprämie calculation
-                if name in EES:
-                        dMP = scenario_sum[0][name + ' Marktprämie [EUR]'] - scenario_sum[j][name + ' Marktprämie [EUR]']
-                        print(name, 'dMP: ', dMP)
-                        profit = (-(costs+dMP))
-                else:
-                        profit = -costs
-                print(name, ' Profit: ', (profit).round(1), ' kEUR')
-                print(name, ' energy: ', (energy/60).round(1), ' MWh')
-                income_all[name+' Energy'] = energy
-                income_all[name+ ' spc. costs [EUR/MWh]'] = profit / (energy/60)
-                header_price.append(name+ ' spc. costs [EUR/MWh]')
-                header_energy.append(name+' Energy')
-                #['Scenario', 'Energie', 'Gewinn', 'spz. Kosten', 'Aufrufe', 'Dauer']
-                print(name in techno_results)
-                if (name in techno_results) == False:
-                        techno_results[name] = {}
-                techno_results[name][scenario_files[j]] = [(profit/1000).round(1), (energy / 60).round(1), profit / (energy / 60), data_sum[j][name+ '_ON'], data_sum[j][name+ '_runtime']]
-
-        #header = ['Solar', 'Wind onshore', 'Wind offshore', 'Alu, Steel', 'Cement', 'Paper', 'Chlorine', 'Gas']
-        data = pd.DataFrame.from_dict(income_all) #, orient='index')
-
-        show_data_energy = data[header_energy].T
-        show_data_price = data[header_price].T
-        print('------------------------------------------------------------------')
-        print('Scenario ',scenario_files[j],': PROFITS BY TECHNOLOGY')
-        print('------------------------------------------------------------------')
-        print('The balancers specific energy purchase costs in EUR/MWh')
-        print((show_data_price).round(1))
-        print('------------------------------------------------------------------')
-        print('The balancers energy purchase in MWh')
-        print((show_data_energy).round(1))
-        print('------------------------------------------------------------------')
 
 
 # ===============================================================================
