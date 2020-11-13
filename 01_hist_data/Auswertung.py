@@ -20,6 +20,14 @@ location = "results/"
 #location = "results_5d/"
 #location = "results_1d/"
 
+#================================================================================
+#What do you want to analyse?
+#================================================================================
+save_june_event_csv = True
+example_plot = False
+frequency_analysis = False
+technology_analysis = False
+#================================================================================
 if location == "results/":
         scenario_files = ['1 no SB','2 TL3','3 TL6','4 DE', '5 NL'] #,'6 BEPP15','7 BEPP1']
         scenario_path = ['1 no SB','2 TL3','3 TL6','4 DE', '5 NL'] #,'6 BEPP15','7 BEPP1']
@@ -27,11 +35,13 @@ if location == "results/":
 if location == "results_sin/" or location == "results_1d/":
         scenario_files = ['1 no SB','4 DE','5 NL'] #['1 no SB','4 DE', '5 NL']
         scenario_path = ['1 no SB','4 DE','5 NL'] #['1 no SB','4 DE', '5 NL']
-
+#================================================================================
+if save_june_event_csv:
+        june_data = pd.DataFrame()
 # ===============================================================================
 #define start and end of example plots
 # ===============================================================================
-example_plot = True
+
 if location == "results_sin/" or location == "results_1d/":
         start = ["2019-01-01 5:00","2019-01-01 9:00","2019-01-01 14:25"]
         end = ["2019-01-01 7:45","2019-01-01 9:45","2019-01-01 15:45"]
@@ -67,12 +77,14 @@ scenario_data = list()
 scenario_sum = list()
 data_sum = list()
 minute_sum = list()
-
 scenario_sum_df = pd.DataFrame()
-frequency_df = pd.DataFrame()
 
-techno_results = {}
-techno_results['Technologie'] = {'Scenario': [ 'Energie', 'Gewinn', 'spz. Kosten', 'Aufrufe', 'Dauer']}
+if frequency_analysis:
+        frequency_df = pd.DataFrame()
+
+if technology_analysis:
+        techno_results = {}
+        techno_results['Technologie'] = {'Scenario': [ 'Energie', 'Gewinn', 'spz. Kosten', 'Aufrufe', 'Dauer']}
 
 for j in range(len(scenario_files)):
 
@@ -88,42 +100,49 @@ for j in range(len(scenario_files)):
 
         print('Data load completed: ', scenario_path[j])
 
-        names = ['Solar', 'Wind onshore', 'Wind offshore', 'Aluminium', 'Steel', 'Cement', 'Paper', 'Chlorine','Gas']
-
         minute_sum.append(minute_data.sum())
         minute_data.index = pd.date_range(start=sim_start, end=sim_end_all, freq='1 min')
         scenario_data.append(minute_data)
 
-        for name in names:
-                Dict_scenario_period = dict()
-                Dict_scenario_data = dict()
-                Dict_scenario_period['costs'] = scenario_period[name + ' AEP costs [EUR]'].copy()
-                Dict_scenario_period['AEP'] = scenario_period['GER AEP [EUR/MWh]'].copy()
-                # Kosten / AEP = Energy
-                Dict_scenario_period[name] = Dict_scenario_period['costs'] / Dict_scenario_period['AEP']
+        if save_june_event_csv and j <3:
+                if j == 0:
+                        june_data['Historic'] = minute_data['06.12.2019 10:30':'06.12.2019 12:15']['FRCE [MW]']
+                else:
+                        june_data[scenario_files[j]] = minute_data['06.12.2019 10:30':'06.12.2019 12:15']['FRCE [MW]']
 
-                # Count balancing processes
-                Dict_scenario_data[name + '_ON'] = [None] * len(scenario_data[j]['time [s]'])
-                Dict_scenario_data[name + '_runtime'] = [None] * len(scenario_data[j]['time [s]'])
-                Dict_scenario_data[name + 'Power'] = list(scenario_data[j][name + ' Power [MW]'])
+        if technology_analysis:
+                names = ['Solar', 'Wind onshore', 'Wind offshore', 'Aluminium', 'Steel', 'Cement', 'Paper', 'Chlorine','Gas']
 
-                duration = 0
-                for t in range(1,len(scenario_data[j]['time [s]'])):
-                        # start balancing
-                        if Dict_scenario_data[name + 'Power'][t] != 0 and Dict_scenario_data[name + 'Power'][t-1] == 0:
-                                duration = 1
-                                Dict_scenario_data[name + '_ON'][t] = 1
-                        # continue balancing
-                        elif Dict_scenario_data[name + 'Power'][t] != 0:
-                                duration += 1
-                        # stop balancing
-                        if Dict_scenario_data[name + 'Power'][t] == 0 and Dict_scenario_data[name + 'Power'][t-1] != 0:
-                                Dict_scenario_data[name + '_runtime'][t] = duration
+                for name in names:
+                        Dict_scenario_period = dict()
+                        Dict_scenario_data = dict()
+                        Dict_scenario_period['costs'] = scenario_period[name + ' AEP costs [EUR]'].copy()
+                        Dict_scenario_period['AEP'] = scenario_period['GER AEP [EUR/MWh]'].copy()
+                        # Kosten / AEP = Energy
+                        Dict_scenario_period[name] = Dict_scenario_period['costs'] / Dict_scenario_period['AEP']
 
-                scenario_data[j][name + '_ON'] = Dict_scenario_data[name + '_ON']
-                scenario_data[j][name + '_runtime'] = Dict_scenario_data[name + '_runtime']
+                        # Count balancing processes
+                        Dict_scenario_data[name + '_ON'] = [None] * len(scenario_data[j]['time [s]'])
+                        Dict_scenario_data[name + '_runtime'] = [None] * len(scenario_data[j]['time [s]'])
+                        Dict_scenario_data[name + 'Power'] = list(scenario_data[j][name + ' Power [MW]'])
 
-                scenario_period[name] = Dict_scenario_period[name]
+                        duration = 0
+                        for t in range(1,len(scenario_data[j]['time [s]'])):
+                                # start balancing
+                                if Dict_scenario_data[name + 'Power'][t] != 0 and Dict_scenario_data[name + 'Power'][t-1] == 0:
+                                        duration = 1
+                                        Dict_scenario_data[name + '_ON'][t] = 1
+                                # continue balancing
+                                elif Dict_scenario_data[name + 'Power'][t] != 0:
+                                        duration += 1
+                                # stop balancing
+                                if Dict_scenario_data[name + 'Power'][t] == 0 and Dict_scenario_data[name + 'Power'][t-1] != 0:
+                                        Dict_scenario_data[name + '_runtime'][t] = duration
+
+                        scenario_data[j][name + '_ON'] = Dict_scenario_data[name + '_ON']
+                        scenario_data[j][name + '_runtime'] = Dict_scenario_data[name + '_runtime']
+
+                        scenario_period[name] = Dict_scenario_period[name]
 
 
         #scenario_period.index = pd.date_range(start='00:00 01.01.2019', end='23:30 01.05.2019', freq='15 min')
@@ -152,49 +171,50 @@ for j in range(len(scenario_files)):
         if j == 0:
                 reference_sum = scenario_sum[j]
 
-        income_all = {}
-        income_all['Solar'] = [scenario_sum[j]['Solar AEP costs [EUR]'] ]#- scenario_sum['Solar Marktprämie [EUR]']]
-        income_all['Wind onshore'] = [scenario_sum[j]['Wind onshore AEP costs [EUR]']]# - scenario_sum['Wind onshore Marktprämie [EUR]']]
-        income_all['Wind offshore'] = [scenario_sum[j]['Wind offshore AEP costs [EUR]']]# - scenario_sum['Wind offshore Marktprämie [EUR]']]
-        income_all['Alu'] = [scenario_sum[j]['Aluminium AEP costs [EUR]']]
-        income_all['Alu'] = [scenario_sum[j]['Aluminium AEP costs [EUR]']]
-        income_all['Steel'] = [scenario_sum[j]['Steel AEP costs [EUR]']]
-        income_all['Cement'] = [scenario_sum[j]['Cement AEP costs [EUR]']]
-        income_all['Paper'] = [scenario_sum[j]['Paper AEP costs [EUR]']]
-        income_all['Chlorine'] = [scenario_sum[j]['Chlorine AEP costs [EUR]']]
-        income_all['Gas'] = [scenario_sum[j]['Gas AEP costs [EUR]']]
+        if technology_analysis:
+                income_all = {}
+                income_all['Solar'] = [scenario_sum[j]['Solar AEP costs [EUR]'] ]#- scenario_sum['Solar Marktprämie [EUR]']]
+                income_all['Wind onshore'] = [scenario_sum[j]['Wind onshore AEP costs [EUR]']]# - scenario_sum['Wind onshore Marktprämie [EUR]']]
+                income_all['Wind offshore'] = [scenario_sum[j]['Wind offshore AEP costs [EUR]']]# - scenario_sum['Wind offshore Marktprämie [EUR]']]
+                income_all['Alu'] = [scenario_sum[j]['Aluminium AEP costs [EUR]']]
+                income_all['Alu'] = [scenario_sum[j]['Aluminium AEP costs [EUR]']]
+                income_all['Steel'] = [scenario_sum[j]['Steel AEP costs [EUR]']]
+                income_all['Cement'] = [scenario_sum[j]['Cement AEP costs [EUR]']]
+                income_all['Paper'] = [scenario_sum[j]['Paper AEP costs [EUR]']]
+                income_all['Chlorine'] = [scenario_sum[j]['Chlorine AEP costs [EUR]']]
+                income_all['Gas'] = [scenario_sum[j]['Gas AEP costs [EUR]']]
 
-        header_energy = []
-        header_price = []
-        for name in names:
-                energy = minute_sum[j][name + ' Power [MW]']
-                costs = scenario_sum[j][name+ ' AEP costs [EUR]']
-                print(name, ' Profit: ', (-costs/1000).round(1), ' kEUR')
-                print(name, ' energy: ', (energy/60).round(1), ' MWh')
-                income_all[name+' Energy'] = energy
-                income_all[name+ ' spc. costs [EUR/MWh]'] = costs / (energy/60)
-                header_price.append(name+ ' spc. costs [EUR/MWh]')
-                header_energy.append(name+' Energy')
-                #['Scenario', 'Energie', 'Gewinn', 'spz. Kosten', 'Aufrufe', 'Dauer']
-                print(name in techno_results)
-                if (name in techno_results) == False:
-                        techno_results[name] = {}
-                techno_results[name][scenario_files[j]] = [(-costs / 1000).round(1), (energy / 60).round(1), costs / (energy / 60), data_sum[j][name+ '_ON'], data_sum[j][name+ '_runtime']]
+                header_energy = []
+                header_price = []
+                for name in names:
+                        energy = minute_sum[j][name + ' Power [MW]']
+                        costs = scenario_sum[j][name+ ' AEP costs [EUR]']
+                        print(name, ' Profit: ', (-costs/1000).round(1), ' kEUR')
+                        print(name, ' energy: ', (energy/60).round(1), ' MWh')
+                        income_all[name+' Energy'] = energy
+                        income_all[name+ ' spc. costs [EUR/MWh]'] = costs / (energy/60)
+                        header_price.append(name+ ' spc. costs [EUR/MWh]')
+                        header_energy.append(name+' Energy')
+                        #['Scenario', 'Energie', 'Gewinn', 'spz. Kosten', 'Aufrufe', 'Dauer']
+                        print(name in techno_results)
+                        if (name in techno_results) == False:
+                                techno_results[name] = {}
+                        techno_results[name][scenario_files[j]] = [(-costs / 1000).round(1), (energy / 60).round(1), costs / (energy / 60), data_sum[j][name+ '_ON'], data_sum[j][name+ '_runtime']]
 
-        #header = ['Solar', 'Wind onshore', 'Wind offshore', 'Alu, Steel', 'Cement', 'Paper', 'Chlorine', 'Gas']
-        data = pd.DataFrame.from_dict(income_all) #, orient='index')
+                #header = ['Solar', 'Wind onshore', 'Wind offshore', 'Alu, Steel', 'Cement', 'Paper', 'Chlorine', 'Gas']
+                data = pd.DataFrame.from_dict(income_all) #, orient='index')
 
-        show_data_energy = data[header_energy].T
-        show_data_price = data[header_price].T
-        print('------------------------------------------------------------------')
-        print('Scenario ',scenario_files[j],': PROFITS BY TECHNOLOGY')
-        print('------------------------------------------------------------------')
-        print('The balancers specific energy purchase costs in EUR/MWh')
-        print((show_data_price).round(1))
-        print('------------------------------------------------------------------')
-        print('The balancers energy purchase in MWh')
-        print((show_data_energy).round(1))
-        print('------------------------------------------------------------------')
+                show_data_energy = data[header_energy].T
+                show_data_price = data[header_price].T
+                print('------------------------------------------------------------------')
+                print('Scenario ',scenario_files[j],': PROFITS BY TECHNOLOGY')
+                print('------------------------------------------------------------------')
+                print('The balancers specific energy purchase costs in EUR/MWh')
+                print((show_data_price).round(1))
+                print('------------------------------------------------------------------')
+                print('The balancers energy purchase in MWh')
+                print((show_data_energy).round(1))
+                print('------------------------------------------------------------------')
 
 
 # ===============================================================================
@@ -233,25 +253,26 @@ for j in range(len(scenario_files)):
 # ===============================================================================
 # compare contribution to frequency deviation
         # dataframe for bar plot after loop
-        frequency_df[scenario_files[j]] = scenario_data[j].std()
-        # save values from reference scenario "1 no SB"
-        if j == 0:
-                frequency_ref = scenario_data[j]['f [Hz]'].std()
+        if frequency_analysis:
+                frequency_df[scenario_files[j]] = scenario_data[j].std()
+                # save values from reference scenario "1 no SB"
+                if j == 0:
+                        frequency_ref = scenario_data[j]['f [Hz]'].std()
 
-        frequency_all = {}
-        frequency_all[scenario_files[j], ' f Mean in Hz'] = scenario_data[j]['f [Hz]'].mean()
-        frequency_all[scenario_files[j],' f std in Hz']= scenario_data[j]['f [Hz]'].std()
-        frequency_all[scenario_files[j], ' f min in Hz'] = scenario_data[j]['f [Hz]'].min()
-        frequency_all[scenario_files[j], ' f max in Hz'] = scenario_data[j]['f [Hz]'].max()
+                frequency_all = {}
+                frequency_all[scenario_files[j], ' f Mean in Hz'] = scenario_data[j]['f [Hz]'].mean()
+                frequency_all[scenario_files[j],' f std in Hz']= scenario_data[j]['f [Hz]'].std()
+                frequency_all[scenario_files[j], ' f min in Hz'] = scenario_data[j]['f [Hz]'].min()
+                frequency_all[scenario_files[j], ' f max in Hz'] = scenario_data[j]['f [Hz]'].max()
 
-        print('Scenario ', scenario_files[j], ': FREQUENCY')
-        print('------------------------------------------------------------------')
-        print('f Mean: ', frequency_all[scenario_files[j], ' f Mean in Hz'], ' Hz')
-        print('f Std: ', frequency_all[scenario_files[j], ' f std in Hz'].round(6), ' Hz')
-        print('f min: ', frequency_all[scenario_files[j], ' f min in Hz'].round(3), ' Hz')
-        print('f max: ', frequency_all[scenario_files[j], ' f max in Hz'].round(3), ' Hz')
-        print('------------------------------------------------------------------')
-        print('------------------------------------------------------------------')
+                print('Scenario ', scenario_files[j], ': FREQUENCY')
+                print('------------------------------------------------------------------')
+                print('f Mean: ', frequency_all[scenario_files[j], ' f Mean in Hz'], ' Hz')
+                print('f Std: ', frequency_all[scenario_files[j], ' f std in Hz'].round(6), ' Hz')
+                print('f min: ', frequency_all[scenario_files[j], ' f min in Hz'].round(3), ' Hz')
+                print('f max: ', frequency_all[scenario_files[j], ' f max in Hz'].round(3), ' Hz')
+                print('------------------------------------------------------------------')
+                print('------------------------------------------------------------------')
 # ===============================================================================
 #todo: Inputs zur Analyse, welche Technologie wann richtig stand?
 #todo: sign of imba vs. sign of SB per technology
@@ -266,33 +287,40 @@ for j in range(len(scenario_files)):
 Energie_Summen = scenario_sum_df.filter(['GER pos. energy aFRR [MWh]', 'GER neg. energy aFRR [MWh]', 'GER pos. energy mFRR [MWh]', 'GER neg. energy mFRR [MWh]'], axis=0)/1000
 Energie_Summen.plot.bar(title='Comparison of Balancing Energy')
 plt.ylabel('balancing energy in GWh')
+Energie_Summen.to_csv("energie_summen_hist.csv")
 
 Kosten_Summen = scenario_sum_df.filter(['GER pos. aFRR costs [EUR]','GER neg. aFRR costs [EUR]', 'GER pos. mFRR costs [EUR]','GER neg. mFRR costs [EUR]'], axis=0)/1000000
 Kosten_Summen.plot.bar(title='Comparison of Costs')
 plt.ylabel('costs in mio. €')
+Kosten_Summen.to_csv("kosten_summen_hist.csv")
 
-#print(frequency_df['f [Hz]'])
+if save_june_event_csv:
+        june_data.to_csv('june_data.csv')
+        june_data.plot(title='12. of June 2020 in Germany')
+        plt.ylabel('ACE in MW')
 
-#plt.show()
-results = {}
-cols = ['Gewinn', 'Energie','spz. Kosten', 'Aufrufe', 'Dauer']
-for name in names:
-        results[name] = pd.DataFrame()
-        results[name] = (pd.DataFrame.from_dict(techno_results[name])).T
-        results[name].columns = cols
+plt.show()
 
-        print(name)
-        print("-------------------------------------------------------------------------")
-        print(results[name])
-        print("-------------------------------------------------------------------------")
-
-results_col = {}
-for col in cols:
-        results_col[col] = {}
+if technology_analysis:
+        results = {}
+        cols = ['Gewinn', 'Energie','spz. Kosten', 'Aufrufe', 'Dauer']
         for name in names:
-                results_col[col][name] = results[name][col]
+                results[name] = pd.DataFrame()
+                results[name] = (pd.DataFrame.from_dict(techno_results[name])).T
+                results[name].columns = cols
 
-        print(col)
-        print("-------------------------------------------------------------------------")
-        print(pd.DataFrame.from_dict(results_col[col]))
-        print("-------------------------------------------------------------------------")
+                print(name)
+                print("-------------------------------------------------------------------------")
+                print(results[name])
+                print("-------------------------------------------------------------------------")
+
+        results_col = {}
+        for col in cols:
+                results_col[col] = {}
+                for name in names:
+                        results_col[col][name] = results[name][col]
+
+                print(col)
+                print("-------------------------------------------------------------------------")
+                print(pd.DataFrame.from_dict(results_col[col]))
+                print("-------------------------------------------------------------------------")
