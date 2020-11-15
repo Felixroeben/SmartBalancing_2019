@@ -23,14 +23,14 @@ location = "results/"
 #================================================================================
 #What do you want to analyse?
 #================================================================================
-save_june_event_csv = False
+save_june_event_csv = True
 example_plot = False
 frequency_analysis = False
-technology_analysis = True
+technology_analysis = False
 #================================================================================
 if location == "results/":
-        scenario_files = ['1 no SB','2 TL3','3 TL6','4 DE', '5 NL'] #,'6 BEPP15','7 BEPP1']
-        scenario_path = ['1 no SB','2 TL3','3 TL6','4 DE', '5 NL'] #,'6 BEPP15','7 BEPP1']
+        scenario_files = ['1 no SB','2 TL3','3 TL6'] #,'4 DE', '5 NL'] #,'6 BEPP15','7 BEPP1']
+        scenario_path = ['1 no SB','2 TL3','3 TL6'] #,'4 DE', '5 NL'] #,'6 BEPP15','7 BEPP1']
 
 if location == "results_sin/" or location == "results_1d/":
         scenario_files = ['1 no SB','4 DE','5 NL'] #['1 no SB','4 DE', '5 NL']
@@ -304,9 +304,14 @@ plt.ylabel('costs in mio. €')
 Kosten_Summen.to_csv("kosten_summen_hist.csv")
 
 if save_june_event_csv:
-        june_data.to_csv('june_data.csv')
-        june_data.plot(title='12. of June 2020 in Germany')
+        fig, ax = plt.subplots(1, 1)
+        ax.plot(june_data['Historic'], label='Historic')
+        ax.plot(june_data['2 TL3'], '--', label='TL3')
+        ax.plot(june_data['3 TL6'], ':', label='TL6')
+        plt.hlines(3098.0,june_data.first_valid_index(),june_data.last_valid_index(), linestyles='-.',  lw=0.5,label='100% FRR')
+        plt.hlines(4647.0, june_data.first_valid_index(), june_data.last_valid_index(), linestyles='-.', lw=0.5,label='150% FRR')
         plt.ylabel('ACE in MW')
+        plt.legend()
 
 plt.show()
 

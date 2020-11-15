@@ -21,8 +21,8 @@ location = "results/"
 #location = "results_1d/"
 
 if location == "results/":
-        scenario_files = ['6 no SB PAB','7 DEs', '8 NLs','9 no SB MP','10 BEPP15','11 BEPP1']
-        scenario_path = ['6 no SB PAB','7 DEs', '8 NLs','9 no SB MP','10 BEPP15','11 BEPP1']
+        scenario_files = ['6 no SB PAB','7 DEs', '8 NLs','9 no SB BEPP15','10 BEPP15','11 no SB BEPP1','12 BEPP1']
+        scenario_path = ['6 no SB PAB','7 DEs', '8 NLs','9 no SB BEPP15','10 BEPP15','11 no SB BEPP1','12 BEPP1']
 
 if location == "results_sin/" or location == "results_1d/":
         scenario_files = ['1 no SB','4 DE','5 NL'] #['1 no SB','4 DE', '5 NL']
@@ -32,7 +32,7 @@ if location == "results_sin/" or location == "results_1d/":
 #define start and end of example plots
 # ===============================================================================
 example_plot = True
-if location == "results_sin/" or location == "results_1d/" or location == "results/":
+if location == "results_sin/" or location == "results_1d/":
         start = ["2019-01-01 5:00","2019-01-01 9:00","2019-01-01 14:25"]
         end = ["2019-01-01 7:45","2019-01-01 9:45","2019-01-01 15:45"]
 
@@ -40,7 +40,7 @@ if location == "results/x":
         start = ["2019-06-12 10:00"]
         end = ["2019-06-12 14:45"]
 
-if location == "XXresults_1d/":
+if location == "XXresults_1d/" or location == "results/":
         start = ["2019-01-01 14:25"]
         end = ["2019-01-01 14:45"]
 # ===============================================================================
@@ -275,14 +275,16 @@ for j in range(len(scenario_files)):
 Energie_Summen = scenario_sum_df.filter(['GER pos. energy aFRR [MWh]', 'GER neg. energy aFRR [MWh]', 'GER pos. energy mFRR [MWh]', 'GER neg. energy mFRR [MWh]'], axis=0)/1000
 Energie_Summen.plot.bar(title='Comparison of Balancing Energy')
 plt.ylabel('balancing energy in GWh')
+Energie_Summen.to_csv("energie_summen_synth.csv")
 
 Kosten_Summen = scenario_sum_df.filter(['GER pos. aFRR costs [EUR]','GER neg. aFRR costs [EUR]', 'GER pos. mFRR costs [EUR]','GER neg. mFRR costs [EUR]'], axis=0)/1000000
 Kosten_Summen.plot.bar(title='Comparison of Costs')
 plt.ylabel('costs in mio. €')
+Kosten_Summen.to_csv("kosten_summen_synth.csv")
 
 #print(frequency_df['f [Hz]'])
 
-#plt.show()
+plt.show()
 cols = ['Gewinn', 'Energie', 'spz. Kosten', 'Aufrufe', 'Dauer']
 
 results = {}
