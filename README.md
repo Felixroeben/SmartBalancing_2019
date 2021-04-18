@@ -1,10 +1,20 @@
 # Smart Balancing 2019
 
-New repository. Copy from Feldtest_Scenario 
+The Smart Balancing Simulation was developed within the project NEW 4.0 (North German Energy Transition 4.0), which is partly funded by the German Federal Ministry for Economic Affairs and Energy (BMWi) grant number 03SIN400 and 03SIN411. The presented data is supporting reported results in the manuscript "Smart Balancing of Electrical Power in Germancy: Fuzzy Logic Model to Simulate Market Response". Authors of Article: Felix Röben, Hans Schäfers, Anna Meißner, Jerom de Haan. Simulation Development: Julian Franz (JF), Anna Meißner (AM), Felix Röben (FR).
+
+Repository is based on source code of two earlier simulations, presented 22.06.2020 at IEEE Conference on the European Energy Market:
+(see https://www.researchgate.net/profile/Felix-Roeben/research for more details)
+
+1. Market-Response for real-time energy balancing - Simulation using Field Test Data, JF, FR. 
 (Simulation of NEW 4.0 Fieldtest: Smart Balancing by 5 real Balancing Groups in Hamburg / Schleswig-Holstein
 in the week 18.11.2019 to 24.11.2019 in 1s resolution and effect on German balancing demand/costs)
+merge into Repository from Feldtest_Scenario - 16.07.2020 (JF)
 
-The "Smart Balancing 2019" grid model aims at further analyse different balancing market approaches. 
+2. Market Response for real-time energy balancing with fuzzy logic, FR, AM.  
+(Simulation of Smart Balancing with fuzzy logic and synthetic imbalance values)
+merge into Repository - 10.07.2020 (FR)
+
+The "Smart Balancing 2019" Simulation aims at further analyse different balancing market approaches. 
 In contrast to the fieldtest, the complete Smart Balancing contribution of all generation units and of the industrie is 
 under consideration.
 
